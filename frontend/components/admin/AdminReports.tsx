@@ -30,6 +30,7 @@ interface AdminStats {
 
 interface TopPerformer {
   _id: string
+  id?: string
   name: string
   conversionRate: number
   leadsAssigned: number
@@ -133,9 +134,15 @@ function OverviewTab() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const d = await getAdminDashboardAll()
-      setData(d)
-    } catch { /* silently handle — empty state renders */ }
+      const response = await getAdminDashboardAll()
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to load admin dashboard data')
+      }
+      setData(response.data ?? response)
+    } catch (error) {
+      console.error('Overview tab load failed:', error)
+      setData(null)
+    }
     finally { setLoading(false) }
   }, [])
 
@@ -143,18 +150,20 @@ function OverviewTab() {
 
   if (loading) return <Spinner />
 
-  const stats: AdminStats = data?.stats ?? {}
-  const topPerformers: TopPerformer[] = data?.topPerformers ?? []
-  const stageDistribution: StageData[] = (data?.stageDistribution ?? []).map((s: any) => ({
+  const payload = data?.data ?? data ?? {}
+
+  const stats: AdminStats = payload?.stats ?? {}
+  const topPerformers: TopPerformer[] = payload?.topPerformers ?? []
+  const stageDistribution: StageData[] = (payload?.stageDistribution ?? []).map((s: any) => ({
     name: s._id ?? s.name ?? s.stage ?? '',
     count: s.count ?? 0,
     color: STAGE_COLORS[s._id ?? s.name ?? ''] ?? '#94a3b8',
   }))
-  const conversionTrend: TrendPoint[] = (data?.conversionTrend ?? []).map((p: any) => ({
+  const conversionTrend: TrendPoint[] = (payload?.conversionTrend ?? []).map((p: any) => ({
     month: p.month ?? p._id ?? '',
     rate: fmt(p.rate ?? p.conversionRate ?? 0),
   }))
-  const sourceDistribution: SourceData[] = (data?.sourceDistribution ?? []).map((s: any) => ({
+  const sourceDistribution: SourceData[] = (payload?.sourceDistribution ?? []).map((s: any) => ({
     source: s._id ?? s.source ?? '',
     count: s.count ?? 0,
     percentage: fmt(s.percentage ?? 0),
@@ -257,7 +266,7 @@ function OverviewTab() {
           ) : (
             <div className="space-y-3">
               {topPerformers.slice(0, 5).map((p, i) => (
-                <div key={p._id} className="flex items-center gap-3">
+                <div key={p._id ?? p.id ?? `${p.name}-${i}`} className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
                     ${i === 0 ? 'bg-[#FACE39] text-[#00000F]' : i === 1 ? 'bg-gray-200 text-gray-700' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-gray-400'}`}>
                     {i + 1}

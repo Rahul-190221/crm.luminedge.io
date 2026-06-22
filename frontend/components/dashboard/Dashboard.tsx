@@ -46,41 +46,46 @@ export default function AdminDashboard() {
   const [loading,    setLoading]    = useState(true)
   const [fetchTick,  setFetchTick]  = useState(0)
   const [mounted,    setMounted]    = useState(false)
+  const [error,      setError]      = useState<Error | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true)
+      setError(null)
       try {
         const res = await getAdminDashboardAll()
-        if (res?.success) {
-          const d = res.data
-          if (d.stats)             setStats(prev => ({ ...prev, ...d.stats }))
-          if (d.recentActivity)    setRecentActivity(d.recentActivity)
-          if (d.topPerformers)     setTopPerformers(d.topPerformers)
-          if (d.stageDistribution) setStageDistribution(d.stageDistribution)
-          if (d.stageTrend)        setStageTrend(d.stageTrend)
-          if (d.sourceDistribution)setSourceDistribution(d.sourceDistribution)
-          if (d.conversionTrend)   setConversionTrend(d.conversionTrend)
-          if (d.coursePerformance) {
-            setCoursePerformance(d.coursePerformance)
-          } else {
-            setCoursePerformance([
-              { label: 'IELTS Premium',   count: 0, color: '#EF4444' },
-              { label: 'IELTS Crash',     count: 0, color: '#F87171' },
-              { label: 'IELTS Intense',   count: 0, color: '#DC2626' },
-              { label: 'IELTS Elementary',count: 0, color: '#FCA5A5' },
-              { label: 'IELTS Mock Test', count: 0, color: '#FF6B6B' },
-              { label: 'Basic English',   count: 0, color: '#F97316' },
-              { label: 'GRE Premium',     count: 0, color: '#22C55E' },
-              { label: 'TOEFL Premium',   count: 0, color: '#3B82F6' },
-              { label: 'PTE Premium',     count: 0, color: '#A855F7' },
-            ])
-          }
+        if (!res?.success) {
+          throw new Error(res?.message || 'Could not load dashboard.')
+        }
+        const d = res.data
+        if (d.stats)             setStats(prev => ({ ...prev, ...d.stats }))
+        if (d.recentActivity)    setRecentActivity(d.recentActivity)
+        if (d.topPerformers)     setTopPerformers(d.topPerformers)
+        if (d.stageDistribution) setStageDistribution(d.stageDistribution)
+        if (d.stageTrend)        setStageTrend(d.stageTrend)
+        if (d.sourceDistribution)setSourceDistribution(d.sourceDistribution)
+        if (d.conversionTrend)   setConversionTrend(d.conversionTrend)
+        if (d.coursePerformance) {
+          setCoursePerformance(d.coursePerformance)
+        } else {
+          setCoursePerformance([
+            { label: 'IELTS Premium',   count: 0, color: '#EF4444' },
+            { label: 'IELTS Crash',     count: 0, color: '#F87171' },
+            { label: 'IELTS Intense',   count: 0, color: '#DC2626' },
+            { label: 'IELTS Elementary',count: 0, color: '#FCA5A5' },
+            { label: 'IELTS Mock Test', count: 0, color: '#FF6B6B' },
+            { label: 'Basic English',   count: 0, color: '#F97316' },
+            { label: 'GRE Premium',     count: 0, color: '#22C55E' },
+            { label: 'TOEFL Premium',   count: 0, color: '#3B82F6' },
+            { label: 'PTE Premium',     count: 0, color: '#A855F7' },
+          ])
         }
       } catch (error: any) {
-        console.error('Admin dashboard fetch error:', error?.message || error)
+        const nextError = error instanceof Error ? error : new Error(error?.message || 'Could not load dashboard.')
+        console.error('Admin dashboard fetch error:', nextError.message)
+        setError(nextError)
       } finally {
         setLoading(false)
       }
@@ -132,6 +137,10 @@ export default function AdminDashboard() {
   const maxCourseCount = coursePerformance.length > 0
     ? Math.max(...coursePerformance.map(s => s.count))
     : 1
+
+  if (error) {
+    throw error
+  }
 
   if (loading) {
     return (
