@@ -1,0 +1,357 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dynamic progress bar — width and color driven by CSS custom properties set in JSX */
+.bdm-status-bar {
+  width: var(--bar-width, 0%);
+  background-color: var(--bar-color, #e5e7eb);
+}
+
+/* ── Luminedge Brand: #FACE39 · #00000F · #FFFFFF ── */
+
+@layer base {
+  :root {
+    --color-yellow: #FACE39;
+    --color-dark:   #00000F;
+    --color-white:  #FFFFFF;
+    --font-body: var(--font-montserrat), 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  body {
+    background-color: #FFFFFF;
+    color: #00000F;
+    font-family: var(--font-body);
+    text-shadow: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-body);
+    color: #00000F;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select {
+    color: inherit;
+  }
+}
+
+/* ── Ambient background light blobs ── */
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0px,   0px)  scale(1);    }
+  25%       { transform: translate(50px, -40px) scale(1.08); }
+  50%       { transform: translate(-30px, 50px) scale(0.95); }
+  75%       { transform: translate(40px,  25px) scale(1.04); }
+}
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0px,   0px)  scale(1);    }
+  33%       { transform: translate(-60px, 35px) scale(1.1);  }
+  66%       { transform: translate(40px, -50px) scale(0.92); }
+}
+@keyframes drift-3 {
+  0%, 100% { transform: translate(0px,   0px)  scale(1);    }
+  40%       { transform: translate(70px,  25px) scale(1.06); }
+  80%       { transform: translate(-40px,-60px) scale(0.97); }
+}
+@keyframes drift-4 {
+  0%, 100% { transform: translate(0px,   0px)  scale(1);    }
+  50%       { transform: translate(-35px, 45px) scale(1.05); }
+}
+
+.ambient-blob-1 { animation: drift-1 22s ease-in-out infinite; }
+.ambient-blob-2 { animation: drift-2 28s ease-in-out infinite; }
+.ambient-blob-3 { animation: drift-3 33s ease-in-out infinite; }
+.ambient-blob-4 { animation: drift-4 18s ease-in-out infinite; }
+
+/* ── Card hover lift + yellow glow ── */
+.card-lift {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 32px rgba(250, 206, 57, 0.14),
+    0 4px 12px rgba(0, 0, 15, 0.05);
+}
+
+/* ── Yellow glow button ── */
+.btn-yellow-glow {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.btn-yellow-glow:hover {
+  box-shadow:
+    0 0 0 3px rgba(250, 206, 57, 0.25),
+    0 8px 28px rgba(250, 206, 57, 0.30);
+  transform: translateY(-1px);
+}
+
+/* ── Nav item hover glow ── */
+.nav-item-hover {
+  transition: all 0.18s ease;
+}
+.nav-item-hover:hover {
+  background: rgba(0, 0, 15, 0.04);
+}
+.nav-item-active {
+  background: #FACE39 !important;
+  box-shadow: 0 4px 18px rgba(250, 206, 57, 0.35);
+}
+
+/* Shared sidebar hover treatment */
+.sidebar-hover-liquid {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.sidebar-hover-liquid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 12% 50%,
+    rgba(250, 206, 57, 0.30) 0%,
+    rgba(250, 206, 57, 0.16) 36%,
+    rgba(250, 206, 57, 0.07) 60%,
+    rgba(250, 206, 57, 0) 82%
+  );
+  transition: opacity 180ms ease;
+}
+
+.sidebar-hover-liquid:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(250, 206, 57, 0.14), 0 2px 8px rgba(0, 0, 15, 0.04);
+}
+
+.sidebar-hover-liquid:hover::before {
+  opacity: 1;
+}
+
+.sidebar-hover-liquid:active {
+  transform: translateY(0);
+}
+
+/* ── Premium sidebar section labels ── */
+.sidebar-section-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 15, 0.28);
+  padding: 20px 12px 6px;
+  user-select: none;
+  display: block;
+}
+
+/* ── Premium page background ── */
+.app-bg {
+  background-color: #fafafa;
+}
+
+/* ── Premium stat card ── */
+.stat-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 15, 0.07);
+  box-shadow: 0 2px 16px rgba(0, 0, 15, 0.04);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(250, 206, 57, 0.12), 0 2px 8px rgba(0,0,15,0.04);
+}
+
+/* ── Shimmer sweep on hover ── */
+@keyframes shimmer {
+  0%   { left: -100%; }
+  100% { left:  200%; }
+}
+.shimmer-hover {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-hover::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(250, 206, 57, 0.12),
+    transparent
+  );
+  transform: skewX(-15deg);
+  transition: none;
+  pointer-events: none;
+}
+.shimmer-hover:hover::after {
+  animation: shimmer 0.6s ease forwards;
+}
+
+/* ── Glowing border on focus/active cards ── */
+.glow-border-yellow {
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.glow-border-yellow:hover,
+.glow-border-yellow:focus-within {
+  border-color: rgba(250, 206, 57, 0.4);
+  box-shadow: 0 0 0 3px rgba(250, 206, 57, 0.12);
+}
+
+/* ── Auth page grid overlay ── */
+.auth-grid-overlay {
+  background-image:
+    linear-gradient(rgba(250, 206, 57, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(250, 206, 57, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── Auth submit button ── */
+.auth-submit-btn {
+  background: linear-gradient(135deg, #FACE39 0%, #E8B010 100%);
+  box-shadow: 0 0 30px rgba(250, 206, 57, 0.35);
+  color: #00000F;
+}
+.auth-submit-btn:hover {
+  background: linear-gradient(135deg, #E8B010 0%, #FACE39 100%);
+  box-shadow: 0 0 40px rgba(250, 206, 57, 0.50);
+}
+
+/* ── Ambient blob positions ── */
+.blob-1 {
+  width: 600px; height: 600px;
+  top: -10%; left: 5%;
+  background: #FACE39;
+  filter: blur(140px);
+  opacity: 0.07;
+}
+.blob-2 {
+  width: 500px; height: 500px;
+  top: 40%; right: -5%;
+  background: #FACE39;
+  filter: blur(120px);
+  opacity: 0.05;
+}
+.blob-3 {
+  width: 400px; height: 400px;
+  bottom: -5%; left: 35%;
+  background: #FACE39;
+  filter: blur(100px);
+  opacity: 0.06;
+}
+.blob-4 {
+  width: 300px; height: 300px;
+  top: 20%; left: 55%;
+  background: #FACE39;
+  filter: blur(90px);
+  opacity: 0.04;
+}
+
+/* ── Scrollbar hide ── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; }
+@supports (scrollbar-width: none) {
+  .scrollbar-hide { scrollbar-width: none; }
+}
+
+/* ── Parallax floating elements ── */
+.parallax-el {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+  z-index: 0;
+  transition: transform 0.1s linear;
+  transform: translate(calc(var(--mx,0) * var(--p-depth,20px)), calc(var(--my,0) * var(--p-depth,20px)));
+}
+@media (min-width: 1024px) { .parallax-el { display: block; } }
+.parallax-el-phrase { -webkit-user-select: none; user-select: none; }
+
+/* ── LoginPage phrase positions ── */
+.lp-ph-0{left:15%;top:6%;--p-depth:28px}  .lp-ph-1{left:13%;top:22%;--p-depth:16px}
+.lp-ph-2{left:16%;top:40%;--p-depth:22px} .lp-ph-3{left:14%;top:60%;--p-depth:12px}
+.lp-ph-4{left:18%;top:78%;--p-depth:18px} .lp-ph-5{left:64%;top:6%;--p-depth:24px}
+.lp-ph-6{left:63%;top:22%;--p-depth:14px} .lp-ph-7{left:65%;top:40%;--p-depth:30px}
+.lp-ph-8{left:63%;top:60%;--p-depth:11px} .lp-ph-9{left:67%;top:78%;--p-depth:20px}
+
+/* ── LoginPage shape wrapper positions ── */
+.lp-sh-0{left:22%;top:38%;--p-depth:35px} .lp-sh-1{left:72%;top:22%;--p-depth:18px}
+.lp-sh-2{left:20%;top:62%;--p-depth:26px} .lp-sh-3{left:74%;top:75%;--p-depth:14px}
+.lp-sh-4{left:14%;top:18%;--p-depth:22px} .lp-sh-5{left:70%;top:42%;--p-depth:32px}
+.lp-sh-6{left:17%;top:80%;--p-depth:15px} .lp-sh-7{left:68%;top:60%;--p-depth:28px}
+
+/* ── SignupPage phrase positions ── */
+.sp-ph-0{left:15%;top:6%;--p-depth:28px}  .sp-ph-1{left:13%;top:22%;--p-depth:16px}
+.sp-ph-2{left:15%;top:40%;--p-depth:22px} .sp-ph-3{left:14%;top:58%;--p-depth:12px}
+.sp-ph-4{left:18%;top:75%;--p-depth:18px} .sp-ph-5{left:64%;top:6%;--p-depth:24px}
+.sp-ph-6{left:63%;top:22%;--p-depth:14px} .sp-ph-7{left:65%;top:40%;--p-depth:30px}
+.sp-ph-8{left:63%;top:58%;--p-depth:11px} .sp-ph-9{left:67%;top:75%;--p-depth:20px}
+
+/* ── SignupPage shape wrapper positions ── */
+.sp-sh-0{left:22%;top:32%;--p-depth:35px} .sp-sh-1{left:72%;top:18%;--p-depth:18px}
+.sp-sh-2{left:20%;top:55%;--p-depth:26px} .sp-sh-3{left:74%;top:70%;--p-depth:14px}
+.sp-sh-4{left:14%;top:15%;--p-depth:22px} .sp-sh-5{left:70%;top:38%;--p-depth:32px}
+.sp-sh-6{left:17%;top:70%;--p-depth:15px} .sp-sh-7{left:68%;top:55%;--p-depth:28px}
+
+/* ── Shape inner sizes (shared) ── */
+.sh-sq-0{width:24px;height:24px} .sh-sq-1{width:16px;height:16px}
+.sh-sq-2{width:20px;height:20px} .sh-sq-3{width:14px;height:14px}
+.sh-ln-0{width:50px} .sh-ln-1{width:36px} .sh-ln-2{width:44px} .sh-ln-3{width:30px}
+
+/* ── Dynamic progress bar (Dashboard) ── */
+.progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: all 500ms;
+}
+
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ── Date Picker Customization ── */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"] {
+  accent-color: #FACE39;
+  color-scheme: light; /* Ensures consistent styling */
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator,
+input[type="time"]:hover::-webkit-calendar-picker-indicator,
+input[type="month"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
