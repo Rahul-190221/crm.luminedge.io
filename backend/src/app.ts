@@ -69,6 +69,12 @@ const corsOptions: CorsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+// Health check — placed before rate limiter and DB middleware so Render's
+// probe always gets a fast 200 even during cold start or DB reconnection.
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'OK', message: 'CRM API is running' });
+});
+
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -90,10 +96,14 @@ const generalLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forget-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
+app.use('/api/auth/set-password', authLimiter);
+app.use('/api/student/auth/forgot-password', authLimiter);
+app.use('/api/student/auth/reset-password', authLimiter);
 app.use('/api', generalLimiter);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Ensure DB is connected before handling requests (required for serverless/Vercel)
 app.use(async (_req: Request, res: Response, next: NextFunction) => {
@@ -159,11 +169,6 @@ app.post('/api/internal/socket/notifications', (req: Request, res: Response) => 
 
   socketService.emitToUser(recipientId, 'new-notification', notification);
   res.json({ success: true });
-});
-
-// Health check
-app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ status: 'OK', message: 'CRM API is running' });
 });
 
 // 404 handler

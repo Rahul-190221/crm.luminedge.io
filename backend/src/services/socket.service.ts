@@ -23,12 +23,14 @@ class SocketService {
 
     public init(server: HttpServer): void {
             this.io = new SocketIOServer(server, {
-                cors: {
-                    origin: (origin, callback) => {
-                        if (isAllowedOrigin(origin, allowedOrigins)) {
-                            callback(null, true);
-                            return;
-                        }
+            pingInterval: 25000,  // send ping every 25s
+            pingTimeout: 20000,   // wait 20s for pong before considering disconnected
+            cors: {
+                origin: (origin, callback) => {
+                    if (isAllowedOrigin(origin, allowedOrigins)) {
+                        callback(null, true);
+                        return;
+                    }
                     callback(new Error('Not allowed by CORS'));
                 },
                 methods: ['GET', 'POST'],

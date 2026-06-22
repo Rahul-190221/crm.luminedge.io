@@ -1,5 +1,6 @@
 services:
   # ── Backend: Express + Socket.io (long-running Node process) ──────────────────
+  # Frontend is deployed on Netlify — only the backend runs on Render.
   - type: web
     name: luminedge-crm-backend
     env: node
@@ -20,6 +21,8 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: BLOB_READ_WRITE_TOKEN
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -33,26 +36,4 @@ services:
       - key: SMTP_FROM
         sync: false
       - key: GOOGLE_CLIENT_ID
-        sync: false
-
-  # ── Frontend: Next.js 14 SSR (long-running Node process) ─────────────────────
-  - type: web
-    name: luminedge-crm-frontend
-    env: node
-    region: oregon
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    healthCheckPath: /
-    autoDeploy: true
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NEXT_PUBLIC_API_URL
-        sync: false
-      - key: NEXT_PUBLIC_SOCKET_URL
-        sync: false
-      - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
-        sync: false
-      - key: JWT_SECRET
         sync: false

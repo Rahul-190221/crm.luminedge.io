@@ -11,24 +11,6 @@ export const isLocalOrigin = (origin: string): boolean => {
   }
 }
 
-export const isHostingOrigin = (origin: string): boolean => {
-  try {
-    const parsed = new URL(origin)
-    const hostname = parsed.hostname.toLowerCase()
-
-    return (
-      hostname === 'netlify.app' ||
-      hostname.endsWith('.netlify.app') ||
-      hostname === 'vercel.app' ||
-      hostname.endsWith('.vercel.app') ||
-      hostname === 'onrender.com' ||
-      hostname.endsWith('.onrender.com')
-    )
-  } catch {
-    return false
-  }
-}
-
 export const isAllowedOrigin = (origin: string | undefined, allowedOrigins: Set<string>): boolean => {
   if (!origin) return true
 
@@ -38,7 +20,6 @@ export const isAllowedOrigin = (origin: string | undefined, allowedOrigins: Set<
   return (
     allowedOrigins.has(normalizedOrigin) ||
     (frontendUrl ? normalizeOrigin(frontendUrl) === normalizedOrigin : false) ||
-    isLocalOrigin(normalizedOrigin) ||
-    isHostingOrigin(normalizedOrigin)
+    isLocalOrigin(normalizedOrigin)
   )
 }

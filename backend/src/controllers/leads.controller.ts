@@ -27,10 +27,11 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (search) {
+      const safeSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 200);
       filter.$or = [
-        { fullName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } }
+        { fullName: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { phone: { $regex: safeSearch, $options: 'i' } }
       ];
     }
 
@@ -128,9 +129,18 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
 // Update lead
 export const updateLead = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { followUps, ...updateData } = req.body;
+    const { followUps, fullName, email, phone, source, serviceInterest, assignedTo, notes, lifecycleStage } = req.body;
 
-    // Process follow-ups if provided
+    const updateData: Record<string, any> = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (source !== undefined) updateData.source = source;
+    if (serviceInterest !== undefined) updateData.serviceInterest = serviceInterest;
+    if (assignedTo !== undefined) updateData.assignedTo = assignedTo;
+    if (notes !== undefined) updateData.notes = notes;
+    if (lifecycleStage !== undefined) updateData.lifecycleStage = lifecycleStage;
+
     if (followUps) {
       updateData.followUps = followUps.map((fu: any) => ({
         date: fu.date ? new Date(fu.date) : undefined,

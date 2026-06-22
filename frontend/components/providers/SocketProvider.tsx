@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+
 import { socketService } from '@/lib/socket';
 import Cookies from 'js-cookie';
 
@@ -13,26 +13,24 @@ interface SocketContextValue {
 const SocketContext = createContext<SocketContextValue | null>(null);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-    const pathname = usePathname();
     const [connectionTick, setConnectionTick] = useState(0);
 
+    // Connect once on mount; re-connect if token changes (login/logout).
     useEffect(() => {
         const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
 
         if (token) {
             socketService.connect(token);
+            setConnectionTick(prev => prev + 1);
         } else {
             socketService.disconnect();
         }
 
-        setConnectionTick(prev => prev + 1);
-    }, [pathname]);
-
-    useEffect(() => {
         return () => {
             socketService.disconnect();
         };
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // intentionally empty — reconnect is handled inside socketService.connect()
 
     // Ping the socket server every 4 minutes to keep Render's free tier awake
     useEffect(() => {
@@ -50,7 +48,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         if (Notification.permission === 'default') {
             Notification.requestPermission().catch(() => undefined);
         }
-    }, [pathname]);
+    }, []);
 
     useEffect(() => {
         const activeSocket = socketService.socket;
