@@ -104,7 +104,7 @@ function StudentResetPasswordContent() {
       >
         <div className="flex flex-col items-center mb-10">
           <div className="mb-4 p-4 rounded-2xl bg-[#FACE39]/10 border border-[#FACE39]/20">
-            <Image src={mainlogo} alt="Luminedge" width={48} height={48} style={{ width: 48, height: 'auto' }} />
+            <Image src={mainlogo} alt="Luminedge" className="w-12 h-auto" />
           </div>
           <h1 className="text-2xl font-black text-[#00000F]">Set New Password</h1>
           <p className="text-sm text-[#00000F]/50 mt-1.5">Student Portal</p>

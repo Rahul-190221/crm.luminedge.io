@@ -11,6 +11,7 @@ export interface ILead extends Document {
   fullName: string;
   email?: string;
   phone: string;
+  whom?: 'Personal' | 'Parents' | 'Cousin' | 'Uncle' | 'Sibling' | 'Spouse';
   source: 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
   serviceInterest: ('IELTS Premium' | 'IELTS Crash' | 'IELTS Intense' | 'IELTS Elementary' | 'IELTS Mock Test' | 'Basic English' | 'GRE Premium' | 'TOEFL Premium' | 'PTE Premium' | 'Study Abroad' | 'Visa Processing')[];
   assignedTo?: mongoose.Types.ObjectId;
@@ -47,6 +48,10 @@ const LeadSchema = new Schema<ILead>(
       type: String,
       required: [true, 'Phone number is required'],
       trim: true
+    },
+    whom: {
+      type: String,
+      enum: ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse']
     },
     source: {
       type: String,

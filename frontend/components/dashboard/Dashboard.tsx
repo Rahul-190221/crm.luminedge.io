@@ -319,7 +319,7 @@ export default function AdminDashboard() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" strokeOpacity={0.6} />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 600 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 600 }} width={26} />
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', fontSize: 12 }} />
+                  <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', fontSize: 12 }} />
                   <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: '10px', fontWeight: 700, paddingTop: '10px' }} />
                   <Line type="monotone" dataKey="Converted" stroke="#22C55E" strokeWidth={2.5} dot={{ r: 3.5, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
                   <Line type="monotone" dataKey="Hot"        stroke="#F97316" strokeWidth={2.5} dot={{ r: 3.5, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
@@ -355,7 +355,7 @@ export default function AdminDashboard() {
                       <Cell key={`cell-${index}`} fill={SOURCE_CHART_COLORS[index % SOURCE_CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${value}%`, 'Share']} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', fontWeight: 700 }} />
+                  <Tooltip formatter={(value) => [`${value}%`, 'Share']} contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', fontWeight: 700 }} />
                   <Legend layout="horizontal" align="center" verticalAlign="bottom" iconType="circle" iconSize={7}
                     wrapperStyle={{ fontSize: '9px', fontWeight: 700, paddingTop: '6px', lineHeight: '1.4' }}
                     formatter={(value) => <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">{value}</span>}
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 600 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 600 }} tickFormatter={v => `${v}%`} width={30} />
                   <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)', radius: 6 }} formatter={(value) => [`${value}%`, 'Rate']}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
+                    contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
                   />
                   <Bar dataKey="rate" fill="#FACE39" radius={[6, 6, 0, 0]} barSize={30} />
                 </BarChart>

@@ -56,7 +56,7 @@ const StageDropdown: React.FC<{ value: LeadStageType; onChange: (s: LeadStageTyp
             <button
                 ref={btnRef}
                 onClick={toggle}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all hover:shadow-md ${colors.bg} ${colors.text} ${colors.border}`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all hover:shadow-md ${colors.bg} ${colors.text} ${colors.border}`}
             >
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${stageDotColors[value]}`} />
                 {value}

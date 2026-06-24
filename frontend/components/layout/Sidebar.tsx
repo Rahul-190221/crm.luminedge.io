@@ -1,27 +1,19 @@
-'use client'
+﻿'use client'
 
+import React, { useState } from 'react'
 import {
   LayoutDashboard,
+  Columns2,
   Users,
-  Briefcase,
-  LogOut,
-  ChevronDown,
-  ChevronLeft,
-  GraduationCap,
-  ClipboardCheck,
-  FileBadge,
-  Bell,
-  UserCircle,
-  FileText,
-  FolderOpen,
+  Monitor,
+  CalendarDays,
   BarChart3,
-  Calendar,
-  Newspaper,
-  X
+  Bell,
+  LogOut,
+  ChevronLeft,
+  X,
 } from 'lucide-react'
 import type { Page } from '@/types/navigation'
-import { useSocket } from '@/components/providers/SocketProvider'
-import { useState } from 'react'
 
 interface SidebarProps {
   activePage: Page
@@ -30,225 +22,189 @@ interface SidebarProps {
   isOpen: boolean
   onClose: () => void
   unreadCount: number
+  user?: { name: string; role?: string; email?: string }
 }
 
-export default function Sidebar({ activePage, setActivePage, onLogout, isOpen, onClose, unreadCount }: SidebarProps) {
-  const [isServicesOpen, setIsServicesOpen] = useState(true)
-  const [isStudentsOpen, setIsStudentsOpen] = useState(true)
-  const [collapsed, setCollapsed] = useState(false)
-  const isIconOnly = collapsed
-  useSocket()
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map(n => n[0] ?? '')
+    .join('')
+    .toUpperCase()
+}
 
-  const nav = (page: Page) => { setActivePage(page); onClose() }
+function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
+  if (collapsed) return <div className="h-2" />
+  return <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.7px] text-gray-400 select-none">{label}</div>
+}
 
-  const Item = ({
-    id, label, Icon, sub = false
-  }: { id: Page; label: string; Icon: any; sub?: boolean }) => {
-    const active = activePage === id || (id === 'lead-center' && activePage === 'lead-detail')
+function NavItem({
+  id,
+  label,
+  Icon,
+  activePage,
+  collapsed,
+  badge,
+  badgeColor = 'red',
+  onClick,
+}: {
+  id: Page
+  label: string
+  Icon: React.ElementType
+  activePage: Page
+  collapsed: boolean
+  badge?: number
+  badgeColor?: 'red' | 'green'
+  onClick: (page: Page) => void
+}) {
+  const active = activePage === id || (id === 'lead-center' && activePage === 'lead-detail')
+
   return (
-      <button
-        onClick={() => nav(id)}
-        className={`sidebar-hover-liquid w-full flex items-center rounded-xl transition-all duration-200 select-none
-          ${sub
-            ? isIconOnly
-              ? 'justify-center p-2.5'
-              : 'pl-4 pr-3 py-2 gap-2.5 text-[12.5px] font-medium'
-            : isIconOnly
-              ? 'justify-center p-2.5'
-              : 'pl-4 pr-3 py-[10px] gap-3 text-[13.5px] font-medium'
-          }
-          ${active
-            ? 'bg-[#FACE39] text-[#00000F] font-bold shadow-[0_4px_14px_rgba(250,206,57,0.28)]'
-            : 'text-[#00000F]/65 hover:bg-[#FACE39]/[0.07] hover:text-[#00000F]'
-          }`}
-      >
-        <Icon style={{ width: sub ? 13 : 15, height: sub ? 13 : 15 }} className="flex-shrink-0" />
-        {!isIconOnly && <span className="truncate">{label}</span>}
-        {active && !sub && !isIconOnly && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#00000F]/20 flex-shrink-0" />}
-      </button>
-    )
-  }
-
-  const SectionLabel = ({ label }: { label: string }) => (
-    isIconOnly ? <div className="h-2" /> : (
-      <p className="pl-4 pt-5 pb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#00000F]/20 select-none">
-        {label}
-      </p>
-    )
+    <button
+      type="button"
+      onClick={() => onClick(id)}
+      title={collapsed ? label : undefined}
+      className={`
+        relative w-full flex items-center rounded-lg transition-colors select-none text-left
+        ${collapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2.5'}
+        border-l-4 ${active ? 'border-[#1a56db] bg-[#ebf0ff] text-[#1a56db] font-semibold shadow-sm' : 'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-800'}
+      `}
+    >
+      <Icon className={`flex-shrink-0 ${collapsed ? 'w-[17px] h-[17px]' : 'w-4 h-4'}`} />
+      {!collapsed && <span className="flex-1 text-[13px] truncate">{label}</span>}
+      {!collapsed && badge !== undefined && badge > 0 && (
+        <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white ${badgeColor === 'green' ? 'bg-[#0e9f6e]' : 'bg-[#e02424]'}`}>
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
+      {collapsed && badge !== undefined && badge > 0 && (
+        <span className={`absolute translate-x-[12px] -translate-y-[12px] w-2 h-2 rounded-full ${badgeColor === 'green' ? 'bg-[#0e9f6e]' : 'bg-[#e02424]'}`} />
+      )}
+    </button>
   )
+}
+
+export default function Sidebar({
+  activePage,
+  setActivePage,
+  onLogout,
+  isOpen,
+  onClose,
+  unreadCount,
+  user,
+}: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false)
+  const width = collapsed ? 68 : 220
+
+  const nav = (page: Page) => {
+    setActivePage(page)
+    onClose()
+  }
 
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[3px] lg:hidden" onClick={onClose} />}
 
-      <div className={`
-        fixed top-0 left-0 h-full z-50 lg:static lg:z-auto lg:translate-x-0
-        flex-shrink-0 flex flex-col
-        bg-white border-r border-[#00000F]/[0.07]
-        shadow-[3px_0_24px_rgba(0,0,0,0.05)]
-        transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}
-      style={{ width: isIconOnly ? 72 : 252, minWidth: isIconOnly ? 72 : 252 }}>
-
-        {/* Logo */}
-        <div className="relative flex items-center justify-between px-4 py-4 border-b border-[#00000F]/[0.06]">
-          <div className={`flex-1 flex items-center ${isIconOnly ? 'justify-center' : 'justify-center mr-2'}`}>
+      <aside
+        className={`
+          fixed top-0 left-0 z-50 h-full flex flex-col bg-white border-r border-gray-200
+          transition-transform duration-300 ease-in-out lg:static lg:translate-x-0
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+        style={{ width, minWidth: width }}
+      >
+        <div className="relative flex items-center justify-center px-4 py-[14px] border-b border-gray-200">
+          <div className="flex items-center justify-center min-w-0">
             <img
               src="/assets/logo.png"
               alt="Luminedge"
-              className={isIconOnly ? "h-9 w-9 object-contain" : "h-14 w-auto object-contain"}
-              style={{ imageRendering: 'auto' }}
+              className={`object-contain ${collapsed ? 'h-8 w-auto' : 'h-11 w-auto'}`}
             />
           </div>
+
           {isOpen && (
-            <button
-              onClick={onClose}
-              className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 flex-shrink-0"
-            >
-              <X style={{ width: 15, height: 15 }} />
+            <button onClick={onClose} className="absolute right-3 top-1/2 -translate-y-1/2 lg:hidden p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+              <X className="w-4 h-4" />
             </button>
           )}
+
           <button
             onClick={() => setCollapsed(c => !c)}
-            className="absolute -right-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full flex items-center justify-center text-[#00000F]/40 hover:text-[#00000F]/70 bg-white transition"
-            style={{
-              border: "1px solid #e8e8e8",
-              boxShadow: "0 2px 8px rgba(0,0,15,0.10)",
-            }}
+            className="hidden"
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           >
-            <ChevronLeft style={{ width: 12, height: 12, transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s' }} />
+            <ChevronLeft className="w-3 h-3" style={{ transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)' }} />
           </button>
         </div>
 
-        {/* Nav */}
-        <nav className={`flex-1 overflow-y-auto scrollbar-hide pb-3 ${isIconOnly ? 'px-2' : 'px-2.5'}`}>
-          <SectionLabel label="Overview" />
-          <Item id="dashboard" label="Dashboard" Icon={LayoutDashboard} />
+        <nav className="flex-1 overflow-y-auto px-2 py-3" style={{ scrollbarWidth: 'none' }}>
+          {!collapsed && <p className="px-3 pt-1 pb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-gray-300 select-none">Overview</p>}
+          <div className="space-y-0.5">
+            <NavItem id="dashboard" label="Dashboard" Icon={LayoutDashboard} activePage={activePage} collapsed={collapsed} onClick={nav} />
+          </div>
 
-          <SectionLabel label="Services" />
-          <button
-            onClick={() => setIsServicesOpen(v => !v)}
-            className={`sidebar-hover-liquid w-full flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 select-none
-                ${isIconOnly ? 'justify-center p-2.5' : 'justify-between pl-4 pr-3 py-[10px]'}
-          ${isServicesOpen
-            ? 'text-[#00000F]/80 bg-[#FACE39]/[0.08]'
-            : 'text-[#00000F]/65 hover:bg-[#FACE39]/[0.07] hover:text-[#00000F]'
-          }`}
-      >
-        <span className={`flex items-center ${isIconOnly ? 'gap-0' : 'gap-3'}`}>
-              <Briefcase style={{ width: 15, height: 15 }} className="flex-shrink-0" />
-              {!isIconOnly && 'Services'}
-            </span>
-            {!isIconOnly && (
-              <ChevronDown
-                style={{ width: 13, height: 13 }}
-                className={`flex-shrink-0 transition-transform duration-200 ${isServicesOpen ? 'rotate-180 text-[#00000F]/50' : 'text-gray-300'}`}
-              />
-            )}
-          </button>
-          {isServicesOpen && (
-            <div className="mt-0.5 ml-5 pl-1.5 border-l-2 border-[#FACE39]/30 space-y-0.5">
-              <Item id="course-details"  label="Course Details"    Icon={GraduationCap} sub />
-              <Item id="mock-test"       label="Mock Test"         Icon={ClipboardCheck} sub />
-              <Item id="exam-reg"        label="Exam Registration" Icon={FileBadge} sub />
-            </div>
-          )}
+          {!collapsed ? <p className="px-3 pt-4 pb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-gray-300 select-none">Pipeline</p> : <div className="h-3 mt-1 mx-1 border-t border-gray-100" />}
+          <div className="space-y-0.5">
+            <NavItem id="bdm-pipeline" label="Lead Pipeline" Icon={Columns2} activePage={activePage} collapsed={collapsed} onClick={nav} badge={unreadCount > 0 ? unreadCount : undefined} />
+            <NavItem id="lead-center" label="Students" Icon={Users} activePage={activePage} collapsed={collapsed} onClick={nav} badgeColor="green" />
+            <NavItem id="course-details" label="Batches" Icon={Monitor} activePage={activePage} collapsed={collapsed} onClick={nav} />
+          </div>
 
-          {/* <SectionLabel label="Students" />
-          <button
-            onClick={() => setIsStudentsOpen(v => !v)}
-            className={`sidebar-hover-liquid w-full flex items-center rounded-xl text-[14px] font-medium transition-all duration-200 select-none
-                ${isIconOnly ? 'justify-center p-2.5' : 'justify-between pl-4 pr-3 py-[10px]'}
-          ${isStudentsOpen
-            ? 'text-[#00000F]/80 bg-[#FACE39]/[0.08]'
-            : 'text-[#00000F] hover:bg-[#FACE39]/[0.07] hover:text-[#00000F]'
-          }`}
-          >
-            <span className={`flex items-center ${isIconOnly ? 'gap-0' : 'gap-3'}`}>
-              <GraduationCap style={{ width: 15, height: 15 }} className="flex-shrink-0" />
-              {!isIconOnly && 'Students'}
-            </span>
-            {!isIconOnly && (
-              <ChevronDown
-                style={{ width: 13, height: 13 }}
-                className={`flex-shrink-0 transition-transform duration-200 ${isStudentsOpen ? 'rotate-180 text-[#00000F]/50' : 'text-gray-300'}`}
-              />
-            )}
-          </button>
-          {isStudentsOpen && (
-            <div className="mt-0.5 ml-5 pl-1.5 border-l-2 border-[#FACE39]/30 space-y-0.5">
-              <Item id="student-list"        label="All Students"      Icon={Users} sub />
-              <Item id="student-applications" label="Applications"      Icon={FileText} sub />
-              <Item id="student-documents"    label="Documents Review"  Icon={FolderOpen} sub />
-              <Item id="milestones"           label="Milestones"        Icon={BarChart3} sub />
-              <Item id="appointments-admin"   label="Appointments"      Icon={Calendar} sub />
-              <Item id="news-management"     label="News Management"   Icon={Newspaper} sub />
-            </div>
-          )} */}
+          {!collapsed ? <p className="px-3 pt-4 pb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-gray-300 select-none">Analytics</p> : <div className="h-3 mt-1 mx-1 border-t border-gray-100" />}
+          <div className="space-y-0.5">
+            <NavItem id="bdm-exam-slots" label="Exam Slots" Icon={CalendarDays} activePage={activePage} collapsed={collapsed} onClick={nav} />
+            <NavItem id="bdm-reports" label="Reports" Icon={BarChart3} activePage={activePage} collapsed={collapsed} onClick={nav} />
+          </div>
 
-        <div className="mt-0.5">
-          <Item id="lead-center" label="Lead Center" Icon={Users} />
-        </div>
-        <div className="mt-0.5">
-          <button
-                onClick={() => nav('notification')}
-                className={`sidebar-hover-liquid w-full flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 select-none
-                  ${activePage === 'notification'
-                    ? 'bg-[#FACE39] text-[#00000F] font-bold shadow-[0_4px_14px_rgba(250,206,57,0.28)]'
-                    : 'text-[#00000F]/65 hover:bg-[#FACE39]/[0.07] hover:text-[#00000F]'
-                  }
-                  ${isIconOnly ? 'justify-center px-2 py-[10px]' : 'justify-between pl-4 pr-3 py-[10px]'}`}
-              >
-                <span className={`flex items-center ${isIconOnly ? 'gap-0' : 'gap-3'}`}>
-                  <Bell style={{ width: 15, height: 15 }} className="flex-shrink-0" />
-                  {!isIconOnly && 'Follow up'}
-                </span>
-                {unreadCount > 0 && !isIconOnly && (
-                  <span className="min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold px-1">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-          </button>
-        </div>
+          {!collapsed ? <p className="px-3 pt-4 pb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-gray-300 select-none">Account</p> : <div className="h-3 mt-1 mx-1 border-t border-gray-100" />}
+          <div className="space-y-0.5">
+            <NavItem id="notification" label="Follow-ups" Icon={Bell} activePage={activePage} collapsed={collapsed} onClick={nav} badge={unreadCount} />
+          </div>
         </nav>
 
-        {/* Footer */}
-        <div className={`pt-3 pb-5 border-t border-[#00000F]/[0.06] ${isIconOnly ? 'px-2' : 'px-2.5'}`}>
-          {!isIconOnly && <p className="pl-4 pb-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#00000F]/20 select-none">Account</p>}
-          <div className="space-y-0.5">
-           
+        <div className="border-t border-gray-200 p-3">
+          {!collapsed ? (
             <button
+              type="button"
               onClick={() => nav('profile')}
-              className={`sidebar-hover-liquid w-full flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 select-none
-                ${activePage === 'profile'
-                  ? 'bg-[#FACE39] text-[#00000F] font-bold shadow-[0_4px_14px_rgba(250,206,57,0.28)]'
-                  : 'text-[#00000F]/65 hover:bg-[#FACE39]/[0.07] hover:text-[#00000F]'
-                }
-                ${isIconOnly ? 'justify-center p-2.5' : 'justify-start gap-3 pl-4 pr-3 py-[10px]'}`}
+              className="w-full flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-100 transition-colors text-left"
             >
-              <UserCircle style={{ width: 15, height: 15 }} className="flex-shrink-0" />
-              {!isIconOnly && 'Profile'}
+              <div className="w-8 h-8 rounded-full bg-[#1a56db] text-white flex items-center justify-center text-[11px] font-bold">
+                {user?.name ? getInitials(user.name) : 'U'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13px] font-semibold text-gray-800 truncate">{user?.name || 'BDM User'}</div>
+                <div className="text-[11px] text-gray-400">BDM - Luminedge</div>
+              </div>
             </button>
-
-            <div className="pt-1.5 border-t border-[#00000F]/[0.05] mt-1.5">
-              <button
-                onClick={onLogout}
-              className={`sidebar-hover-liquid w-full flex items-center rounded-xl text-[13.5px] font-medium text-rose-400 hover:bg-rose-50 hover:text-rose-500 transition-all duration-200 select-none ${isIconOnly ? 'justify-center p-2.5' : 'justify-start gap-3 pl-4 pr-3 py-[10px]'}`}
-              >
-                <LogOut style={{ width: 15, height: 15 }} className="flex-shrink-0" />
-                {!isIconOnly && 'Logout'}
+          ) : (
+            <button
+              type="button"
+              onClick={() => nav('profile')}
+              className="w-full flex items-center justify-center py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Profile"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#1a56db] text-white flex items-center justify-center text-[11px] font-bold">
+                {user?.name ? getInitials(user.name) : 'U'}
+              </div>
             </button>
-          </div>
-        </div>
-        </div>
+          )}
 
-      </div>
+          <button
+            type="button"
+            onClick={onLogout}
+            className={`w-full mt-1 flex items-center rounded-lg text-[13px] font-medium text-gray-500 hover:bg-red-50 hover:text-[#e02424] transition-colors ${collapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2.5'}`}
+            title={collapsed ? 'Logout' : undefined}
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span>Logout</span>}
+          </button>
+        </div>
+      </aside>
     </>
   )
 }
+
+
+

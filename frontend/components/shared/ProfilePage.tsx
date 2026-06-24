@@ -22,7 +22,7 @@ interface UserStats {
     conversionRate: string
 }
 
-const inputClass = 'w-full px-3.5 py-2.5 bg-[#fafafa] border border-[#00000F]/[0.09] rounded-xl text-sm font-medium text-[#00000F]/80 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FACE39]/40 focus:border-[#FACE39]/60 transition-all duration-200'
+const inputClass = 'w-full px-3.5 py-2.5 bg-[#fafafa] border border-[#00000F]/[0.09] rounded-xl text-sm font-medium text-[#00000F]/80 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#1a56db]/30 focus:border-[#1a56db] transition-all duration-200'
 const readonlyClass = 'w-full px-3.5 py-2.5 bg-[#00000F]/[0.03] border border-[#00000F]/[0.06] rounded-xl text-sm font-medium text-[#00000F]/35 cursor-not-allowed'
 const labelClass = 'block text-[12px] font-bold text-[#00000F]/40 uppercase tracking-widest mb-1.5'
 
@@ -110,7 +110,7 @@ export default function ProfilePage() {
     if (loading) {
         return (
             <div className="max-w-5xl mx-auto flex items-center justify-center h-80">
-                <div className="w-9 h-9 border-4 border-[#FACE39] border-t-[#00000F] rounded-full animate-spin" />
+                <div className="w-9 h-9 border-4 border-[#1a56db] border-t-transparent rounded-full animate-spin" />
             </div>
         )
     }
@@ -132,19 +132,19 @@ export default function ProfilePage() {
                     {/* Identity card */}
                     <div className="bg-white rounded-2xl border border-[#00000F]/[0.07] shadow-[0_1px_10px_rgba(0,0,15,0.05)] overflow-hidden">
                         {/* Yellow banner */}
-                        <div className="h-16 bg-[#FACE39]/20 relative overflow-hidden">
-                            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#FACE39]" />
+                        <div className="h-16 bg-[#1a56db]/10 relative overflow-hidden">
+                            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1a56db]" />
                         </div>
 
                         <div className="px-5 pb-5">
                             {/* Avatar + role badge */}
                             <div className="-mt-9 mb-3.5 flex items-end justify-between">
-                                <div className="w-[68px] h-[68px] rounded-2xl border-[3px] border-white shadow-[0_4px_14px_rgba(0,0,0,0.13)] bg-[#00000F] flex items-center justify-center text-[#FACE39] text-xl font-bold overflow-hidden flex-shrink-0">
+                                <div className="w-[68px] h-[68px] rounded-2xl border-[3px] border-white shadow-[0_4px_14px_rgba(0,0,0,0.13)] bg-[#1a56db] flex items-center justify-center text-white text-xl font-bold overflow-hidden flex-shrink-0">
                                     {profile.avatar
                                         ? <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
                                         : avatarInitial}
                                 </div>
-                                <span className="mb-0.5 text-[11px] font-bold uppercase tracking-widest bg-[#FACE39]/15 text-[#00000F]/60 px-2.5 py-1 rounded-full border border-[#FACE39]/20">
+                                <span className="mb-0.5 text-[11px] font-bold uppercase tracking-widest bg-[#ebf0ff] text-[#1a56db] px-2.5 py-1 rounded-full border border-[#1a56db]/20">
                                     {profile.role.replace(/-/g, ' ') || 'User'}
                                 </span>
                             </div>
@@ -161,8 +161,8 @@ export default function ProfilePage() {
                                 ].map(({ Icon, value, always }, i) =>
                                     (always || value) ? (
                                         <div key={i} className="flex items-center gap-2.5">
-                                            <span className="w-7 h-7 rounded-lg bg-[#FACE39]/[0.08] border border-[#FACE39]/20 flex items-center justify-center flex-shrink-0">
-                                                <Icon className="w-3.5 h-3.5 text-[#FACE39]/70" />
+                                            <span className="w-7 h-7 rounded-lg bg-[#ebf0ff] border border-[#1a56db]/20 flex items-center justify-center flex-shrink-0">
+                                                <Icon className="w-3.5 h-3.5 text-[#1a56db]" />
                                             </span>
                                             <span className="text-xs font-medium text-[#00000F]/60 truncate">{value || '—'}</span>
                                         </div>
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                     {/* Performance stats */}
                     <div className="bg-white rounded-2xl border border-[#00000F]/[0.07] shadow-[0_1px_10px_rgba(0,0,15,0.05)] p-5">
                         <div className="flex items-center gap-2.5 mb-4">
-                            <span className="w-[3px] h-4 bg-[#FACE39] rounded-full" />
+                            <span className="w-[3px] h-4 bg-[#1a56db] rounded-full" />
                             <h3 className="text-[11px] font-bold text-[#00000F]/45 uppercase tracking-widest">Performance</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-2.5 mb-2.5">
@@ -188,7 +188,7 @@ export default function ProfilePage() {
                                 <p className="text-[10px] font-bold text-[#16A34A]/60 uppercase tracking-widest mt-1.5">Converted</p>
                             </div>
                         </div>
-                        <div className="bg-[#FACE39]/[0.12] border border-[#FACE39]/25 rounded-xl px-4 py-3.5 flex items-center justify-between">
+                        <div className="bg-[#ebf0ff] border border-[#1a56db]/25 rounded-xl px-4 py-3.5 flex items-center justify-between">
                             <p className="text-[11px] font-bold text-[#00000F]/45 uppercase tracking-widest">Conversion Rate</p>
                             <p className="text-[20px] font-extrabold text-[#00000F] tabular-nums">{stats.conversionRate}</p>
                         </div>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
                     {/* Edit profile form */}
                     <div className="bg-white rounded-2xl border border-[#00000F]/[0.07] shadow-[0_1px_10px_rgba(0,0,15,0.05)] p-5 sm:p-6">
                         <div className="flex items-center gap-2.5 mb-5">
-                            <span className="w-[3px] h-5 bg-[#FACE39] rounded-full" />
+                            <span className="w-[3px] h-5 bg-[#1a56db] rounded-full" />
                             <h3 className="text-[14px] font-bold text-[#00000F] tracking-tight">Edit Profile Information</h3>
                         </div>
 
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                             <button
                                 onClick={handleUpdateProfile}
                                 disabled={saving}
-                                className="flex items-center gap-2 h-10 px-6 bg-[#FACE39] hover:bg-[#FACE39]/90 text-[#00000F] text-[13px] font-bold rounded-xl transition-all shadow-[0_2px_12px_rgba(250,206,57,0.30)] hover:shadow-[0_6px_20px_rgba(250,206,57,0.45)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                                className="flex items-center gap-2 h-10 px-6 bg-[#1a56db] hover:bg-[#1341a8] text-white text-[13px] font-bold rounded-xl transition-all shadow-[0_2px_12px_rgba(26,86,219,0.30)] hover:shadow-[0_6px_20px_rgba(26,86,219,0.45)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
                             >
                                 <Save className="w-4 h-4" />
                                 {saving ? 'Saving…' : 'Save Changes'}
@@ -259,7 +259,7 @@ export default function ProfilePage() {
                     {/* Change password */}
                     <div className="bg-white rounded-2xl border border-[#00000F]/[0.07] shadow-[0_1px_10px_rgba(0,0,15,0.05)] p-5 sm:p-6">
                         <div className="flex items-center gap-2.5 mb-5">
-                            <span className="w-[3px] h-5 bg-[#FACE39] rounded-full" />
+                            <span className="w-[3px] h-5 bg-[#1a56db] rounded-full" />
                             <h3 className="text-[14px] font-bold text-[#00000F] tracking-tight">Change Password</h3>
                         </div>
 
@@ -297,7 +297,7 @@ export default function ProfilePage() {
                             <button
                                 onClick={handleChangePassword}
                                 disabled={passwordLoading}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-[#FACE39] hover:bg-[#FACE39]/90 text-[#00000F] text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-[0_6px_20px_rgba(250,206,57,0.30)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-[#1a56db] hover:bg-[#1341a8] text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-[0_6px_20px_rgba(26,86,219,0.30)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
                             >
                                 <Lock className="w-4 h-4" />
                                 {passwordLoading ? 'Updating…' : 'Update Password'}

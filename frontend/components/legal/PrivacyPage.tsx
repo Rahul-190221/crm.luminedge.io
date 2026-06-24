@@ -80,7 +80,7 @@ export default function PrivacyPage() {
         >
           <div className="flex justify-center mb-5">
             <div className="p-3 rounded-2xl bg-[#FACE39]/10 border border-[#FACE39]/20">
-              <Image src={mainlogo} alt="Luminedge" width={40} height={40} style={{ width: 40, height: 'auto' }} />
+              <Image src={mainlogo} alt="Luminedge" className="w-10 h-auto" />
             </div>
           </div>
           <h1 className="text-3xl font-extrabold text-[#00000F] tracking-tight mb-2">Privacy Policy</h1>

@@ -1,5 +1,17 @@
 import type { Lead, BDM } from '@/types/admin';
 
+export interface PhoneLookupSuggestion {
+  _id: string;
+  fullName: string;
+  phone: string;
+  whom?: string;
+}
+
+export interface PhoneLookupResult {
+  suggestions: PhoneLookupSuggestion[];
+  exactMatch: boolean;
+}
+
 import { API_ORIGIN } from './base'
 import { getToken } from '../helpers/jwt';
 const API_BASE_URL = `${API_ORIGIN}/api`;
@@ -121,6 +133,19 @@ export const deleteLead = async (id: string): Promise<void> => {
     headers: getAuthHeader()
   });
   if (!response.ok) throw new Error('Failed to delete lead');
+};
+
+// Phone lookup for suggestions / duplicate checks
+export const lookupLeadPhones = async (query: string, limit = 8): Promise<PhoneLookupResult> => {
+  const params = new URLSearchParams();
+  params.append('query', query);
+  params.append('limit', String(limit));
+
+  const response = await fetch(`${API_BASE_URL}/leads/phone-lookup?${params.toString()}`, {
+    headers: getAuthHeader()
+  });
+  if (!response.ok) throw new Error('Failed to lookup phone suggestions');
+  return response.json();
 };
 
 // Get all BDMs for assignment

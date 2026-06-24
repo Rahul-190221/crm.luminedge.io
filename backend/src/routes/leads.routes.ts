@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getLeads,
   getLead,
+  lookupLeadPhone,
   createLead,
   updateLead,
   deleteLead,
@@ -19,6 +20,7 @@ const router = express.Router();
 // Lead CRUD routes
 router.get('/', authenticateToken, authorizeRoles('admin', 'bdm'), getLeads);
 router.get('/stats', authenticateToken, authorizeRoles('admin', 'bdm'), getLeadStats);
+router.get('/phone-lookup', authenticateToken, authorizeRoles('admin', 'bdm'), lookupLeadPhone);
 router.get('/bdms', authenticateToken, authorizeRoles('admin', 'bdm'), getBDMs);
 router.get('/:id', authenticateToken, authorizeRoles('admin', 'bdm'), getLead);
 router.post('/', authenticateToken, authorizeRoles('admin', 'bdm'), createLead);

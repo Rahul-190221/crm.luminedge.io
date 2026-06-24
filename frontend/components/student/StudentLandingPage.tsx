@@ -51,7 +51,7 @@ export default function StudentLandingPage() {
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#FACE39]/10 border border-[#FACE39]/20">
-            <Image src={mainlogo} alt="Luminedge" width={28} height={28} style={{ width: 28, height: "auto" }} />
+            <Image src={mainlogo} alt="Luminedge" className="w-7 h-auto" />
           </div>
           <div>
             <p className="text-sm font-black text-[#00000F] tracking-tight">Luminedge</p>

@@ -3,6 +3,61 @@ import Lead from '../models/Lead';
 import User from '../models/User';
 import { createAndEmitNotification, createAndEmitToAdmins, createAndEmitToRoles } from '../services/notification.service';
 
+const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with another number.';
+
+const normalizePhoneDigits = (value: unknown): string => String(value ?? '').replace(/\D/g, '');
+const escapeRegex = (value: string): string => value.split('').map((ch) => /[a-zA-Z0-9 ]/.test(ch) ? ch : '\\' + ch).join('');
+
+const getPhoneCandidates = async (query: string, limit = 8, excludeId?: string) => {
+  const normalizedQuery = normalizePhoneDigits(query);
+  if (!normalizedQuery) return { suggestions: [], exactMatch: false };
+
+  const safeQuery = escapeRegex(normalizedQuery);
+  const filter: Record<string, any> = {
+    phone: { $regex: safeQuery, $options: 'i' }
+  };
+
+  if (excludeId) {
+    filter._id = { $ne: excludeId };
+  }
+
+  const leads = await Lead.find(filter)
+    .select('fullName phone whom createdAt')
+    .sort({ createdAt: -1 })
+    .limit(Math.max(limit, 1) * 4)
+    .lean();
+
+  const seen = new Set<string>();
+  const suggestions: Array<{ _id: string; fullName: string; phone: string; whom?: string }> = [];
+  let exactMatch = false;
+
+  for (const lead of leads) {
+    const normalizedPhone = normalizePhoneDigits((lead as any).phone);
+    if (!normalizedPhone || seen.has(normalizedPhone)) continue;
+
+    seen.add(normalizedPhone);
+
+    if (normalizedPhone === normalizedQuery) {
+      exactMatch = true;
+    }
+
+    suggestions.push({
+      _id: String((lead as any)._id),
+      fullName: (lead as any).fullName,
+      phone: (lead as any).phone,
+      whom: (lead as any).whom,
+    });
+
+    if (suggestions.length >= limit) break;
+  }
+
+  return { suggestions, exactMatch };
+};
+
+const assertPhoneIsUnique = async (phone: string, excludeId?: string) => {
+  const { exactMatch } = await getPhoneCandidates(phone, 1, excludeId);
+  return exactMatch;
+};
 // Get all leads
 export const getLeads = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -46,6 +101,24 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Phone lookup for suggestions and duplicate checking
+export const lookupLeadPhone = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const query = String(req.query.query ?? req.query.phone ?? '').trim();
+    const limit = Number.parseInt(String(req.query.limit ?? '8'), 10);
+
+    if (!query) {
+      res.json({ suggestions: [], exactMatch: false });
+      return;
+    }
+
+    const { suggestions, exactMatch } = await getPhoneCandidates(query, Number.isNaN(limit) ? 8 : Math.min(Math.max(limit, 1), 20));
+    res.json({ suggestions, exactMatch });
+  } catch (error) {
+    console.error('Error looking up phone suggestions:', error);
+    res.status(500).json({ error: 'Failed to lookup phone suggestions' });
+  }
+};
 // Get single lead
 export const getLead = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -66,7 +139,7 @@ export const getLead = async (req: Request, res: Response): Promise<void> => {
 // Create lead
 export const createLead = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { fullName, email, phone, source, serviceInterest, assignedTo, notes, followUps, lifecycleStage } = req.body;
+    const { fullName, email, phone, whom, source, serviceInterest, assignedTo, notes, followUps, lifecycleStage } = req.body;
 
     // Process follow-ups to convert date strings to Date objects
     const processedFollowUps = followUps?.map((fu: any) => ({
@@ -75,10 +148,16 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       nextFollowUpDate: fu.nextFollowUpDate ? new Date(fu.nextFollowUpDate) : undefined
     })).filter((fu: any) => fu.date || fu.note || fu.nextFollowUpDate) || [];
 
+    if (await assertPhoneIsUnique(phone)) {
+      res.status(409).json({ error: PHONE_LOOKUP_MESSAGE });
+      return;
+    }
+
     const lead = new Lead({
       fullName,
       ...(email && email.trim() ? { email: email.trim() } : {}),
       phone,
+      whom,
       source: source || 'Website',
       serviceInterest,
       assignedTo: assignedTo || undefined,
@@ -129,12 +208,19 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
 // Update lead
 export const updateLead = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { followUps, fullName, email, phone, source, serviceInterest, assignedTo, notes, lifecycleStage } = req.body;
+    const { followUps, fullName, email, phone, whom, source, serviceInterest, assignedTo, notes, lifecycleStage } = req.body;
 
     const updateData: Record<string, any> = {};
     if (fullName !== undefined) updateData.fullName = fullName;
     if (email !== undefined) updateData.email = email;
-    if (phone !== undefined) updateData.phone = phone;
+    if (phone !== undefined) {
+      if (await assertPhoneIsUnique(phone, req.params.id)) {
+        res.status(409).json({ error: PHONE_LOOKUP_MESSAGE });
+        return;
+      }
+      updateData.phone = phone;
+    }
+    if (whom !== undefined) updateData.whom = whom;
     if (source !== undefined) updateData.source = source;
     if (serviceInterest !== undefined) updateData.serviceInterest = serviceInterest;
     if (assignedTo !== undefined) updateData.assignedTo = assignedTo;

@@ -53,7 +53,7 @@ class ClientSocketService {
         this.socket = io(SOCKET_URL, {
             auth: { token },
             withCredentials: true,
-            transports: ['websocket', 'polling'],
+            transports: ['polling', 'websocket'],
             reconnection: true,
             reconnectionAttempts: 10,
             reconnectionDelay: 2000,

@@ -16,8 +16,8 @@ const courseTypes: CourseType[] = [
   'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium',
 ]
 
-const inputCls = "w-full h-10 px-3 border border-[#00000F]/[0.10] rounded-xl focus:ring-2 focus:ring-[#FACE39]/40 focus:border-[#FACE39] text-[13px] font-medium text-[#00000F] placeholder:text-[#00000F]/30 bg-white outline-none transition-all"
-const labelCls = "block text-[10.5px] font-bold text-[#00000F]/45 uppercase tracking-widest mb-1.5"
+const inputCls = "w-full h-10 px-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 text-[13px] font-medium text-gray-800 placeholder:text-gray-400 bg-white outline-none transition-all"
+const labelCls = "block text-[10.5px] font-bold text-gray-500 uppercase tracking-widest mb-1.5"
 
 export default function AddCourseModal({ isOpen, onClose, onSubmit, editingCourse }: AddCourseModalProps) {
   const [formData, setFormData] = useState({
@@ -177,20 +177,20 @@ export default function AddCourseModal({ isOpen, onClose, onSubmit, editingCours
             </div>
 
             {/* Live progress preview */}
-            <div className="bg-[#FACE39]/[0.06] rounded-xl px-3.5 py-2.5 border border-[#FACE39]/20">
+            <div className="bg-blue-50 rounded-xl px-3.5 py-2.5 border border-blue-100">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-[#00000F]/35" />
-                  <span className="text-[11px] text-[#00000F]/50 font-semibold">Enrollment Preview</span>
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-[11px] text-blue-600 font-semibold">Enrollment Preview</span>
                 </div>
-                <span className="text-[11px] font-bold text-[#00000F]">
+                <span className="text-[11px] font-bold text-gray-800">
                   {formData.enrolledCount} / {formData.capacity}
-                  <span className="text-[#FACE39] ml-1">({enrollPct}%)</span>
+                  <span className="text-blue-600 ml-1">({enrollPct}%)</span>
                 </span>
               </div>
-              <div className="h-1.5 bg-[#00000F]/[0.08] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#FACE39] rounded-full transition-all duration-300"
+                  className="h-full bg-blue-600 rounded-full transition-all duration-300"
                   style={{ width: `${enrollPct}%` }}
                 />
               </div>
@@ -248,9 +248,9 @@ export default function AddCourseModal({ isOpen, onClose, onSubmit, editingCours
             </button>
             <button
               type="submit"
-              className="flex-1 h-10 bg-[#FACE39] rounded-xl text-[13px] font-bold text-[#00000F] hover:bg-[#FACE39]/90 hover:shadow-[0_4px_16px_rgba(250,206,57,0.40)] active:scale-[0.98] transition-all duration-200"
+              className="flex-1 h-10 bg-gradient-to-b from-blue-600 to-blue-700 rounded-xl text-[13px] font-bold text-white hover:from-blue-500 hover:to-blue-600 hover:shadow-md hover:shadow-blue-900/30 active:scale-[0.98] transition-all duration-200"
             >
-              {editingCourse ? 'Update Course' : 'Add Course'}
+              {editingCourse ? 'Update Batch' : 'Add Batch'}
             </button>
           </div>
         </form>

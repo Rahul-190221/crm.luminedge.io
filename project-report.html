@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luminedge CRM — Project Report</title>
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1e3a5f;
+      --primary-light: #2a5a8f;
+      --accent: #0ea5e9;
+      --accent-soft: #e0f2fe;
+      --bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --section-bg: #f8fafc;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 20mm 16mm;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    @media print {
+      body { padding: 0; max-width: none; }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+      section { page-break-inside: avoid; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+
+    /* ── Print Button ─────────────────────────────────────────── */
+    .print-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: var(--primary);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .print-bar span { font-size: 13px; opacity: 0.85; }
+    .print-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .print-btn:hover { background: #0284c7; }
+
+    /* ── Cover Page ────────────────────────────────────────────── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px 40px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 60%, var(--accent) 100%);
+      color: #fff;
+      border-radius: 0;
+      margin: -20px -20px 0 -20px;
+      position: relative;
+      overflow: hidden;
+    }
+    @media print {
+      .cover { margin: -18mm -16mm 0 -16mm; padding: 80px 40px; min-height: 260mm; }
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -60%; right: -30%;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .cover::after {
+      content: '';
+      position: absolute;
+      bottom: -40%; left: -20%;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .cover h1 {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .cover .subtitle {
+      font-size: 20px;
+      opacity: 0.85;
+      font-weight: 300;
+      margin-bottom: 48px;
+    }
+    .cover-meta {
+      display: flex;
+      gap: 40px;
+      font-size: 13px;
+      opacity: 0.75;
+      margin-top: 40px;
+    }
+    .cover-meta div { display: flex; flex-direction: column; gap: 4px; }
+    .cover-meta strong { opacity: 1; font-size: 14px; }
+    .cover-logo {
+      font-size: 72px;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+    .cover-divider {
+      width: 60px;
+      height: 3px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 2px;
+      margin: 0 auto 32px;
+    }
+
+    /* ── TOC ────────────────────────────────────────────────────── */
+    .toc {
+      padding: 40px 0;
+    }
+    .toc h2 {
+      font-size: 22px;
+      color: var(--primary);
+      margin-bottom: 24px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+    .toc-list {
+      list-style: none;
+      counter-reset: toc;
+    }
+    .toc-list li {
+      counter-increment: toc;
+      padding: 10px 0;
+      border-bottom: 1px dotted var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .toc-list li::before {
+      content: counter(toc, decimal-leading-zero);
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 16px;
+      min-width: 28px;
+    }
+
+    /* ── Sections ──────────────────────────────────────────────── */
+    section {
+      padding: 32px 0;
+    }
+    section + section {
+      border-top: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 20px;
+      color: var(--primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .section-number {
+      background: var(--primary);
+      color: #fff;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 15px;
+      color: var(--primary-light);
+      margin: 20px 0 10px;
+      padding-left: 12px;
+      border-left: 3px solid var(--accent);
+    }
+
+    p {
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    /* ── Tables ─────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 10.5pt;
+    }
+    thead th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 10.5pt;
+    }
+    thead th:first-child { border-radius: 6px 0 0 0; }
+    thead th:last-child { border-radius: 0 6px 0 0; }
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) { background: var(--section-bg); }
+    tbody tr:hover { background: var(--accent-soft); }
+
+    /* ── Stat Cards ─────────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .stat-card .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 6px;
+    }
+    .stat-card.accent .stat-number { color: var(--accent); }
+    .stat-card.success .stat-number { color: var(--success); }
+    .stat-card.warning .stat-number { color: var(--warning); }
+
+    /* ── Architecture Diagram (CSS-based) ───────────────────────── */
+    .arch-diagram {
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin: 20px 0;
+    }
+    .arch-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+    }
+    .arch-box {
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 130px;
+    }
+    .arch-box.frontend { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .arch-box.backend  { background: #fce7f3; color: #9d174d; border: 1px solid #f9a8d4; }
+    .arch-box.data     { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .arch-box.service  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .arch-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 16px 0 8px;
+      font-weight: 600;
+    }
+    .arch-arrow {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 20px;
+      margin: 4px 0;
+    }
+
+    /* ── Code blocks ────────────────────────────────────────────── */
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 10pt;
+      color: var(--primary);
+    }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 10pt;
+      line-height: 1.5;
+      margin: 12px 0;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* ── Info Boxes ──────────────────────────────────────────────── */
+    .info-box {
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin: 14px 0;
+      font-size: 10.5pt;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .info-box.note    { background: #eff6ff; border-left: 4px solid #3b82f6; }
+    .info-box.success { background: #f0fdf4; border-left: 4px solid var(--success); }
+    .info-box.warning { background: #fffbeb; border-left: 4px solid var(--warning); }
+    .info-box .icon   { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── List styles ────────────────────────────────────────────── */
+    ul, ol {
+      margin: 8px 0 12px 20px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* ── Tags ───────────────────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tag.blue   { background: #dbeafe; color: #1e40af; }
+    .tag.green  { background: #d1fae5; color: #065f46; }
+    .tag.amber  { background: #fef3c7; color: #92400e; }
+    .tag.red    { background: #fee2e2; color: #991b1b; }
+    .tag.purple { background: #ede9fe; color: #5b21b6; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .report-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid var(--primary);
+      text-align: center;
+      font-size: 10pt;
+      color: var(--text-muted);
+    }
+
+    /* ── Flow diagram ───────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .flow-step {
+      background: var(--accent-soft);
+      border: 1px solid #bae6fd;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      text-align: center;
+    }
+    .flow-arrow { color: var(--accent); font-weight: bold; font-size: 18px; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media print {
+      .two-col { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Print Bar -->
+<div class="print-bar no-print">
+  <span>💡 Use <strong>Ctrl + P</strong> or click the button to save as PDF</span>
+  <button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+</div>
+<div style="height: 56px;" class="no-print"></div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     COVER PAGE
+     ════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">📊</div>
+  <div class="cover-badge">Confidential — Internal Report</div>
+  <h1>Luminedge CRM</h1>
+  <div class="cover-divider"></div>
+  <div class="subtitle">Comprehensive Project Architecture Report</div>
+  <p style="max-width:520px; opacity:0.8; font-size:14px; text-align:center; margin-bottom:0;">
+    Full-stack Customer Relationship Management system built with the MERN stack — 
+    managing leads, students, courses, mock tests, exams, and internal operations for Luminedge.
+  </p>
+  <div class="cover-meta">
+    <div><span>Prepared</span><strong id="report-date"></strong></div>
+    <div><span>Stack</span><strong>MERN + TypeScript</strong></div>
+    <div><span>Version</span><strong>1.0.0</strong></div>
+    <div><span>License</span><strong>MIT</strong></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol class="toc-list">
+    <li>Executive Summary</li>
+    <li>Project Statistics at a Glance</li>
+    <li>Technology Stack</li>
+    <li>System Architecture</li>
+    <li>Project Structure</li>
+    <li>Data Models (Mongoose Schemas)</li>
+    <li>API Surface — 19 Route Groups</li>
+    <li>Authentication &amp; Authorization</li>
+    <li>Realtime Layer (Socket.IO)</li>
+    <li>Security Measures</li>
+    <li>Deployment Topology</li>
+    <li>Key Observations &amp; Recommendations</li>
+  </ol>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════════
+     1. EXECUTIVE SUMMARY
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">1</span> Executive Summary</h2>
+  <p>
+    The <strong>Luminedge CRM</strong> is a purpose-built, full-stack Customer Relationship Management platform
+    designed for <strong>Luminedge</strong>, an education and test-preparation company. Unlike generic CRM solutions,
+    it is tailored to manage the complete lifecycle of student engagement — from initial lead capture through course
+    enrollment, mock test scheduling, exam booking, university application processing, and ongoing communication.
+  </p>
+  <p>
+    The system is built on the <strong>MERN stack</strong> (MongoDB, Express.js, React/Next.js, Node.js) with
+    <strong>TypeScript</strong> throughout both frontend and backend, ensuring type safety and developer productivity.
+    It serves <strong>three distinct user roles</strong> — Admins, Business Development Managers (BDMs), and Students — 
+    each with a dedicated portal featuring role-specific dashboards, workflows, and data access controls.
+  </p>
+  <p>
+    The platform includes <strong>19 API route groups</strong>, <strong>16 database models</strong>, realtime
+    push notifications via Socket.IO, built-in chat messaging, document management with cloud storage,
+    client-side PDF and Excel report generation, and a comprehensive analytics dashboard.
+  </p>
+  <div class="info-box note">
+    <span class="icon">ℹ️</span>
+    <div>The application is currently deployed with the frontend on <strong>Netlify</strong>, backend on <strong>Render.com</strong> (always-on Node process for Socket.IO), database on <strong>MongoDB Atlas</strong>, and file storage on <strong>Vercel Blob</strong>.</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     2. PROJECT STATISTICS
+     ════════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-number">2</span> Project Statistics at a Glance</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">19</div>
+      <div class="stat-label">API Route Groups</div>
+    </div>
+    <div class="stat-card accent">
+      <div class="stat-number">16</div>
+      <div class="stat-label">Data Models</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-number">19</div>
+      <div class="stat-label">Controllers</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-number">3</div>
+      <div class="stat-label">User Portals</div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">4</div>
+      <div class="stat-label">Backend Services</div>
+    </div>
+    <div class="stat-card accent">
+      <div class="stat-number">3</div>
+      <div class="stat-label">Auth Middlewares</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-number">14+</div>
+      <div class="stat-label">Component Groups</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-number">2</div>
+      <div class="stat-label">JWT Token Types</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     3. TECHNOLOGY STACK
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">3</span> Technology Stack</h2>
+
+  <h3>Frontend</h3>
+  <table>
+    <thead>
+      <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Next.js</td><td>14.x</td><td>React framework with App Router (SSR/SSG)</td></tr>
+      <tr><td>React</td><td>18.2</td><td>UI component library</td></tr>
+      <tr><td>TypeScript</td><td>5.3</td><td>Type-safe development</td></tr>
+      <tr><td>Tailwind CSS</td><td>3.4</td><td>Utility-first CSS framework</td></tr>
+      <tr><td>DaisyUI</td><td>5.5</td><td>Tailwind component library</td></tr>
+      <tr><td>Framer Motion</td><td>12.x</td><td>Page &amp; component animations</td></tr>
+      <tr><td>Chart.js + react-chartjs-2</td><td>4.5 / 5.3</td><td>Chart visualizations</td></tr>
+      <tr><td>Recharts</td><td>3.7</td><td>Additional chart visualizations</td></tr>
+      <tr><td>Axios</td><td>1.13</td><td>HTTP client for API calls</td></tr>
+      <tr><td>Socket.IO Client</td><td>4.8</td><td>Realtime WebSocket connection</td></tr>
+      <tr><td>react-beautiful-dnd</td><td>13.1</td><td>Drag-and-drop (Kanban boards)</td></tr>
+      <tr><td>react-hook-form</td><td>7.49</td><td>Form state management</td></tr>
+      <tr><td>jsPDF + jspdf-autotable</td><td>4.0 / 5.0</td><td>Client-side PDF generation</td></tr>
+      <tr><td>exceljs / xlsx</td><td>4.4 / 0.18</td><td>Excel report export</td></tr>
+      <tr><td>Lucide React + React Icons</td><td>—</td><td>Icon libraries</td></tr>
+      <tr><td>jose / jwt-decode</td><td>—</td><td>JWT handling (client-side)</td></tr>
+      <tr><td>@react-oauth/google</td><td>0.13</td><td>Google OAuth integration</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Backend</h3>
+  <table>
+    <thead>
+      <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Node.js</td><td>18+</td><td>JavaScript runtime</td></tr>
+      <tr><td>Express</td><td>4.18</td><td>Web framework / REST API</td></tr>
+      <tr><td>TypeScript</td><td>5.3</td><td>Type-safe development</td></tr>
+      <tr><td>Mongoose</td><td>8.0</td><td>MongoDB ODM</td></tr>
+      <tr><td>Socket.IO</td><td>4.8</td><td>Realtime WebSocket server</td></tr>
+      <tr><td>jsonwebtoken</td><td>9.0</td><td>JWT signing &amp; verification</td></tr>
+      <tr><td>bcryptjs</td><td>2.4</td><td>Password hashing</td></tr>
+      <tr><td>google-auth-library</td><td>10.5</td><td>Google OAuth verification</td></tr>
+      <tr><td>Nodemailer</td><td>6.9</td><td>Email delivery (SMTP)</td></tr>
+      <tr><td>Helmet</td><td>8.1</td><td>Security HTTP headers</td></tr>
+      <tr><td>express-rate-limit</td><td>8.3</td><td>Rate limiting</td></tr>
+      <tr><td>Multer</td><td>1.4</td><td>File upload handling</td></tr>
+      <tr><td>@vercel/blob</td><td>2.4</td><td>Cloud file storage</td></tr>
+      <tr><td>sanitize-html</td><td>2.17</td><td>XSS protection</td></tr>
+      <tr><td>PDFKit / pdf-parse</td><td>0.17 / 1.1</td><td>Server-side PDF generation &amp; parsing</td></tr>
+      <tr><td>node-cron / node-schedule</td><td>3.0 / 2.1</td><td>Scheduled tasks</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Testing</h3>
+  <table>
+    <thead>
+      <tr><th>Technology</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Jest 30</td><td>Test runner &amp; assertion framework</td></tr>
+      <tr><td>Supertest 7</td><td>HTTP endpoint testing</td></tr>
+      <tr><td>mongodb-memory-server</td><td>In-memory MongoDB for isolated tests</td></tr>
+      <tr><td>ts-jest</td><td>TypeScript preprocessing for Jest</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     4. SYSTEM ARCHITECTURE
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">4</span> System Architecture</h2>
+  <p>
+    The system follows a classic <strong>client-server architecture</strong> with a decoupled frontend and backend
+    communicating over REST APIs and WebSocket connections.
+  </p>
+
+  <div class="arch-diagram">
+    <div class="arch-label">Frontend (Client)</div>
+    <div class="arch-row">
+      <div class="arch-box frontend">Next.js 14<br><small>App Router</small></div>
+      <div class="arch-box frontend">Tailwind + DaisyUI<br><small>Styling</small></div>
+      <div class="arch-box frontend">Chart.js / Recharts<br><small>Visualizations</small></div>
+      <div class="arch-box frontend">Socket.IO Client<br><small>Realtime</small></div>
+    </div>
+
+    <div class="arch-arrow">▼ Axios HTTP &amp; WebSocket ▼</div>
+
+    <div class="arch-label">Backend (Server)</div>
+    <div class="arch-row">
+      <div class="arch-box backend">Express REST API<br><small>19 Route Groups</small></div>
+      <div class="arch-box backend">Auth Middleware<br><small>JWT Verification</small></div>
+      <div class="arch-box backend">Socket.IO Server<br><small>Realtime Events</small></div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box service">Notification Service</div>
+      <div class="arch-box service">Scheduler Service</div>
+      <div class="arch-box service">Socket Bridge</div>
+    </div>
+
+    <div class="arch-arrow">▼ Mongoose ODM ▼</div>
+
+    <div class="arch-label">Data Layer</div>
+    <div class="arch-row">
+      <div class="arch-box data">MongoDB Atlas<br><small>16 Collections</small></div>
+      <div class="arch-box data">Vercel Blob<br><small>File Storage</small></div>
+    </div>
+  </div>
+
+  <h3>Request Flow</h3>
+  <div class="flow">
+    <div class="flow-step">Client<br>(Browser)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Next.js<br>Middleware</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Axios<br>HTTP</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Express<br>Rate Limit</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Auth<br>Middleware</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Controller<br>Logic</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">MongoDB<br>Query</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     5. PROJECT STRUCTURE
+     ════════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-number">5</span> Project Structure</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>Backend — <code>backend/src/</code></h3>
+      <pre><code>backend/src/
+├── app.ts              # Express setup, routes
+├── server.ts           # HTTP + Socket.IO boot
+├── config/             # DB connection
+├── models/             # 16 Mongoose schemas
+│   ├── User.ts
+│   ├── Student.ts
+│   ├── Lead.ts
+│   ├── Application.ts
+│   ├── Course.ts
+│   ├── Exam.ts
+│   ├── Task.ts
+│   ├── Document.ts
+│   ├── Notification.ts
+│   ├── ... (7 more)
+├── controllers/        # 19 controllers
+├── routes/             # 19 route files
+├── middleware/
+│   ├── auth.middleware.ts
+│   ├── studentAuth.middleware.ts
+│   └── upload.middleware.ts
+├── services/
+│   ├── notification.service.ts
+│   ├── socket.service.ts
+│   ├── socket-bridge.service.ts
+│   └── scheduler.service.ts
+├── utils/
+├── scripts/
+└── __tests__/</code></pre>
+    </div>
+    <div>
+      <h3>Frontend — <code>frontend/</code></h3>
+      <pre><code>frontend/
+├── app/                # App Router
+│   ├── admin/          # Admin portal
+│   │   ├── dashboard/
+│   │   └── users/
+│   ├── bdm/            # BDM portal
+│   │   └── dashboard/
+│   ├── student/        # Student portal
+│   │   ├── dashboard/
+│   │   ├── login/
+│   │   └── register/
+│   ├── dashboard/      # Legacy shared
+│   ├── login/
+│   ├── register/
+│   ├── forget-password/
+│   ├── reset-password/
+│   ├── privacy/
+│   └── terms/
+├── components/         # 14+ groups
+│   ├── admin/
+│   ├── bdm/
+│   ├── student/
+│   ├── dashboard/
+│   ├── leads/
+│   ├── courses/
+│   ├── layout/
+│   ├── shared/
+│   └── ...
+├── lib/
+│   ├── api/
+│   ├── helpers/
+│   ├── hooks/
+│   └── socket.ts
+└── middleware.ts       # Auth guards</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     6. DATA MODELS
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">6</span> Data Models (Mongoose Schemas)</h2>
+  <p>
+    The application uses <strong>16 Mongoose models</strong> stored in MongoDB. The models cover user management,
+    education workflows, communication, and operational tracking.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Model</th><th>File</th><th>Size</th><th>Domain</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>User</strong></td><td>User.ts</td><td>1.6 KB</td>
+        <td><span class="tag blue">Auth</span></td>
+        <td>Staff accounts (admin, BDM) with hashed passwords</td>
+      </tr>
+      <tr>
+        <td><strong>Student</strong></td><td>Student.ts</td><td>4.0 KB</td>
+        <td><span class="tag green">Core</span></td>
+        <td>Student profiles — the largest model with extensive fields</td>
+      </tr>
+      <tr>
+        <td><strong>Lead</strong></td><td>Lead.ts</td><td>2.9 KB</td>
+        <td><span class="tag amber">Sales</span></td>
+        <td>Sales pipeline leads with status tracking</td>
+      </tr>
+      <tr>
+        <td><strong>Application</strong></td><td>Application.ts</td><td>2.2 KB</td>
+        <td><span class="tag green">Core</span></td>
+        <td>University/course application records</td>
+      </tr>
+      <tr>
+        <td><strong>Appointment</strong></td><td>Appointment.ts</td><td>1.5 KB</td>
+        <td><span class="tag purple">Ops</span></td>
+        <td>Scheduled appointments between staff &amp; students</td>
+      </tr>
+      <tr>
+        <td><strong>Course</strong></td><td>Course.ts</td><td>1.6 KB</td>
+        <td><span class="tag green">Core</span></td>
+        <td>Course catalog with details and pricing</td>
+      </tr>
+      <tr>
+        <td><strong>Exam</strong></td><td>Exam.ts</td><td>1.3 KB</td>
+        <td><span class="tag green">Core</span></td>
+        <td>Exam type definitions (IELTS, PTE, etc.)</td>
+      </tr>
+      <tr>
+        <td><strong>MockTestPackage</strong></td><td>MockTestPackage.ts</td><td>0.9 KB</td>
+        <td><span class="tag green">Core</span></td>
+        <td>Bundled mock test packages for purchase</td>
+      </tr>
+      <tr>
+        <td><strong>MockTestSchedule</strong></td><td>MockTestSchedule.ts</td><td>1.1 KB</td>
+        <td><span class="tag purple">Ops</span></td>
+        <td>Scheduled mock test sessions</td>
+      </tr>
+      <tr>
+        <td><strong>Task</strong></td><td>Task.ts</td><td>1.5 KB</td>
+        <td><span class="tag purple">Ops</span></td>
+        <td>Internal tasks with assignee and status</td>
+      </tr>
+      <tr>
+        <td><strong>Milestone</strong></td><td>Milestone.ts</td><td>2.3 KB</td>
+        <td><span class="tag green">Core</span></td>
+        <td>Student progress milestones &amp; achievements</td>
+      </tr>
+      <tr>
+        <td><strong>Document</strong></td><td>Document.ts</td><td>2.2 KB</td>
+        <td><span class="tag purple">Ops</span></td>
+        <td>Uploaded files (passports, transcripts, etc.)</td>
+      </tr>
+      <tr>
+        <td><strong>Conversation</strong></td><td>Conversation.ts</td><td>1.2 KB</td>
+        <td><span class="tag red">Chat</span></td>
+        <td>Chat conversation threads</td>
+      </tr>
+      <tr>
+        <td><strong>Message</strong></td><td>Message.ts</td><td>0.9 KB</td>
+        <td><span class="tag red">Chat</span></td>
+        <td>Individual chat messages within conversations</td>
+      </tr>
+      <tr>
+        <td><strong>Notification</strong></td><td>Notification.ts</td><td>1.1 KB</td>
+        <td><span class="tag red">Chat</span></td>
+        <td>Push notifications persisted for history</td>
+      </tr>
+      <tr>
+        <td><strong>NewsUpdate</strong></td><td>NewsUpdate.ts</td><td>1.0 KB</td>
+        <td><span class="tag purple">Ops</span></td>
+        <td>Announcements / news updates</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     7. API SURFACE
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">7</span> API Surface — 19 Route Groups</h2>
+  <p>
+    All API endpoints are mounted under <code>/api</code> in the Express application. The heaviest controller
+    is <strong>dashboard.controller.ts</strong> at 38 KB, handling complex analytics aggregations.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Route Prefix</th><th>Controller</th><th>Size</th><th>Domain</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>/api/auth</code></td><td>auth.controller.ts</td><td>23 KB</td><td>Login, register, password reset, Google OAuth</td></tr>
+      <tr><td><code>/api/dashboard</code></td><td>dashboard.controller.ts</td><td>38 KB</td><td>Analytics, metrics, charts, reports</td></tr>
+      <tr><td><code>/api/leads</code></td><td>leads.controller.ts</td><td>15 KB</td><td>Lead CRUD, pipeline, assignment</td></tr>
+      <tr><td><code>/api/student</code></td><td>student.controller.ts</td><td>15 KB</td><td>Student CRUD, profile, auth</td></tr>
+      <tr><td><code>/api/reports</code></td><td>reports.controller.ts</td><td>8 KB</td><td>Data export &amp; reporting</td></tr>
+      <tr><td><code>/api/tasks</code></td><td>tasks.controller.ts</td><td>3 KB</td><td>Task management (Kanban)</td></tr>
+      <tr><td><code>/api/courses</code></td><td>courses.controller.ts</td><td>2.3 KB</td><td>Course catalog CRUD</td></tr>
+      <tr><td><code>/api/mock-tests</code></td><td>mockTests.controller.ts</td><td>4.5 KB</td><td>Mock test scheduling</td></tr>
+      <tr><td><code>/api/mock-test-packages</code></td><td>mockTestPackages.controller.ts</td><td>5.5 KB</td><td>Test bundle management</td></tr>
+      <tr><td><code>/api/exams</code></td><td>exams.controller.ts</td><td>2.3 KB</td><td>Exam definitions</td></tr>
+      <tr><td><code>/api/schedules</code></td><td>schedules.controller.ts</td><td>0.8 KB</td><td>General schedule queries</td></tr>
+      <tr><td><code>/api/notifications</code></td><td>notification.controller.ts</td><td>2.5 KB</td><td>Notification CRUD &amp; read status</td></tr>
+      <tr><td><code>/api/activities</code></td><td>activities.controller.ts</td><td>3.8 KB</td><td>Activity log &amp; audit trail</td></tr>
+      <tr><td><code>/api/...</code> (apps)</td><td>application.controller.ts</td><td>6.2 KB</td><td>Student application processing</td></tr>
+      <tr><td><code>/api/...</code> (chat)</td><td>chat.controller.ts</td><td>2.9 KB</td><td>Chat / messaging system</td></tr>
+      <tr><td><code>/api/...</code> (docs)</td><td>document.controller.ts</td><td>3.0 KB</td><td>Document upload &amp; management</td></tr>
+      <tr><td><code>/api/...</code> (miles.)</td><td>milestone.controller.ts</td><td>1.5 KB</td><td>Student progress tracking</td></tr>
+      <tr><td><code>/api/...</code> (news)</td><td>news.controller.ts</td><td>1.8 KB</td><td>News &amp; announcements</td></tr>
+      <tr><td><code>/api/...</code> (appts)</td><td>appointment.controller.ts</td><td>2.0 KB</td><td>Appointment booking</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box note">
+    <span class="icon">📌</span>
+    <div>A <code>/api/health</code> endpoint exists outside of rate limiting for Render.com health checks, returning <code>{"status": "OK"}</code>.</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     8. AUTHENTICATION
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">8</span> Authentication &amp; Authorization</h2>
+
+  <h3>Dual Token System</h3>
+  <p>
+    The CRM separates staff and student authentication using <strong>two distinct JWT cookies</strong>,
+    preventing token confusion across different user types.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Cookie Name</th><th>User Type</th><th>Roles</th><th>Issued By</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>accessToken</code></td><td>Staff</td><td><span class="tag blue">admin</span> <span class="tag amber">bdm</span></td><td><code>/api/auth/login</code></td></tr>
+      <tr><td><code>studentToken</code></td><td>Student</td><td><span class="tag green">student</span></td><td><code>/api/student/auth/login</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Authentication Flow</h3>
+  <div class="flow">
+    <div class="flow-step">User enters<br>credentials</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">POST to<br>auth endpoint</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">bcrypt<br>verify</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">JWT signed<br>&amp; set cookie</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Redirect to<br>dashboard</div>
+  </div>
+
+  <h3>Route Protection Matrix</h3>
+  <table>
+    <thead>
+      <tr><th>URL Pattern</th><th>Required Role</th><th>Token</th><th>Enforced By</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>/admin/*</code></td><td><span class="tag blue">admin</span></td><td>accessToken</td><td>Frontend middleware + backend</td></tr>
+      <tr><td><code>/bdm/dashboard/*</code></td><td><span class="tag amber">bdm</span></td><td>accessToken</td><td>Frontend middleware + backend</td></tr>
+      <tr><td><code>/student/dashboard/*</code></td><td><span class="tag green">student</span></td><td>studentToken</td><td>Frontend middleware + backend</td></tr>
+      <tr><td><code>/dashboard/*</code></td><td>admin / bdm</td><td>accessToken</td><td>Frontend middleware + backend</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box warning">
+    <span class="icon">⚠️</span>
+    <div><strong>Security Note:</strong> The frontend Next.js middleware performs JWT <em>decode only</em> (no signature verification) — it is purely a UX routing layer. All actual data access authorization is enforced server-side by the backend auth middleware which performs full JWT signature verification.</div>
+  </div>
+
+  <h3>Additional Auth Features</h3>
+  <ul>
+    <li><strong>Google OAuth</strong> — Staff can sign in with Google via <code>google-auth-library</code></li>
+    <li><strong>Password Reset</strong> — Email-based flow using Nodemailer over SMTP</li>
+    <li><strong>Rate Limiting</strong> — Auth endpoints limited to 20 requests per 15 minutes</li>
+    <li><strong>Token Expiry</strong> — JWT tokens include <code>exp</code> claim; expired tokens are rejected</li>
+  </ul>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     9. REALTIME LAYER
+     ════════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-number">9</span> Realtime Layer (Socket.IO)</h2>
+  <p>
+    The system uses <strong>Socket.IO 4.8</strong> for bidirectional real-time communication, primarily for
+    push notifications and chat messaging.
+  </p>
+
+  <h3>Backend Services</h3>
+  <table>
+    <thead>
+      <tr><th>Service</th><th>File</th><th>Responsibility</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Socket Service</strong></td><td>socket.service.ts (5.9 KB)</td><td>Socket.IO server — manages connections, rooms, user mapping</td></tr>
+      <tr><td><strong>Notification Service</strong></td><td>notification.service.ts (2.7 KB)</td><td>Creates notifications in DB, triggers socket emission</td></tr>
+      <tr><td><strong>Socket Bridge</strong></td><td>socket-bridge.service.ts (1.3 KB)</td><td>Forwards events via HTTP when API and socket are on separate hosts</td></tr>
+      <tr><td><strong>Scheduler Service</strong></td><td>scheduler.service.ts (2.5 KB)</td><td>Cron-based background tasks (e.g., reminders)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Notification Flow</h3>
+  <div class="flow">
+    <div class="flow-step">Backend Action<br>(e.g., new lead)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Notification<br>Service</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Save to<br>MongoDB</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Socket.IO emit<br>or bridge POST</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">Client receives<br>"new-notification"</div>
+  </div>
+
+  <div class="info-box success">
+    <span class="icon">✅</span>
+    <div>The socket bridge design allows a <strong>split deployment</strong> where the API runs on serverless (Vercel) while Socket.IO runs on an always-on process (Render) — communicating via an authenticated internal HTTP endpoint.</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     10. SECURITY
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">10</span> Security Measures</h2>
+
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Technology</th><th>Configuration</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>HTTP Headers</strong></td>
+        <td>Helmet 8.1</td>
+        <td>Default security headers (X-Content-Type-Options, X-Frame-Options, etc.)</td>
+      </tr>
+      <tr>
+        <td><strong>CORS</strong></td>
+        <td>cors middleware</td>
+        <td>Configurable allowed origins via <code>ALLOWED_ORIGINS</code> env var; credentials enabled</td>
+      </tr>
+      <tr>
+        <td><strong>Rate Limiting</strong></td>
+        <td>express-rate-limit</td>
+        <td>Auth endpoints: <strong>20 req / 15 min</strong>; General API: <strong>2000 req / 15 min</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Password Hashing</strong></td>
+        <td>bcryptjs</td>
+        <td>Salted bcrypt hashing for all stored passwords</td>
+      </tr>
+      <tr>
+        <td><strong>Input Sanitization</strong></td>
+        <td>sanitize-html</td>
+        <td>XSS protection on user-submitted HTML content</td>
+      </tr>
+      <tr>
+        <td><strong>Request Parsing</strong></td>
+        <td>Express body-parser</td>
+        <td>JSON and URL-encoded body size limited to <strong>1 MB</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Proxy Trust</strong></td>
+        <td>Express trust proxy</td>
+        <td>Set to <code>1</code> for proper IP detection behind reverse proxies</td>
+      </tr>
+      <tr>
+        <td><strong>Socket Bridge Auth</strong></td>
+        <td>Shared secret header</td>
+        <td>Inter-service calls authenticated via <code>x-socket-server-secret</code></td>
+      </tr>
+      <tr>
+        <td><strong>File Upload</strong></td>
+        <td>Multer</td>
+        <td>Server-side file validation with upload middleware</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Rate Limit Targets</h3>
+  <pre><code>  /api/auth/login            → 20 req / 15 min
+  /api/auth/register         → 20 req / 15 min
+  /api/auth/forget-password   → 20 req / 15 min
+  /api/auth/reset-password    → 20 req / 15 min
+  /api/auth/set-password      → 20 req / 15 min
+  /api/student/auth/forgot-password → 20 req / 15 min
+  /api/student/auth/reset-password  → 20 req / 15 min
+  /api/* (general)            → 2000 req / 15 min (dashboard excluded)</code></pre>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     11. DEPLOYMENT
+     ════════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-number">11</span> Deployment Topology</h2>
+
+  <div class="arch-diagram">
+    <div class="arch-row">
+      <div class="arch-box frontend" style="min-width:180px;">
+        <strong>Netlify</strong><br>
+        Frontend (Next.js SSR)<br>
+        <small>luminedgecrm.netlify.app</small>
+      </div>
+      <div class="arch-box backend" style="min-width:180px;">
+        <strong>Render.com</strong><br>
+        Backend (Express + Socket.IO)<br>
+        <small>Docker, always-on</small>
+      </div>
+    </div>
+    <div class="arch-arrow">▼</div>
+    <div class="arch-row">
+      <div class="arch-box data" style="min-width:180px;">
+        <strong>MongoDB Atlas</strong><br>
+        Cloud Database<br>
+        <small>16 collections</small>
+      </div>
+      <div class="arch-box service" style="min-width:180px;">
+        <strong>Vercel Blob</strong><br>
+        File Storage<br>
+        <small>Documents, uploads</small>
+      </div>
+    </div>
+  </div>
+
+  <h3>Environment Variables</h3>
+  <div class="two-col">
+    <div>
+      <strong>Backend (Render)</strong>
+      <ul>
+        <li><code>MONGODB_URI</code></li>
+        <li><code>JWT_SECRET</code></li>
+        <li><code>GOOGLE_CLIENT_ID</code></li>
+        <li><code>ALLOWED_ORIGINS</code></li>
+        <li><code>FRONTEND_URL</code></li>
+        <li><code>BLOB_READ_WRITE_TOKEN</code></li>
+        <li><code>SMTP_HOST / PORT / USER / PASS / FROM</code></li>
+        <li><code>NODE_ENV=production</code></li>
+      </ul>
+    </div>
+    <div>
+      <strong>Frontend (Netlify)</strong>
+      <ul>
+        <li><code>NEXT_PUBLIC_API_URL</code></li>
+        <li><code>NEXT_PUBLIC_SOCKET_URL</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box note">
+    <span class="icon">📦</span>
+    <div>A <code>render.yaml</code> blueprint is provided for one-click Render deployment with health check at <code>/api/health</code> and auto-deploy enabled.</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     12. OBSERVATIONS & RECOMMENDATIONS
+     ════════════════════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<section>
+  <h2><span class="section-number">12</span> Key Observations &amp; Recommendations</h2>
+
+  <h3>Strengths</h3>
+  <table>
+    <thead><tr><th>#</th><th>Observation</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Domain-specific design</strong> — Purpose-built for education CRM rather than a generic solution, with deep integration of student lifecycle workflows.</td></tr>
+      <tr><td>2</td><td><strong>Full TypeScript</strong> — Both frontend and backend use TypeScript, improving code quality, refactoring safety, and developer experience.</td></tr>
+      <tr><td>3</td><td><strong>Dual token separation</strong> — Staff and student auth use separate cookies, preventing token confusion and simplifying role-based access.</td></tr>
+      <tr><td>4</td><td><strong>Flexible deployment</strong> — Socket bridge pattern allows API and WebSocket server to run on the same or different hosts.</td></tr>
+      <tr><td>5</td><td><strong>Comprehensive security</strong> — Helmet, rate limiting, CORS, bcrypt, input sanitization, and request size limits all properly configured.</td></tr>
+      <tr><td>6</td><td><strong>Rich dashboard analytics</strong> — The 38 KB dashboard controller indicates extensive reporting and KPI tracking capabilities.</td></tr>
+      <tr><td>7</td><td><strong>Test infrastructure</strong> — Jest + Supertest + mongodb-memory-server provides a solid foundation for automated testing.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Areas for Consideration</h3>
+  <table>
+    <thead><tr><th>#</th><th>Observation</th><th>Impact</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>Dashboard controller complexity</strong> — At 38 KB, dashboard.controller.ts likely contains complex aggregation logic that could benefit from being split into focused service modules.</td>
+        <td><span class="tag amber">Medium</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Dual charting libraries</strong> — Both Chart.js and Recharts are included. Consider standardizing on one to reduce bundle size.</td>
+        <td><span class="tag blue">Low</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Frontend middleware JWT decode</strong> — Uses <code>atob</code> decode without signature verification. This is documented as intentional (UX-only), but worth noting for security reviews.</td>
+        <td><span class="tag blue">Low</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Mixed route mounting</strong> — Some routes are mounted at <code>/api/specificPath</code> while others use bare <code>/api</code> prefix (applications, chat, documents, milestones, news, appointments), making the API surface harder to discover.</td>
+        <td><span class="tag blue">Low</span></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>Auth controller size</strong> — At 23 KB, it handles login, register, password reset, Google OAuth, and potentially more. Splitting into dedicated auth sub-controllers could improve maintainability.</td>
+        <td><span class="tag amber">Medium</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════════════════════════════ -->
+<div class="report-footer">
+  <p><strong>Luminedge CRM — Project Architecture Report</strong></p>
+  <p>Generated on <span id="footer-date"></span> &nbsp;•&nbsp; Version 1.0.0 &nbsp;•&nbsp; Confidential</p>
+  <p style="margin-top: 8px; font-size: 9pt;">This report was auto-generated from the project source code analysis.</p>
+</div>
+
+<script>
+  // Format today's date
+  const today = new Date();
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  const formatted = today.toLocaleDateString('en-US', options);
+  document.getElementById('report-date').textContent = formatted;
+  document.getElementById('footer-date').textContent = formatted;
+</script>
+
+</body>
+</html>

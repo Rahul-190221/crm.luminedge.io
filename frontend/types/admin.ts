@@ -182,6 +182,7 @@ export interface Lead {
   fullName: string;
   email: string;
   phone: string;
+  whom?: 'Personal' | 'Parents' | 'Cousin' | 'Uncle' | 'Sibling' | 'Spouse';
   source: LeadSource;
   serviceInterest: ServiceInterest[];
   assignedTo?: string | { _id: string; name: string; email: string };

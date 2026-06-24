@@ -1,6 +1,6 @@
 import type { Course, FilterState } from '@/types/admin';
 
-import { API_ORIGIN as API_BASE_URL } from './base';
+import { API_URL as API_BASE_URL } from './base';
 
 import { getToken } from '../helpers/jwt';
 

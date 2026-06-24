@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
-import Sidebar from '@/components/layout/Sidebar'
-import Header from '@/components/layout/Header'
+import BDMSidebar from '@/components/layout/BDMSidebar'
 import BDMDashboard from '@/components/dashboard/BDMDashboard'
+import BDMPipeline from '@/components/dashboard/BDMPipeline'
+import BDMExamSlots from '@/components/dashboard/BDMExamSlots'
+import BDMReports from '@/components/dashboard/BDMReports'
 import LeadCenter from '@/components/leads/LeadCenter'
 import LeadDetail from '@/components/leads/LeadDetail'
 import LeadStage from '@/components/leads/LeadStage'
@@ -42,7 +44,7 @@ function BDMDashboardContent() {
   const [user, setUser] = useState<any>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  
+
   const { unreadCount } = useNotifications()
 
   const clearAuthAndRedirect = async () => {
@@ -55,7 +57,10 @@ function BDMDashboardContent() {
           credentials: 'include',
         })
       }
-    } catch { /* best-effort server logout — local cleanup always runs */ }
+    } catch {
+      /* best-effort server logout - local cleanup always runs */
+    }
+
     Cookies.remove('accessToken')
     Cookies.remove('studentToken')
     localStorage.removeItem('accessToken')
@@ -75,6 +80,7 @@ function BDMDashboardContent() {
       router.replace('/admin/dashboard')
       return
     }
+
     if (decoded.role !== 'bdm') {
       clearAuthAndRedirect()
       return
@@ -85,6 +91,7 @@ function BDMDashboardContent() {
       email: decoded.email,
       role: formatRoleLabel(decoded.role || ''),
     }
+
     setUser(baseUser)
     setIsInitialized(true)
 
@@ -110,9 +117,6 @@ function BDMDashboardContent() {
     clearAuthAndRedirect()
   }
 
-  const handleNotificationClick = () => {
-    setActivePage('notification')
-  }
 
   const renderContent = () => {
     switch (activePage) {
@@ -122,14 +126,17 @@ function BDMDashboardContent() {
             onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail') }}
             onAddLead={() => setActivePage('lead-center')}
             onViewAllLeads={() => setActivePage('lead-center')}
-            onBookExam={() => setActivePage('exam-reg')}
-            onNewLeadsToday={() => setActivePage('lead-center')}
+            onBookExam={() => setActivePage('bdm-exam-slots')}
+            onNewLeadsToday={() => setActivePage('bdm-pipeline')}
             onViewMockTests={() => setActivePage('mock-test')}
             userName={user?.name}
+            setActivePage={setActivePage}
           />
         )
+      case 'bdm-pipeline':
+        return <BDMPipeline setActivePage={setActivePage} />
       case 'lead-center':
-        return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail'); }} />
+        return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail') }} />
       case 'lead-detail':
         return selectedLeadId
           ? <LeadDetail id={selectedLeadId} onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage('lead-center'); }} />
@@ -154,6 +161,10 @@ function BDMDashboardContent() {
         return <AppointmentsAdmin />
       case 'news-management':
         return <NewsManagement />
+      case 'bdm-exam-slots':
+        return <BDMExamSlots />
+      case 'bdm-reports':
+        return <BDMReports />
       case 'notification':
         return <FollowUpPage />
       case 'profile':
@@ -164,10 +175,11 @@ function BDMDashboardContent() {
             onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail') }}
             onAddLead={() => setActivePage('lead-center')}
             onViewAllLeads={() => setActivePage('lead-center')}
-            onBookExam={() => setActivePage('exam-reg')}
-            onNewLeadsToday={() => setActivePage('lead-center')}
+            onBookExam={() => setActivePage('bdm-exam-slots')}
+            onNewLeadsToday={() => setActivePage('bdm-pipeline')}
             onViewMockTests={() => setActivePage('mock-test')}
             userName={user?.name}
+            setActivePage={setActivePage}
           />
         )
     }
@@ -177,16 +189,16 @@ function BDMDashboardContent() {
     return (
       <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center px-4">
-          <div className="animate-spin rounded-full h-11 w-11 border-2 border-[#FACE39] border-t-[#00000F] mx-auto mb-4" />
-          <p className="text-sm font-semibold text-[#00000F]/70">Opening your workspace...</p>
+          <div className="animate-spin rounded-full h-11 w-11 border-2 border-[#1a56db] border-t-[#00000f] mx-auto mb-4" />
+          <p className="text-sm font-semibold text-[#00000f]/70">Opening your workspace...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden">
-      <Sidebar
+    <div className="flex h-screen bg-[#f9fafb] overflow-hidden">
+      <BDMSidebar
         activePage={activePage}
         setActivePage={setActivePage}
         onLogout={handleLogout}
@@ -194,18 +206,10 @@ function BDMDashboardContent() {
         onClose={() => setSidebarOpen(false)}
         unreadCount={unreadCount}
       />
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Header
-          user={user}
-          onLogout={handleLogout}
-          onMenuToggle={() => setSidebarOpen(prev => !prev)}
-          unreadCount={unreadCount}
-          onNotificationClick={handleNotificationClick}
-        />
-        <main className="flex-1 overflow-y-auto px-5 py-5 md:px-7 md:py-6 lg:px-8 lg:py-7 scrollbar-hide bg-[#fafafa]">
-          {renderContent()}
-        </main>
-      </div>
+      <main className="flex-1 min-w-0 overflow-y-auto bg-[#f9fafb] pt-6 pr-6 pb-12 pl-4 scrollbar-hide">
+        {renderContent()}
+      </main>
     </div>
   )
 }
+

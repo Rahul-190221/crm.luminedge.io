@@ -87,7 +87,7 @@ const courseTypes: CourseType[] = [
   'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium',
 ]
 
-const selectCls = "h-10 px-3 border border-[#00000F]/[0.10] rounded-xl text-[13px] font-medium text-[#00000F]/70 bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-[#FACE39] outline-none transition-all cursor-pointer appearance-none pr-8"
+const selectCls = "h-10 px-3 border border-[#00000F]/[0.10] rounded-xl text-[13px] font-medium text-[#00000F]/70 bg-white focus:ring-2 focus:ring-[#1a56db]/30 focus:border-[#1a56db] outline-none transition-all cursor-pointer appearance-none pr-8"
 
 const CourseDetails: React.FC = () => {
   const isAdmin = true
@@ -160,7 +160,7 @@ const CourseDetails: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#FACE39] border-t-[#00000F]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1a56db] border-t-transparent" />
       </div>
     )
   }
@@ -169,63 +169,22 @@ const CourseDetails: React.FC = () => {
     <div className="space-y-4">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="-mx-6 -mt-6 mb-8 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4 shadow-sm">
         <div>
-          <h1 className="text-[21px] font-bold text-[#00000F] tracking-tight">Course Details</h1>
-          <p className="text-[12px] text-[#00000F]/40 font-medium mt-0.5">Manage and view all available courses</p>
+          <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">Active Batches</h1>
         </div>
         {isAdmin && (
           <button
             onClick={() => { setSelectedCourse(null); setIsAddModalOpen(true) }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#FACE39] text-[#00000F] font-bold text-[13px] rounded-xl shadow-[0_2px_12px_rgba(250,206,57,0.30)] hover:shadow-[0_6px_20px_rgba(250,206,57,0.45)] hover:bg-[#FACE39]/90 active:scale-[0.97] transition-all duration-200"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white font-bold text-[12px] rounded-lg hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 transition-all duration-200"
           >
             <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-            Add Course
+            New Batch
           </button>
         )}
       </div>
 
-      {/* ── Filters ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row gap-2.5">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#00000F]/30" />
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 border border-[#00000F]/[0.10] rounded-xl text-[13px] font-medium text-[#00000F] placeholder:text-[#00000F]/30 bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-[#FACE39] outline-none transition-all"
-          />
-        </div>
 
-        {/* Type filter */}
-        <div className="relative">
-          <select
-            value={filters.testType}
-            onChange={(e) => setFilters({ ...filters, testType: e.target.value as CourseType | 'all' })}
-            className={selectCls}
-          >
-            <option value="all">All Course Types</option>
-            {courseTypes.map(type => <option key={type} value={type}>{type}</option>)}
-          </select>
-          <SlidersHorizontal className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#00000F]/30 pointer-events-none" />
-        </div>
-
-        {/* Sort */}
-        <div className="relative">
-          <select
-            value={filters.sortBy}
-            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-            className={selectCls}
-          >
-            <option value="date">Sort by Date</option>
-            <option value="name">Sort by Name</option>
-            <option value="price">Sort by Price</option>
-          </select>
-          <SlidersHorizontal className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#00000F]/30 pointer-events-none" />
-        </div>
-      </div>
 
       {/* ── Course Grid ───────────────────────────────────────────────────────── */}
       {filteredCourses.length === 0 ? (
@@ -262,6 +221,17 @@ const CourseDetails: React.FC = () => {
         course={selectedCourse}
         isAdmin={isAdmin}
       />
+
+      {/* ── Floating Action Button ────────────────────────────────────────────── */}
+      {isAdmin && (
+        <button
+          onClick={() => { setSelectedCourse(null); setIsAddModalOpen(true) }}
+          className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 flex items-center justify-center hover:-translate-y-1 active:scale-95 transition-all z-50"
+          title="New Batch"
+        >
+          <Plus className="w-6 h-6" strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   )
 }

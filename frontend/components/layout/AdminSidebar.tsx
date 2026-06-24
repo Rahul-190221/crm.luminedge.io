@@ -95,8 +95,8 @@ export default function AdminSidebar({ activePage, setActivePage, onLogout, isOp
     }
 
     const SectionLabel = ({ label }: { label: string }) => (
-        isIconOnly ? <div className="h-2" /> : (
-            <p className="pl-4 pt-5 pb-1 text-[11px] font-bold uppercase tracking-[0.22em] text-gray-300 select-none">
+        isIconOnly ? <div className="h-3 mt-1 border-t border-gray-100" /> : (
+            <p className="pl-4 pt-5 pb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-gray-300 select-none">
                 {label}
             </p>
         )
@@ -147,13 +147,12 @@ export default function AdminSidebar({ activePage, setActivePage, onLogout, isOp
             `}
             style={{ width: isIconOnly ? 72 : 252, minWidth: isIconOnly ? 72 : 252 }}>
                 {/* Logo */}
-                <div className="relative flex items-center justify-between px-4 py-4 border-b border-[#00000F]/[0.06]">
-                    <div className={`flex-1 flex items-center ${isIconOnly ? 'justify-center' : 'justify-center mr-2'}`}>
+                <div className="relative flex items-center justify-center px-4 py-[14px] border-b border-[#00000F]/[0.06]">
+                    <div className="flex items-center justify-center">
                         <img
                             src="/assets/logo.png"
                             alt="Luminedge"
-                            className={isIconOnly ? "h-9 w-9 object-contain" : "h-14 w-auto object-contain"}
-                            style={{ imageRendering: 'auto' }}
+                            className="h-12 w-auto object-contain"
                         />
                     </div>
                     {isOpen && (
@@ -246,8 +245,8 @@ export default function AdminSidebar({ activePage, setActivePage, onLogout, isOp
                 </nav>
 
                 {/* Footer */}
-                <div className={`pt-3 pb-5 border-t border-[#00000F]/[0.06] ${isIconOnly ? 'px-2' : 'px-2.5'}`}>
-                    {!isIconOnly && <p className="pl-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-gray-300 select-none">Account</p>}
+                <div className={`pt-3 pb-6 border-t border-[#00000F]/[0.06] ${isIconOnly ? 'px-2' : 'px-2.5'}`}>
+                    {!isIconOnly && <p className="pl-4 pb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-gray-300 select-none">Account</p>}
                     <div className="space-y-0.5">
                         <button
                             onClick={() => handleNavigate('notification')}

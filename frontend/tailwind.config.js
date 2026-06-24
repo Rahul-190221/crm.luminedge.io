@@ -54,6 +54,13 @@ module.exports = {
         heading: ['Oswald', 'sans-serif'],
         body:    ['var(--font-body)'],
       },
+      borderRadius: {
+        'md':  '10px',
+        'lg':  '10px',
+        'xl':  '10px',
+        '2xl': '10px',
+        '3xl': '10px',
+      },
       boxShadow: {
         large:  '0 10px 40px -10px rgba(0, 0, 0, 0.1)',
         yellow: '0 0 30px rgba(250, 206, 57, 0.35)',

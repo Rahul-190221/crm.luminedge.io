@@ -26,4 +26,7 @@ export type Page =
   | 'milestones'
   | 'appointments-admin'
   | 'news-management'
-  | 'reports';
+  | 'reports'
+  | 'bdm-pipeline'
+  | 'bdm-exam-slots'
+  | 'bdm-reports';
