@@ -26,6 +26,7 @@ const STAGE_STYLES: Record<string, { bg: string; text: string; border: string; d
 const STAGES: LeadStageType[] = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
 const countryCodes = ['+880', '+91', '+92', '+94', '+977', '+95', '+1', '+44', '+61', '+971', '+966', '+65', '+60', '+66', '+81', '+82', '+86', '+49', '+33'] as const;
 const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse'] as const;
+type WhomOption = (typeof whomOptions)[number];
 const leadSources = ['Website', 'Referral', 'Social Media', 'Facebook', 'Instagram', 'WhatsApp', 'Email Campaign', 'Walk-in', 'Phone', 'Other'] as const;
 const serviceInterests = ['IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test', 'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium', 'Study Abroad', 'Visa Processing'] as const;
 
@@ -151,7 +152,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editCountryCode, setEditCountryCode] = useState<(typeof countryCodes)[number]>('+880');
-  const [editWhom, setEditWhom] = useState<string>('');
+  const [editWhom, setEditWhom] = useState<WhomOption | ''>('');
   const [phoneSuggestions, setPhoneSuggestions] = useState<PhoneLookupSuggestion[]>([]);
   const [isPhoneFocused, setIsPhoneFocused] = useState(false);
   const [isPhoneChecking, setIsPhoneChecking] = useState(false);
@@ -596,7 +597,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                         <div className="relative flex-shrink-0 border-l border-gray-200 rounded-r-xl bg-[#f8fafc]">
                           <select
                             value={editWhom}
-                            onChange={e => setEditWhom(e.target.value)}
+                            onChange={e => setEditWhom(e.target.value as WhomOption | '')}
                             className="h-10 bg-transparent border-0 pl-3 pr-8 appearance-none text-[13px] font-semibold text-gray-700 min-w-[100px] cursor-pointer focus:ring-0"
                           >
                             <option value="">Whom</option>
@@ -967,6 +968,8 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
     </div>
   );
 }
+
+
 
 
 

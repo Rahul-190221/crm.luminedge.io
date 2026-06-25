@@ -69,8 +69,8 @@ export default function QuickAddLeadModal({ onClose, onSuccess }: Props) {
   useEffect(() => {
     const loadLeads = async () => {
       try {
-        const leads = await fetchLeads()
-        setExistingLeads(leads.map((lead: any) => ({
+        const data = await fetchLeads({ limit: 500 })
+        setExistingLeads((Array.isArray(data.leads) ? data.leads : []).map((lead: any) => ({
           _id: lead._id,
           fullName: lead.fullName,
           phone: lead.phone,
@@ -429,3 +429,4 @@ export default function QuickAddLeadModal({ onClose, onSuccess }: Props) {
     </div>
   )
 }
+

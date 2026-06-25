@@ -112,8 +112,9 @@ const LeadStage: React.FC = () => {
         setIsLoading(true);
         try {
             const data = await getLeads();
-            setLeads(data);
-            calculateStats(data);
+            const leadsList = Array.isArray(data.leads) ? data.leads : [];
+            setLeads(leadsList);
+            calculateStats(leadsList);
         } catch (error) {
             console.error('Failed to fetch leads:', error);
         } finally {
@@ -367,3 +368,4 @@ const LeadStage: React.FC = () => {
 };
 
 export default LeadStage;
+
