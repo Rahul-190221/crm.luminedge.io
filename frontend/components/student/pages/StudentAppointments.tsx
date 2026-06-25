@@ -146,7 +146,7 @@ export default function StudentAppointments({ token }: Props) {
           </div>
           <div>
             <label className={labelCls}>Preferred Date & Time</label>
-            <input type="datetime-local" min={new Date().toISOString().slice(0, 16)} className={inputCls} value={form.scheduledAt}
+            <input type="date" min={new Date().toISOString().slice(0, 10)} className={inputCls} value={form.scheduledAt}
               onChange={e => setForm(f => ({ ...f, scheduledAt: e.target.value }))} />
           </div>
           <div>

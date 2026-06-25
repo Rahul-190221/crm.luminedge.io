@@ -13,6 +13,7 @@ export type Page =
   | 'exam-reg'
   | 'notification'
   | 'profile'
+  | 'edit-request'
   | 'bdm-add'
   | 'bdm-remove'
   | 'bdm-role'
@@ -30,3 +31,6 @@ export type Page =
   | 'bdm-pipeline'
   | 'bdm-exam-slots'
   | 'bdm-reports';
+
+
+

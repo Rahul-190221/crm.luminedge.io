@@ -35,7 +35,7 @@ const SidebarAdmin = () => {
   const closeSidebar = () => setIsOpen(false);
   const toggleSidebar = () => setIsOpen((v) => !v);
 
-  // Fetch pending profile edit requests count
+  // Fetch pending edit requests count
   useEffect(() => {
     let mounted = true;
 
@@ -85,7 +85,7 @@ const SidebarAdmin = () => {
     { href: "/admin/homebasedtrf", label: "TRF Home Based", icon: <MdOutlineCastForEducation className="h-5 w-5" /> },
     { href: "/admin/all-users", label: "Booking Details", icon: <IoWalletOutline className="h-5 w-5" /> },
     { href: "/admin/analysis", label: "Analysis", icon: <GrAnalytics className="h-5 w-5" /> },
-    { href: "/admin/profileedit", label: "Profile Edit Requests", icon: <IoNotificationsOutline className="h-5 w-5" /> },
+    { href: "/admin/edit-request", label: "Edit Requests", icon: <IoNotificationsOutline className="h-5 w-5" /> },
   ] as const;
 
   return (
@@ -145,7 +145,7 @@ const SidebarAdmin = () => {
                 <span className="transform transition-transform duration-200 group-hover:translate-x-1 relative">
                   {icon}
 
-                  {href === "/admin/profileedit" && pendingCount > 0 && (
+                  {href === "/admin/edit-request" && pendingCount > 0 && (
                     <span
                       className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-600"
                       aria-hidden="true"
@@ -157,10 +157,10 @@ const SidebarAdmin = () => {
                   {label}
                 </span>
 
-                {href === "/admin/profileedit" && pendingCount > 0 && (
+                {href === "/admin/edit-request" && pendingCount > 0 && (
                   <span
                     className="ml-auto inline-flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold px-2 py-0.5"
-                    aria-label={`${pendingCount} pending profile edit request${pendingCount > 1 ? "s" : ""}`}
+                    aria-label={`${pendingCount} pending edit request${pendingCount > 1 ? "s" : ""}`}
                   >
                     {pendingCount > 99 ? "99+" : pendingCount}
                   </span>
@@ -196,3 +196,5 @@ const SidebarAdmin = () => {
 };
 
 export default SidebarAdmin;
+
+

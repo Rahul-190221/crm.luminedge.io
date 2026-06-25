@@ -80,7 +80,7 @@ export default function ExamRegistration({ user }: { user?: any }) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-[#FACE39] border-t-[#00000F] rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-blue-900 rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-gray-400 font-medium">Loading exams…</p>
         </div>
       </div>
@@ -88,12 +88,12 @@ export default function ExamRegistration({ user }: { user?: any }) {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="space-y-4 pb-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#00000F]/85">Exam Registration</h1>
-          <p className="text-sm text-gray-500 mt-1">Browse and manage exam registrations</p>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Exam Registration</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">Browse and manage exam registrations</p>
         </div>
         {isAdmin && (
           <button
@@ -101,10 +101,10 @@ export default function ExamRegistration({ user }: { user?: any }) {
               setEditingExam(null)
               setIsModalOpen(true)
             }}
-            className="flex items-center gap-2 bg-[#FACE39] px-4 py-2.5 rounded-lg text-sm font-bold text-[#00000F] hover:bg-[#FACE39]/90 transition-colors"
+            className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-bold text-[12px] rounded-lg hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 transition-all duration-200"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add Exam</span>
+            <Plus className="w-3 h-3" strokeWidth={2.5} />
+            Add Exam
           </button>
         )}
       </div>
@@ -155,8 +155,8 @@ export default function ExamRegistration({ user }: { user?: any }) {
         </div>
       ) : !fetchError && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-[#FACE39]/10 rounded-2xl flex items-center justify-center mb-4">
-            <CalendarX className="w-8 h-8 text-[#FACE39]" />
+          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+            <CalendarX className="w-8 h-8 text-blue-500" />
           </div>
           <p className="text-base font-bold text-gray-700 mb-1">No exams found</p>
           <p className="text-sm text-gray-400 mb-5">
@@ -167,7 +167,7 @@ export default function ExamRegistration({ user }: { user?: any }) {
           {isAdmin && (
             <button
               onClick={() => { setEditingExam(null); setIsModalOpen(true); }}
-              className="flex items-center gap-2 bg-[#FACE39] px-4 py-2.5 rounded-xl text-sm font-bold text-[#00000F] hover:bg-[#FACE39]/90 transition-colors"
+              className="flex items-center gap-2 bg-blue-600 px-4 py-2.5 rounded-xl text-sm font-bold text-white hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add First Exam

@@ -9,7 +9,7 @@ import { Lead, BDM } from '@/types/admin'
 // Avatar color generator based on name
 const getAvatarColor = (name?: string): string => {
   const colors = [
-    'bg-[#FACE39]',
+    'bg-sky-400',
     'bg-blue-500',
     'bg-purple-500',
     'bg-green-500',
@@ -55,8 +55,8 @@ export default function LeadAssignments() {
   const fetchUnassignedLeads = async () => {
     setIsLoading(true);
     try {
-      const data = await getLeads({ unassigned: true });
-      setUnassignedLeads(data);
+      const data = await getLeads({ unassigned: true, limit: 500 });
+      setUnassignedLeads(data.leads);
     } catch (error) {
       console.error('Error fetching unassigned leads:', error);
       setUnassignedLeads([]);
@@ -191,7 +191,7 @@ export default function LeadAssignments() {
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-yellow-600" />
+              <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{totalUnassigned}</p>
@@ -234,7 +234,7 @@ export default function LeadAssignments() {
               placeholder="Search by name, email, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
             />
           </div>
 
@@ -243,7 +243,7 @@ export default function LeadAssignments() {
             title="Filter by course"
             value={filterCourse}
             onChange={(e) => setFilterCourse(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
           >
             <option value="all">All Courses</option>
             <option value="IELTS">IELTS</option>
@@ -259,23 +259,23 @@ export default function LeadAssignments() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[500px]">
             <thead>
-              <tr className="bg-[#FACE39]">
+              <tr className="bg-blue-600">
                 <th className="text-left px-4 py-3">
                   <input
                     type="checkbox"
                     aria-label="Select all leads"
                     checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 rounded border-gray-300 text-[#FACE39] focus:ring-[#FACE39]/40"
+                    className="w-4 h-4 rounded border-white text-blue-600 focus:ring-blue-400/40"
                   />
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Lead Name</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Email</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Phone</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Course</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Source</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Created</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Action</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Lead Name</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Email</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Phone</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Course</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Source</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Created</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -283,7 +283,7 @@ export default function LeadAssignments() {
                 <tr>
                   <td colSpan={8} className="text-center py-8">
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
                   </td>
                 </tr>
@@ -304,7 +304,7 @@ export default function LeadAssignments() {
                         aria-label="Select lead"
                         checked={selectedLeads.includes(lead._id)}
                         onChange={() => handleSelectLead(lead._id)}
-                        className="w-4 h-4 rounded border-gray-300 text-[#FACE39] focus:ring-[#FACE39]/40"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-400/40"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -349,8 +349,8 @@ export default function LeadAssignments() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                <Send className="w-6 h-6 text-yellow-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Send className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Assign Leads</h3>
@@ -364,7 +364,7 @@ export default function LeadAssignments() {
                 title="Select BDM"
                 value={selectedBDM}
                 onChange={(e) => setSelectedBDM(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
               >
                 <option value="">Choose a BDM...</option>
                 {bdmUsers.map(bdm => (
@@ -384,7 +384,7 @@ export default function LeadAssignments() {
                     key={bdm._id}
                     onClick={() => setSelectedBDM(bdm._id)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedBDM === bdm._id
-                        ? 'border-[#FACE39] bg-[#FACE39]/5'
+                        ? 'border-blue-400 bg-blue-50'
                         : 'border-gray-100 hover:border-gray-200'
                       }`}
                   >

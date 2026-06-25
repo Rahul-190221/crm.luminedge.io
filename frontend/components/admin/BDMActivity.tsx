@@ -19,7 +19,7 @@ interface ActivityLog {
 // Avatar color generator based on name
 const getAvatarColor = (name?: string): string => {
   const colors = [
-    'bg-[#FACE39]',
+    'bg-sky-400',
     'bg-blue-500',
     'bg-purple-500',
     'bg-green-500',
@@ -62,7 +62,7 @@ const getActionColor = (actionType: string): string => {
     case 'lead_created': return 'bg-green-100 text-green-600'
     case 'lead_converted': return 'bg-emerald-100 text-emerald-600'
     case 'lead_lost': return 'bg-red-100 text-red-600'
-    case 'note_added': return 'bg-yellow-100 text-yellow-600'
+    case 'note_added': return 'bg-blue-100 text-blue-600'
     case 'meeting': return 'bg-indigo-100 text-indigo-600'
     case 'follow_up': return 'bg-orange-100 text-orange-600'
     default: return 'bg-gray-100 text-gray-600'
@@ -190,11 +190,13 @@ export default function BDMActivity() {
   }).length
 
   return (
-    <div className="min-h-full">
+    <div className="space-y-4 pb-6">
       {/* Page Header */}
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-lg sm:text-xl font-bold text-[#00000F]/85">BDM Activity Log</h1>
-        <p className="text-sm text-gray-500 mt-1">Track all BDM activities and interactions</p>
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">BDM Activity Log</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">Track all BDM activities and interactions</p>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -256,7 +258,7 @@ export default function BDMActivity() {
               placeholder="Search activities..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
             />
           </div>
 
@@ -265,7 +267,7 @@ export default function BDMActivity() {
             title="Filter by activity type"
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
           >
             <option value="all">All Activities</option>
             <option value="call">Phone Calls</option>
@@ -284,7 +286,7 @@ export default function BDMActivity() {
             title="Filter by date"
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
           />
         </div>
       </div>
@@ -294,12 +296,12 @@ export default function BDMActivity() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px]">
             <thead>
-              <tr className="bg-[#FACE39]">
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-gray-900">BDM</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-gray-900">Type</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-gray-900">Description</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-gray-900">Lead</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-gray-900">Time</th>
+              <tr className="bg-blue-600">
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-white">BDM</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-white">Type</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-white">Description</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-white">Lead</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-white">Time</th>
               </tr>
             </thead>
             <tbody>
@@ -307,7 +309,7 @@ export default function BDMActivity() {
                 <tr>
                   <td colSpan={5} className="text-center py-8">
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
                   </td>
                 </tr>

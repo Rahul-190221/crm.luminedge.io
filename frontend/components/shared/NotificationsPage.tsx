@@ -40,7 +40,11 @@ const TYPE_CONFIG = {
     },
 }
 
-export default function NotificationsPage() {
+interface NotificationsPageProps {
+    onNavigate?: (page: string) => void
+}
+
+export default function NotificationsPage({ onNavigate }: NotificationsPageProps) {
     const { notifications, isLoading, markAsRead, markAllAsRead } = useNotifications()
 
     const handleMarkAllAsRead = async () => {
@@ -49,6 +53,13 @@ export default function NotificationsPage() {
             toast.success('All marked as read')
         } catch {
             toast.error('Failed to mark all as read')
+        }
+    }
+
+    const handleNotificationClick = async (notification: { _id: string; title: string; isRead: boolean }) => {
+        if (!notification.isRead) await markAsRead(notification._id)
+        if (onNavigate && /edit.?request/i.test(notification.title)) {
+            onNavigate('edit-request')
         }
     }
 
@@ -95,43 +106,39 @@ export default function NotificationsPage() {
     const unreadCount = notifications.filter(n => !n.isRead).length
 
     return (
-        <div className="max-w-2xl mx-auto space-y-3">
+        <div className="max-w-2xl mx-auto space-y-4 pb-6">
 
-            {/* Header card */}
-            <div className="bg-white rounded-2xl border border-[#00000F]/[0.07] shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#FACE39]/15 border border-[#FACE39]/25 flex items-center justify-center flex-shrink-0">
-                            <Bell className="w-[18px] h-[18px] text-[#00000F]" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-[15px] font-bold text-[#00000F]/85 tracking-tight">Notifications</h1>
-                                {notifications.length > 0 && (
-                                    <span className="text-[12px] font-bold bg-[#00000F]/[0.06] text-[#00000F]/45 px-2 py-0.5 rounded-full tabular-nums">
-                                        {notifications.length}
-                                    </span>
-                                )}
-                            </div>
-                            {unreadCount > 0 ? (
-                                <p className="text-[13px] text-rose-600 font-semibold mt-0.5 flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse inline-block" />
-                                    {unreadCount} unread
-                                </p>
-                            ) : (
-                                <p className="text-[13px] text-emerald-600 font-semibold mt-0.5">All caught up</p>
+            {/* Page header */}
+            <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Notifications</h1>
+                            {notifications.length > 0 && (
+                                <span className="text-[12px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full tabular-nums">
+                                    {notifications.length}
+                                </span>
                             )}
                         </div>
+                        {unreadCount > 0 ? (
+                            <p className="text-xs text-rose-600 font-semibold mt-0.5 flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse inline-block" />
+                                {unreadCount} unread
+                            </p>
+                        ) : (
+                            <p className="text-xs text-emerald-600 font-semibold mt-0.5">All caught up</p>
+                        )}
                     </div>
-                    {unreadCount > 0 && (
-                        <button
-                            onClick={handleMarkAllAsRead}
-                            className="shrink-0 px-4 py-2 bg-[#00000F] text-[#FACE39] text-xs font-bold rounded-xl hover:bg-[#00000F]/90 transition-all shadow-sm active:scale-[0.97]"
-                        >
-                            Mark all read
-                        </button>
-                    )}
                 </div>
+                {unreadCount > 0 && (
+                    <button
+                        onClick={handleMarkAllAsRead}
+                        className="shrink-0 h-8 px-4 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-all active:scale-95"
+                    >
+                        Mark all read
+                    </button>
+                )}
+
             </div>
 
             {/* Empty state */}
@@ -156,7 +163,7 @@ export default function NotificationsPage() {
                         return (
                             <div
                                 key={notification._id}
-                                onClick={() => !notification.isRead && markAsRead(notification._id)}
+                                onClick={() => handleNotificationClick(notification)}
                                 className={`group relative bg-white rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200
                                     ${notification.isRead
                                         ? 'border-[#00000F]/[0.06] opacity-60 hover:opacity-85 hover:shadow-sm'

@@ -38,20 +38,32 @@ export const assignLeads = async (leadIds: string[], bdmId: string): Promise<{ m
   return response.json();
 };
 
-// Get all leads with optional filters
+export interface LeadsPage {
+  leads: Lead[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Get all leads with optional filters and pagination
 export const getLeads = async (filters?: {
   stage?: string;
   source?: string;
   assignedTo?: string;
   search?: string;
   unassigned?: boolean;
-}): Promise<Lead[]> => {
+  page?: number;
+  limit?: number;
+}): Promise<LeadsPage> => {
   const params = new URLSearchParams();
   if (filters?.stage) params.append('stage', filters.stage);
   if (filters?.source) params.append('source', filters.source);
   if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo);
   if (filters?.search) params.append('search', filters.search);
   if (filters?.unassigned) params.append('unassigned', 'true');
+  if (filters?.page) params.append('page', String(filters.page));
+  if (filters?.limit) params.append('limit', String(filters.limit));
 
   const queryString = params.toString();
   const url = `${API_BASE_URL}/leads${queryString ? `?${queryString}` : ''}`;

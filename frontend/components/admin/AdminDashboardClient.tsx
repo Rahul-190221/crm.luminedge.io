@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
 import AdminSidebar from '@/components/layout/AdminSidebar'
-import Header from '@/components/layout/Header'
+import { Bell, Menu } from 'lucide-react'
 import Dashboard from '@/components/dashboard/Dashboard'
 import LeadCenter from '@/components/leads/LeadCenter'
 import LeadStage from '@/components/leads/LeadStage'
@@ -18,6 +18,7 @@ import BDMActivity from '@/components/admin/BDMActivity'
 import BDMReport from '@/components/admin/BDMReport'
 import LeadAssignments from '@/components/admin/LeadAssignments'
 import LeadDetail from '@/components/leads/LeadDetail'
+import LeadEditRequests from '@/components/admin/LeadEditRequests'
 import NotificationsPage from '@/components/shared/NotificationsPage'
 import ProfilePage from '@/components/shared/ProfilePage'
 import StudentList from '@/components/admin/StudentList'
@@ -29,6 +30,8 @@ import NewsManagement from '@/components/admin/NewsManagement'
 import AdminReports from '@/components/admin/AdminReports'
 import { getUserIdFromToken, getToken } from '@/lib/helpers/jwt'
 import { useNotifications } from '@/components/providers/NotificationProvider'
+import { useSocketTick } from '@/components/providers/SocketProvider'
+import { getLeadEditRequests } from '@/lib/api/leadEditRequests'
 import { API_URL } from '@/lib/api/base'
 import type { Page } from '@/types/navigation'
 
@@ -42,6 +45,8 @@ export default function AdminDashboardClient() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const { unreadCount } = useNotifications()
+  const socketTick = useSocketTick()
+  const [pendingEditCount, setPendingEditCount] = useState(0)
 
   const clearAuthAndRedirect = async () => {
     const token = getToken()
@@ -53,7 +58,7 @@ export default function AdminDashboardClient() {
           credentials: 'include',
         })
       }
-    } catch { /* best-effort server logout — local cleanup always runs */ }
+    } catch { /* best-effort server logout â€” local cleanup always runs */ }
     Cookies.remove('accessToken')
     Cookies.remove('studentToken')
     localStorage.removeItem('accessToken')
@@ -76,13 +81,35 @@ export default function AdminDashboardClient() {
       return
     }
 
-    setUser({
+    const baseUser = {
       name: decoded.email?.split('@')[0] || 'Admin',
       email: decoded.email,
-      role: decoded.role
-    })
+      role: 'Admin',
+    }
+    setUser(baseUser)
     setIsInitialized(true)
+
+    const token = getToken()
+    if (token) {
+      import('@/lib/api/auth').then(({ getProfile }) =>
+        getProfile(token)
+          .then((profile: { name?: string; firstName?: string; lastName?: string }) => {
+            const fullName =
+              [profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
+              profile.name ||
+              baseUser.name
+            setUser((u: any) => u ? { ...u, name: fullName } : u)
+          })
+          .catch((err: any) => {
+            if (err?.status === 401 || err?.status === 403) clearAuthAndRedirect()
+          })
+      )
+    }
   }, [router])
+
+  useEffect(() => {
+    getLeadEditRequests('pending').then(r => setPendingEditCount(r.length)).catch(() => {})
+  }, [socketTick])
 
   const handleLogout = () => { clearAuthAndRedirect() }
 
@@ -135,9 +162,11 @@ export default function AdminDashboardClient() {
       case 'reports':
         return <AdminReports />
       case 'notification':
-        return <NotificationsPage />
+        return <NotificationsPage onNavigate={(page) => setActivePage(page as Page)} />
       case 'profile':
         return <ProfilePage />
+      case 'edit-request':
+        return <LeadEditRequests />
       default:
         return <Dashboard />
     }
@@ -147,7 +176,7 @@ export default function AdminDashboardClient() {
     return (
       <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FACE39] mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
           <p className="text-gray-500">Loading...</p>
         </div>
       </div>
@@ -163,19 +192,43 @@ export default function AdminDashboardClient() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         unreadCount={unreadCount}
+        pendingEditCount={pendingEditCount}
+        user={user}
       />
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Header
-          user={user}
-          onLogout={handleLogout}
-          onMenuToggle={() => setSidebarOpen(prev => !prev)}
-          unreadCount={unreadCount}
-          onNotificationClick={handleNotificationClick}
-        />
-        <main className="flex-1 overflow-y-auto px-5 py-5 md:px-7 md:py-6 lg:px-8 lg:py-7 scrollbar-hide bg-[#fafafa]">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile-only top bar — desktop shows nothing here; page sticky headers serve as the header */}
+        <div className="lg:hidden flex-none flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur-md border-b border-gray-100 z-30">
+          <button
+            onClick={() => setSidebarOpen(prev => !prev)}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <img src="/assets/logo.png" alt="Luminedge" className="h-8 w-auto object-contain" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleNotificationClick}
+              className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white px-0.5">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-[13px] font-bold">
+              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+            </div>
+          </div>
+        </div>
+        <main className="flex-1 min-w-0 overflow-y-auto px-6 py-6 pb-12 scrollbar-hide bg-[#f9fafb]">
           {renderContent()}
         </main>
       </div>
     </div>
   )
 }
+
+
+

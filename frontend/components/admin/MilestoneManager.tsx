@@ -63,7 +63,7 @@ export default function MilestoneManager() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black text-[#00000F]">Milestone Manager</h2>
         <select
-          className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] transition w-56"
+          className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 transition w-56"
           value={selectedStudent}
           onChange={e => loadMilestones(e.target.value)}
         >
@@ -74,7 +74,7 @@ export default function MilestoneManager() {
 
       {loading && (
         <div className="flex justify-center py-8">
-          <div className="w-6 h-6 border-2 border-[#FACE39] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
@@ -88,7 +88,7 @@ export default function MilestoneManager() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-bold text-[#00000F]">{m.title}</p>
                     <select
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-[#00000F]/60 focus:outline-none focus:border-[#FACE39] transition flex-shrink-0"
+                      className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-[#00000F]/60 focus:outline-none focus:border-blue-400 transition flex-shrink-0"
                       value={m.status}
                       onChange={e => handleStatusChange(m._id, e.target.value as MilestoneStatus)}
                     >
@@ -104,7 +104,7 @@ export default function MilestoneManager() {
                         }
                       }}
                       placeholder="Add a note..."
-                      className="w-full text-xs px-2 py-1.5 border border-gray-100 rounded-lg text-[#00000F]/60 focus:outline-none focus:border-[#FACE39] transition"
+                      className="w-full text-xs px-2 py-1.5 border border-gray-100 rounded-lg text-[#00000F]/60 focus:outline-none focus:border-blue-400 transition"
                     />
                   </div>
                 </div>

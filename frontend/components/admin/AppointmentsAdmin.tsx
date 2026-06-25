@@ -11,7 +11,7 @@ function statusBadge(s: string) {
     Scheduled: 'text-blue-600 bg-blue-50',
     Completed: 'text-green-600 bg-green-50',
     Cancelled: 'text-red-500 bg-red-50',
-    Rescheduled: 'text-yellow-600 bg-yellow-50',
+    Rescheduled: 'text-blue-600 bg-blue-50',
   }
   return m[s] || 'text-gray-500 bg-gray-100'
 }
@@ -52,13 +52,13 @@ export default function AppointmentsAdmin() {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
-        <Calendar size={18} className="text-[#b08800]" />
+        <Calendar size={18} className="text-blue-600" />
         <h2 className="text-lg font-black text-[#00000F]">Appointments</h2>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-[#FACE39] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="space-y-3">
@@ -82,7 +82,7 @@ export default function AppointmentsAdmin() {
                     Mark Complete
                   </button>
                   <button onClick={() => setRescheduleId(rescheduleId === a._id ? null : a._id)}
-                    className="text-xs font-bold text-yellow-600 border border-yellow-200 px-3 py-1.5 rounded-lg hover:bg-yellow-50 transition">
+                    className="text-xs font-bold text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition">
                     Reschedule
                   </button>
                   <button onClick={() => handleAction(a._id, 'Cancelled')}
@@ -94,10 +94,10 @@ export default function AppointmentsAdmin() {
 
               {rescheduleId === a._id && (
                 <div className="flex gap-2 mt-2">
-                  <input type="datetime-local" min={new Date().toISOString().slice(0, 16)} value={newDate} onChange={e => setNewDate(e.target.value)}
-                    className="flex-1 px-3 py-1.5 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] transition" />
+                  <input type="date" min={new Date().toISOString().slice(0, 10)} value={newDate} onChange={e => setNewDate(e.target.value)}
+                    className="flex-1 px-3 py-1.5 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 transition" />
                   <button onClick={() => handleReschedule(a._id)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-black text-[#00000F] bg-[#FACE39] hover:bg-[#f0c020] transition">
+                    className="px-3 py-1.5 rounded-xl text-xs font-black text-white bg-blue-600 hover:bg-blue-700 transition">
                     Confirm
                   </button>
                 </div>

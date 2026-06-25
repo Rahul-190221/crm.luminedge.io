@@ -50,11 +50,28 @@ interface InputLeadProps { onSuccess?: () => void; onCancel?: () => void }
 const fieldCls = 'w-full h-11 px-3.5 bg-[#f8fafc] border border-gray-200 rounded-xl text-[13.5px] text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all hover:border-gray-300 shadow-[0_1px_2px_rgba(0,0,0,0.02)]'
 const labelCls = 'flex items-center gap-1.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-[0.08em] mb-1.5'
 
-const getCurrentDateTimeLocal = () => {
-  const now = new Date()
-  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+const getTodayStartLocal = () => new Date().toISOString().split('T')[0]
+
+const phoneDigitRules: Record<string, { min: number; max: number }> = {
+  '+880': { min: 10, max: 11 }, '+91': { min: 10, max: 10 }, '+92': { min: 10, max: 11 },
+  '+94': { min: 9, max: 10 },   '+977': { min: 9, max: 10 }, '+95': { min: 8, max: 10 },
+  '+1': { min: 10, max: 10 },   '+44': { min: 10, max: 11 }, '+61': { min: 9, max: 9 },
+  '+971': { min: 9, max: 9 },   '+966': { min: 9, max: 9 }, '+65': { min: 8, max: 8 },
+  '+60': { min: 9, max: 11 },   '+66': { min: 9, max: 10 }, '+81': { min: 10, max: 11 },
+  '+82': { min: 9, max: 11 },   '+86': { min: 11, max: 11 }, '+49': { min: 10, max: 12 },
+  '+33': { min: 9, max: 10 },
 }
-const getTodayStartLocal = () => getCurrentDateTimeLocal().split('T')[0] + 'T00:00'
+
+function validatePhoneDigits(phone: string, code: string): string | null {
+  const digits = phone.replace(/\D/g, '')
+  if (!digits) return null
+  const rule = phoneDigitRules[code]
+  if (!rule) return null
+  const range = rule.min === rule.max ? `${rule.min}` : `${rule.min}–${rule.max}`
+  if (digits.length < rule.min) return `Phone too short for ${code}: need ${range} digits, got ${digits.length}.`
+  if (digits.length > rule.max) return `Phone too long for ${code}: need ${range} digits, got ${digits.length}.`
+  return null
+}
 
 export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
   const [formData, setFormData] = useState(() => {
@@ -64,7 +81,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
   })
   const [countryCode, setCountryCode] = useState('+880')
   const [followUps, setFollowUps] = useState<FollowUpEntry[]>([
-    { id: 1, date: getCurrentDateTimeLocal(), note: '', nextFollowUpDate: getCurrentDateTimeLocal() }
+    { id: 1, date: getTodayStartLocal(), note: '', nextFollowUpDate: getTodayStartLocal() }
   ])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [phoneSuggestions, setPhoneSuggestions] = useState<PhoneLookupSuggestion[]>([])
@@ -210,6 +227,9 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
   }
 
   const checkPhoneDuplicate = async (phoneValue = formData.phone) => {
+    const digitError = validatePhoneDigits(phoneValue, countryCode)
+    if (digitError) { setPhoneError(digitError); return true }
+
     const combinedPhone = `${countryCode} ${phoneValue}`.trim()
     const digits = combinedPhone.replace(/\D/g, '')
     if (digits.length < 7) return false
@@ -224,7 +244,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
     return false
   }
   const handleAddFollowUp = () => {
-    setFollowUps([...followUps, { id: Date.now(), date: getCurrentDateTimeLocal(), note: '', nextFollowUpDate: getCurrentDateTimeLocal() }])
+    setFollowUps([...followUps, { id: Date.now(), date: getTodayStartLocal(), note: '', nextFollowUpDate: getTodayStartLocal() }])
   }
   const handleRemoveFollowUp = (id: number) => {
     if (followUps.length > 1) setFollowUps(followUps.filter(f => f.id !== id))
@@ -371,7 +391,11 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                 <div className="grid grid-cols-[auto_minmax(0,1fr)_170px] shadow-[0_1px_2px_rgba(0,0,0,0.02)] rounded-xl overflow-visible group focus-within:ring-4 focus-within:ring-blue-500/10 transition-all bg-[#f8fafc]">
                   <div className="relative flex-shrink-0 border-y border-l border-gray-200 rounded-l-xl bg-transparent group-focus-within:border-[#1a56db] transition-colors">
                     <select
-                      value={countryCode} onChange={e => setCountryCode(e.target.value)}
+                      value={countryCode} onChange={e => {
+                        const c = e.target.value
+                        setCountryCode(c)
+                        if (formData.phone.trim()) setPhoneError(validatePhoneDigits(formData.phone, c))
+                      }}
                       className="h-11 bg-transparent border-0 pr-8 pl-3 appearance-none text-[13.5px] font-bold text-gray-800 min-w-[90px] cursor-pointer focus:ring-0"
                     >
                       {countryCodes.map((c, i) => (
@@ -384,9 +408,23 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                     type="tel" placeholder="Enter phone number" required
                     value={formData.phone}
                     onFocus={() => setIsPhoneFocused(true)}
-                    onBlur={() => window.setTimeout(() => setIsPhoneFocused(false), 120)}
+                    onBlur={() => window.setTimeout(() => {
+                      setIsPhoneFocused(false)
+                      if (formData.phone.trim()) setPhoneError(validatePhoneDigits(formData.phone, countryCode))
+                    }, 120)}
                     onKeyDown={async e => { if (e.key === 'Enter') { e.preventDefault(); await checkPhoneDuplicate(); } }}
-                    onChange={e => { setFormData({ ...formData, phone: e.target.value }); setPhoneError(null); setError(null); }}
+                    onChange={e => {
+                      const v = e.target.value
+                      setFormData({ ...formData, phone: v })
+                      setError(null)
+                      const digits = v.replace(/\D/g, '')
+                      const rule = phoneDigitRules[countryCode]
+                      if (rule && digits.length > rule.max) {
+                        setPhoneError(`Phone too long for ${countryCode}: max ${rule.max} digits.`)
+                      } else {
+                        setPhoneError(null)
+                      }
+                    }}
                     className="h-11 px-3 bg-transparent border-y border-gray-200 text-[13.5px] text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:bg-white focus:border-[#1a56db] transition-all group-hover:border-gray-300 group-focus-within:border-[#1a56db] group-focus-within:bg-white"
                   />
                   <div className="relative flex-shrink-0 border-y border-r border-gray-200 rounded-r-xl bg-transparent group-focus-within:border-[#1a56db] transition-colors">
@@ -594,7 +632,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                     <label className={labelCls}>Action Date <span className="text-red-500 normal-case ml-0.5">*</span></label>
                     <div className="relative">
                       <input
-                        type="datetime-local" required
+                        type="date" required
                         value={followUp.date} min={getTodayStartLocal()}
                         onChange={e => handleFollowUpChange(followUp.id, 'date', e.target.value)}
                         className={`${fieldCls} pr-10 bg-white`}
@@ -615,7 +653,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                     <label className={labelCls}>Next Follow-Up <span className="text-red-500 normal-case ml-0.5">*</span></label>
                     <div className="relative">
                       <input
-                        type="datetime-local" required
+                        type="date" required
                         value={followUp.nextFollowUpDate} min={getTodayStartLocal()}
                         onChange={e => handleFollowUpChange(followUp.id, 'nextFollowUpDate', e.target.value)}
                         className={`${fieldCls} pr-10 bg-white`}

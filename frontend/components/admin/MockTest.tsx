@@ -18,33 +18,33 @@ interface MockTestPackage {
 const initialMockTestPackages: MockTestPackage[] = [
   {
     testType: 'IELTS',
-    borderColor: 'border-l-[#FACE39]',
-    bgColor: 'bg-[#FACE39]',
-    textColor: 'text-[#00000F]',
+    borderColor: 'border-l-blue-500',
+    bgColor: 'bg-blue-600',
+    textColor: 'text-white',
     features: ['Flexible mock test schedule', 'Real exam experience', 'Official test standard question', 'Result published in quick time', 'Detailed mock feedback', 'Wireless headphones'],
     pricing: [{ testCount: 1, fee: 1550 }, { testCount: 3, fee: 3000 }, { testCount: 5, fee: 4500 }]
   },
   {
     testType: 'GRE',
-    borderColor: 'border-l-[#FACE39]',
-    bgColor: 'bg-[#FACE39]',
-    textColor: 'text-[#00000F]',
+    borderColor: 'border-l-blue-500',
+    bgColor: 'bg-blue-600',
+    textColor: 'text-white',
     features: ['Flexible mock test schedule', 'Real exam experience', 'Official test standard question', 'Result published in quick time', 'Detailed mock feedback', 'Wireless headphones'],
     pricing: [{ testCount: 1, fee: 2000 }, { testCount: 3, fee: 4000 }, { testCount: 5, fee: 6000 }]
   },
   {
     testType: 'PTE',
-    borderColor: 'border-l-[#00000F]',
-    bgColor: 'bg-[#00000F]',
-    textColor: 'text-[#FACE39]',
+    borderColor: 'border-l-blue-800',
+    bgColor: 'bg-blue-800',
+    textColor: 'text-blue-200',
     features: ['Flexible mock test schedule', 'Real exam experience', 'Official test standard question', 'Result published in quick time', 'Detailed mock feedback', 'Wireless headphones'],
     pricing: [{ testCount: 1, fee: 1750 }, { testCount: 3, fee: 3500 }, { testCount: 5, fee: 5000 }]
   },
   {
     testType: 'TOEFL',
-    borderColor: 'border-l-[#00000F]',
-    bgColor: 'bg-[#00000F]',
-    textColor: 'text-[#FACE39]',
+    borderColor: 'border-l-blue-800',
+    bgColor: 'bg-blue-800',
+    textColor: 'text-blue-200',
     features: ['Flexible mock test schedule', 'Real exam experience', 'Official test standard question', 'Result published in quick time', 'Detailed mock feedback', 'Wireless headphones'],
     pricing: [{ testCount: 1, fee: 1800 }, { testCount: 3, fee: 3600 }, { testCount: 5, fee: 5400 }]
   },
@@ -90,8 +90,8 @@ function transformSchedules(data: LuminedgeSchedule[]): MockTestSchedule[] {
   })
 }
 
-const filterSelectCls = "h-9 px-3 border border-[#00000F]/[0.10] rounded-xl text-[12.5px] font-medium text-[#00000F]/70 bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-[#FACE39] outline-none transition-all cursor-pointer"
-const editInputCls = "flex-1 h-9 px-3 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-[#FACE39] outline-none transition-all"
+const filterSelectCls = "h-9 px-3 border border-[#00000F]/[0.10] rounded-xl text-[12.5px] font-medium text-[#00000F]/70 bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 outline-none transition-all cursor-pointer"
+const editInputCls = "flex-1 h-9 px-3 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 outline-none transition-all"
 
 export default function MockTest({ user }: { user?: any }) {
   const isAdmin = user?.role === 'admin'
@@ -111,14 +111,14 @@ export default function MockTest({ user }: { user?: any }) {
       const data = await getMockTestPackages()
       if (data && data.length > 0) {
         const styleMap: Record<string, { borderColor: string; bgColor: string; textColor: string }> = {
-          'IELTS': { borderColor: 'border-l-[#FACE39]', bgColor: 'bg-[#FACE39]', textColor: 'text-[#00000F]' },
-          'GRE':   { borderColor: 'border-l-[#FACE39]', bgColor: 'bg-[#FACE39]', textColor: 'text-[#00000F]' },
-          'PTE':   { borderColor: 'border-l-[#00000F]', bgColor: 'bg-[#00000F]', textColor: 'text-[#FACE39]' },
-          'TOEFL': { borderColor: 'border-l-[#00000F]', bgColor: 'bg-[#00000F]', textColor: 'text-[#FACE39]' },
+          'IELTS': { borderColor: 'border-l-blue-500', bgColor: 'bg-blue-600', textColor: 'text-white' },
+          'GRE':   { borderColor: 'border-l-blue-500', bgColor: 'bg-blue-600', textColor: 'text-white' },
+          'PTE':   { borderColor: 'border-l-blue-800', bgColor: 'bg-blue-800', textColor: 'text-blue-200' },
+          'TOEFL': { borderColor: 'border-l-blue-800', bgColor: 'bg-blue-800', textColor: 'text-blue-200' },
         }
         setPackages(data.map((pkg: any) => ({
           ...pkg,
-          ...(styleMap[pkg.testType] || { borderColor: 'border-l-[#FACE39]', bgColor: 'bg-[#FACE39]', textColor: 'text-[#00000F]' })
+          ...(styleMap[pkg.testType] || { borderColor: 'border-l-blue-500', bgColor: 'bg-blue-600', textColor: 'text-white' })
         })))
       } else {
         await seedMockTestPackages()
@@ -174,25 +174,27 @@ export default function MockTest({ user }: { user?: any }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#FACE39] border-t-[#00000F]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-500 border-t-blue-900" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-6">
 
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
-      <div>
-        <h1 className="text-[21px] font-bold text-[#00000F] tracking-tight">Mock Test</h1>
-        <p className="text-[12px] text-[#00000F]/40 font-medium mt-0.5">Browse mock test details and available schedules</p>
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Mock Test</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">Browse mock test details and available schedules</p>
+        </div>
       </div>
 
       {/* ── Packages Section ─────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-[#00000F]/[0.07] shadow-[0_1px_10px_rgba(0,0,15,0.04)] overflow-hidden">
         <div className="px-5 py-4 border-b border-[#00000F]/[0.06]">
           <div className="flex items-center gap-2.5">
-            <span className="w-[3px] h-4 bg-[#FACE39] rounded-full" />
+            <span className="w-[3px] h-4 bg-blue-500 rounded-full" />
             <div>
               <h2 className="text-[13px] font-bold text-[#00000F] tracking-tight">Mock Test Packages</h2>
               <p className="text-[11px] text-[#00000F]/40 font-medium mt-0.5">Available mock test packages with pricing details</p>
@@ -210,7 +212,7 @@ export default function MockTest({ user }: { user?: any }) {
               {isAdmin && editingPackage !== pkg.testType && (
                 <button
                   onClick={() => handleEditPackage(pkg)}
-                  className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg bg-[#00000F]/[0.04] hover:bg-[#FACE39]/20 text-[#00000F]/35 hover:text-[#00000F] transition-all"
+                  className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg bg-[#00000F]/[0.04] hover:bg-blue-100 text-[#00000F]/35 hover:text-blue-700 transition-all"
                   title="Edit Package"
                 >
                   <Pencil size={13} />
@@ -226,7 +228,7 @@ export default function MockTest({ user }: { user?: any }) {
                       <button
                         onClick={handleSavePackage}
                         disabled={isSaving}
-                        className="h-8 px-3 bg-[#FACE39] text-[#00000F] text-[12px] font-bold rounded-xl hover:bg-[#FACE39]/90 disabled:opacity-50 transition-all"
+                        className="h-8 px-3 bg-blue-600 text-white text-[12px] font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all"
                       >
                         {isSaving ? 'Saving…' : 'Save'}
                       </button>
@@ -254,7 +256,7 @@ export default function MockTest({ user }: { user?: any }) {
                         </button>
                       </div>
                     ))}
-                    <button onClick={handleAddFeature} className="flex items-center gap-1 text-[12px] font-semibold text-[#FACE39] hover:text-[#00000F] mt-1.5 transition-colors">
+                    <button onClick={handleAddFeature} className="flex items-center gap-1 text-[12px] font-semibold text-blue-600 hover:text-blue-800 mt-1.5 transition-colors">
                       <Plus size={13} /> Add Feature
                     </button>
                   </div>
@@ -267,14 +269,14 @@ export default function MockTest({ user }: { user?: any }) {
                           type="number"
                           value={price.testCount}
                           onChange={(e) => handlePricingChange(idx, 'testCount', parseInt(e.target.value) || 0)}
-                          className="w-16 h-9 px-2 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-[#FACE39]/40 outline-none text-center"
+                          className="w-16 h-9 px-2 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-blue-400/40 outline-none text-center"
                         />
                         <span className="text-[12px] text-[#00000F]/40 font-medium">tests</span>
                         <input
                           type="number"
                           value={price.fee}
                           onChange={(e) => handlePricingChange(idx, 'fee', parseInt(e.target.value) || 0)}
-                          className="w-24 h-9 px-2 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-[#FACE39]/40 outline-none"
+                          className="w-24 h-9 px-2 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-blue-400/40 outline-none"
                         />
                         <span className="text-[12px] text-[#00000F]/40 font-medium">BDT</span>
                         <button onClick={() => handleRemovePricing(idx)} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#00000F]/30 hover:text-red-500 hover:bg-red-50 transition-all">
@@ -282,7 +284,7 @@ export default function MockTest({ user }: { user?: any }) {
                         </button>
                       </div>
                     ))}
-                    <button onClick={handleAddPricing} className="flex items-center gap-1 text-[12px] font-semibold text-[#FACE39] hover:text-[#00000F] mt-1.5 transition-colors">
+                    <button onClick={handleAddPricing} className="flex items-center gap-1 text-[12px] font-semibold text-blue-600 hover:text-blue-800 mt-1.5 transition-colors">
                       <Plus size={13} /> Add Pricing Tier
                     </button>
                   </div>
@@ -296,7 +298,7 @@ export default function MockTest({ user }: { user?: any }) {
                     <ul className="space-y-1.5 mb-1">
                       {pkg.features.map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2 text-[12.5px] text-[#00000F]/65 font-medium">
-                          <span className="w-1.5 h-1.5 bg-[#FACE39] rounded-full flex-shrink-0" />
+                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0" />
                           {feature}
                         </li>
                       ))}

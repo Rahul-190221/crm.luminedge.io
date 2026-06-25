@@ -53,7 +53,7 @@ export default function StudentList() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-[#FACE39] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -70,8 +70,8 @@ export default function StudentList() {
                 <tr key={s._id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#FACE39]/15 flex items-center justify-center">
-                        <span className="text-xs font-black text-[#b08800]">{s.name.charAt(0)}</span>
+                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-xs font-black text-blue-600">{s.name.charAt(0)}</span>
                       </div>
                       <div>
                         <p className="text-sm font-bold text-[#00000F]">{s.name}</p>
@@ -86,7 +86,7 @@ export default function StudentList() {
                     <span className="text-xs text-[#00000F]/60">{s.assignedBDM?.name || 'Unassigned'}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.onboardingComplete ? 'text-green-600 bg-green-50' : 'text-yellow-600 bg-yellow-50'}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.onboardingComplete ? 'text-green-600 bg-green-50' : 'text-blue-600 bg-blue-50'}`}>
                       {s.onboardingComplete ? 'Complete' : 'Pending'}
                     </span>
                   </td>

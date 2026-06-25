@@ -162,9 +162,9 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
       setLoading(true)
       setError(null)
       try {
-        const data = await getLeads(currentUserId ? { assignedTo: currentUserId } : undefined)
+        const data = await getLeads(currentUserId ? { assignedTo: currentUserId, limit: 500 } : { limit: 500 })
         if (!active) return
-        setLeads(Array.isArray(data) ? data : [])
+        setLeads(Array.isArray(data.leads) ? data.leads : [])
       } catch (err: any) {
         if (!active) return
         setError(err?.message || 'Could not load leads.')

@@ -14,7 +14,7 @@ function statusBadge(status: string) {
   const map: Record<string, string> = {
     'Visa Granted': 'text-green-600 bg-green-50',
     'Under Review': 'text-blue-600 bg-blue-50',
-    'Submitted': 'text-yellow-600 bg-yellow-50',
+    'Submitted': 'text-blue-600 bg-blue-50',
     'Rejected': 'text-red-500 bg-red-50',
   }
   return map[status] || 'text-gray-600 bg-gray-100'
@@ -68,14 +68,14 @@ export default function StudentApplicationsAdmin() {
     setSelected(null)
   }
 
-  const selectCls = "w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] transition bg-white"
+  const selectCls = "w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 transition bg-white"
 
   return (
     <div className="space-y-5">
       <h2 className="text-lg font-black text-[#00000F]">Student Applications</h2>
 
       {selected && (
-        <div className="rounded-2xl border border-[#FACE39]/30 bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-blue-200/50 bg-white p-6 space-y-4">
           <div className="flex justify-between">
             <div>
               <h3 className="text-sm font-black text-[#00000F]">{(selected.studentId as any).name || 'Student'}</h3>
@@ -96,7 +96,7 @@ export default function StudentApplicationsAdmin() {
           </div>
           <div className="flex gap-2">
             <button onClick={handleAssign} disabled={saving}
-              className="px-4 py-2 rounded-xl text-sm font-black text-[#00000F] bg-[#FACE39] hover:bg-[#f0c020] transition disabled:opacity-60">
+              className="px-4 py-2 rounded-xl text-sm font-black text-white bg-blue-600 hover:bg-blue-700 transition disabled:opacity-60">
               {saving ? 'Saving...' : 'Assign Staff'}
             </button>
           </div>
@@ -107,7 +107,7 @@ export default function StudentApplicationsAdmin() {
               {STAGES.map(s => (
                 <button key={s} onClick={() => handleStatusChange(s)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition ${
-                    selected.status === s ? 'bg-[#FACE39] border-[#FACE39] text-[#00000F]' : 'border-gray-200 text-[#00000F]/60 hover:border-[#FACE39]/50'
+                    selected.status === s ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-200 text-[#00000F]/60 hover:border-blue-400/50'
                   }`}>
                   {s}
                 </button>
@@ -119,7 +119,7 @@ export default function StudentApplicationsAdmin() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-[#FACE39] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -145,7 +145,7 @@ export default function StudentApplicationsAdmin() {
                   <td className="px-4 py-3 text-xs text-[#00000F]/40">{new Date(app.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => { setSelected(app); setAssign({ assignedBDM: '' }) }}
-                      className="text-xs font-bold text-[#b08800] hover:text-[#FACE39] transition">
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
                       Manage →
                     </button>
                   </td>

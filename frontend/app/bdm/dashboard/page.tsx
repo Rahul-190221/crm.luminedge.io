@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
 import BDMSidebar from '@/components/layout/BDMSidebar'
@@ -24,8 +24,9 @@ import FollowUpPage from '@/components/dashboard/FollowUpPage'
 import ProfilePage from '@/components/shared/ProfilePage'
 import { getUserIdFromToken, getToken } from '@/lib/helpers/jwt'
 import { getProfile } from '@/lib/api/auth'
-import { useNotifications } from '@/components/providers/NotificationProvider'
+import { getLeads } from '@/lib/api/leads'
 import { API_URL } from '@/lib/api/base'
+import { useSocket } from '@/components/providers/SocketProvider'
 import type { Page } from '@/types/navigation'
 
 function formatRoleLabel(role: string): string {
@@ -45,7 +46,32 @@ function BDMDashboardContent() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const { unreadCount } = useNotifications()
+  const socket = useSocket()
+  const [followUpCount, setFollowUpCount] = useState(0)
+
+  const fetchFollowUpCount = useCallback(async () => {
+    try {
+      const data = await getLeads({ limit: 500 })
+      const arr = Array.isArray(data.leads) ? data.leads : []
+      const count = arr.filter((lead: any) => {
+        const lastFU = lead.followUps?.at(-1)
+        return !!lastFU?.nextFollowUpDate
+      }).length
+      setFollowUpCount(count)
+    } catch {
+      /* best effort */
+    }
+  }, [])
+
+  useEffect(() => { fetchFollowUpCount() }, [fetchFollowUpCount])
+
+  useEffect(() => {
+    const rawSocket = socket?.socket
+    if (!rawSocket) return
+    const handler = () => fetchFollowUpCount()
+    rawSocket.on('new-notification', handler)
+    return () => { rawSocket.off('new-notification', handler) }
+  }, [socket, fetchFollowUpCount])
 
   const clearAuthAndRedirect = async () => {
     const token = getToken()
@@ -139,7 +165,7 @@ function BDMDashboardContent() {
         return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail') }} />
       case 'lead-detail':
         return selectedLeadId
-          ? <LeadDetail id={selectedLeadId} onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage('lead-center'); }} />
+          ? <LeadDetail id={selectedLeadId} requireApproval onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage('lead-center'); }} />
           : <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail'); }} />
       case 'lead-stage':
         return <LeadStage />
@@ -204,7 +230,7 @@ function BDMDashboardContent() {
         onLogout={handleLogout}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        unreadCount={unreadCount}
+        unreadCount={followUpCount}
       />
       <main className="flex-1 min-w-0 overflow-y-auto bg-[#f9fafb] pt-6 pr-6 pb-12 pl-4 scrollbar-hide">
         {renderContent()}
@@ -212,4 +238,5 @@ function BDMDashboardContent() {
     </div>
   )
 }
+
 

@@ -23,6 +23,7 @@ import activitiesRoutes from './routes/activities.routes';
 import reportsRoutes from './routes/reports.routes';
 import studentRoutes from './routes/student.routes';
 import applicationRoutes from './routes/application.routes';
+import leadEditRequestsRoutes from './routes/leadEditRequests.routes';
 import chatRoutes from './routes/chat.routes';
 import documentRoutes from './routes/document.routes';
 import milestoneRoutes from './routes/milestone.routes';
@@ -134,6 +135,7 @@ app.use('/api/activities', activitiesRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api', applicationRoutes);
+app.use('/api', leadEditRequestsRoutes);
 app.use('/api', chatRoutes);
 app.use('/api', documentRoutes);
 app.use('/api', milestoneRoutes);
@@ -190,3 +192,4 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 export default app;
+

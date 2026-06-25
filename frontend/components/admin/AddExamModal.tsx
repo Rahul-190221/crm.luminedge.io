@@ -100,7 +100,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                 placeholder="e.g., IELTS Academic"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
                 required
               />
             </div>
@@ -109,7 +109,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
               <select
                 value={formData.examType}
                 onChange={(e) => setFormData({ ...formData, examType: e.target.value as ExamType })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm bg-white"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm bg-white"
                 required
               >
                 <option value="">Select type</option>
@@ -128,7 +128,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                 type="date" min={new Date().toISOString().split('T')[0]}
                 value={formData.examDate}
                 onChange={(e) => setFormData({ ...formData, examDate: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
                 required
               />
             </div>
@@ -139,7 +139,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                 placeholder="e.g., 09:00 AM"
                 value={formData.examTime}
                 onChange={(e) => setFormData({ ...formData, examTime: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
               placeholder="e.g., British Council, Dhaka"
               value={formData.venue}
               onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
               required
             />
           </div>
@@ -165,7 +165,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                 type="date" min={new Date().toISOString().split('T')[0]}
                 value={formData.registrationDeadline}
                 onChange={(e) => setFormData({ ...formData, registrationDeadline: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
               />
             </div>
             <div>
@@ -178,7 +178,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                   const num = parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0
                   setFormData({ ...formData, fee: num })
                 }}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
               />
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                     availableSlots: editingExam ? formData.availableSlots : total
                   })
                 }}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
               />
             </div>
             <div>
@@ -210,7 +210,7 @@ export default function AddExamModal({ isOpen, onClose, onSubmit, onDelete, edit
                 max={formData.totalSlots}
                 value={formData.availableSlots}
                 onChange={(e) => setFormData({ ...formData, availableSlots: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400/40 focus:border-transparent text-sm"
               />
             </div>
           </div>

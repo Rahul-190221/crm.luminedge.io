@@ -58,7 +58,7 @@ interface BDMTask {
 // Avatar color generator based on name
 const getAvatarColor = (name?: string): string => {
   const colors = [
-    'bg-[#FACE39]',
+    'bg-sky-400',
     'bg-blue-500',
     'bg-purple-500',
     'bg-green-500',
@@ -329,7 +329,7 @@ export default function BDMReport() {
     const num = typeof rate === 'string' ? parseFloat(rate) : rate
     if (isNaN(num)) return 'text-gray-600'
     if (num >= 60) return 'text-green-600'
-    if (num >= 40) return 'text-yellow-600'
+    if (num >= 40) return 'text-blue-600'
     return 'text-red-600'
   }
 
@@ -351,12 +351,12 @@ export default function BDMReport() {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="space-y-4 pb-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#00000F]/85">BDM Reports</h1>
-          <p className="text-sm text-gray-500 mt-1">View performance metrics and task status</p>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">BDM Reports</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">View performance metrics and task status</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex bg-gray-100 p-1 rounded-lg mr-2">
@@ -396,7 +396,7 @@ export default function BDMReport() {
                 title="Select date range"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
               >
                 <option value="today">Today</option>
                 <option value="specific_date">Specific Date</option>
@@ -419,7 +419,7 @@ export default function BDMReport() {
                 title="Select date"
                 value={specificDate}
                 onChange={(e) => setSpecificDate(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
               />
             </div>
           )}
@@ -433,7 +433,7 @@ export default function BDMReport() {
                   title="Select month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
                 >
                   {months.map((m, i) => (
                     <option key={m} value={i}>{m}</option>
@@ -446,7 +446,7 @@ export default function BDMReport() {
                   title="Select year"
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
                 >
                   {years.map(y => (
                     <option key={y} value={y}>{y}</option>
@@ -466,7 +466,7 @@ export default function BDMReport() {
                   title="Start date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
               <div>
@@ -476,7 +476,7 @@ export default function BDMReport() {
                   title="End date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
             </>
@@ -489,7 +489,7 @@ export default function BDMReport() {
               title="Filter by BDM"
               value={selectedBDM}
               onChange={(e) => setSelectedBDM(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
             >
               {reportMode === 'performance' && <option value="all">All BDMs</option>}
               {bdmList.map(bdm => (
@@ -502,7 +502,7 @@ export default function BDMReport() {
           <div className="flex items-end">
             <button
               onClick={handleGenerateReport}
-              className="w-full px-4 py-2.5 bg-[#FACE39] text-gray-900 rounded-lg text-sm font-medium hover:bg-yellow-300 transition-colors"
+              className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Generate Report
             </button>
@@ -551,7 +551,7 @@ export default function BDMReport() {
           <div className="bg-white rounded-2xl p-4 border border-[#00000F]/[0.07] shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-yellow-600" />
+                <BarChart3 className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(summary.totalRevenue)}</p>
@@ -570,15 +570,15 @@ export default function BDMReport() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#FACE39]">
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">BDM</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Leads Assigned</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Converted</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Conv. Rate</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Calls</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Emails</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Avg Response</th>
-                <th className="text-right px-4 py-3 text-sm font-semibold text-gray-900">Revenue</th>
+              <tr className="bg-blue-600">
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">BDM</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Leads Assigned</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Converted</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Conv. Rate</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Calls</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Emails</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Avg Response</th>
+                <th className="text-right px-4 py-3 text-sm font-semibold text-white">Revenue</th>
               </tr>
             </thead>
             <tbody>
@@ -586,7 +586,7 @@ export default function BDMReport() {
                 <tr>
                   <td colSpan={9} className="text-center py-8">
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
                   </td>
                 </tr>
@@ -602,7 +602,7 @@ export default function BDMReport() {
                   return (
                   <Fragment key={perf._id}>
                     <tr
-                      className={`cursor-pointer transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${expandedBDMId === perf._id ? 'bg-yellow-50/50' : 'hover:bg-gray-100/50'}`}
+                      className={`cursor-pointer transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${expandedBDMId === perf._id ? 'bg-blue-50/50' : 'hover:bg-gray-100/50'}`}
                       onClick={() => setExpandedBDMId(expandedBDMId === perf._id ? null : perf._id)}
                     >
                       <td className="px-4 py-3">
@@ -638,7 +638,7 @@ export default function BDMReport() {
                           <div className="py-4 border-t border-gray-100 bg-gray-50/30 rounded-b-lg mb-2">
                             <div className="flex items-center justify-between mb-4 px-8">
                               <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-[#FACE39]" />
+                                <Clock className="w-4 h-4 text-blue-500" />
                                 Activities this month
                               </h3>
                               <span className="text-xs text-gray-500">Showing last 50 actions</span>
@@ -736,7 +736,7 @@ export default function BDMReport() {
           {/* Pending Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-1">
-              <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+              <div className="w-3 h-3 rounded-full bg-blue-400"></div>
               <h3 className="font-semibold text-gray-900">Pending Tasks</h3>
               <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-500 font-medium">
                 {tasks.filter(t => t.status === 'pending').length}
@@ -745,7 +745,7 @@ export default function BDMReport() {
             
             {isLoading ? (
               <div className="bg-white rounded-xl p-8 border border-gray-100 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
             ) : tasks.filter(t => t.status === 'pending').length === 0 ? (
               <div className="bg-white rounded-xl p-8 border border-gray-100 text-center text-gray-500 text-sm italic">
@@ -782,7 +782,7 @@ export default function BDMReport() {
 
             {isLoading ? (
               <div className="bg-white rounded-xl p-8 border border-gray-100 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
             ) : tasks.filter(t => t.status === 'in-progress').length === 0 ? (
               <div className="bg-white rounded-xl p-8 border border-gray-100 text-center text-gray-500 text-sm italic">
@@ -818,7 +818,7 @@ export default function BDMReport() {
             </div>
             {isLoading ? (
               <div className="bg-white rounded-xl p-8 border border-gray-100 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
             ) : tasks.filter(t => t.status === 'completed').length === 0 ? (
               <div className="bg-white rounded-xl p-8 border border-gray-100 text-center text-gray-500 text-sm italic">

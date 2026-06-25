@@ -61,7 +61,11 @@ const assertPhoneIsUnique = async (phone: string, excludeId?: string) => {
 // Get all leads
 export const getLeads = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { stage, source, assignedTo, search, unassigned } = req.query;
+    const { stage, source, assignedTo, search, unassigned, page: pageParam, limit: limitParam } = req.query;
+
+    const page = Math.max(1, parseInt(String(pageParam || '1'), 10) || 1);
+    const limit = Math.min(500, Math.max(1, parseInt(String(limitParam || '50'), 10) || 50));
+    const skip = (page - 1) * limit;
 
     const filter: any = {};
 
@@ -70,15 +74,15 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (stage && stage !== 'All') {
-      filter.lifecycleStage = stage;
+      filter.lifecycleStage = String(stage);
     }
 
     if (source && source !== 'All') {
-      filter.source = source;
+      filter.source = String(source);
     }
 
     if (assignedTo && unassigned !== 'true') {
-      filter.assignedTo = assignedTo;
+      filter.assignedTo = String(assignedTo);
     }
 
     if (search) {
@@ -90,11 +94,22 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
       ];
     }
 
-    const leads = await Lead.find(filter)
-      .populate('assignedTo', 'name email')
-      .sort({ createdAt: -1 });
+    const [leads, total] = await Promise.all([
+      Lead.find(filter)
+        .populate('assignedTo', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Lead.countDocuments(filter),
+    ]);
 
-    res.json(leads);
+    res.json({
+      leads,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.error('Error fetching leads:', error);
     res.status(500).json({ error: 'Failed to fetch leads' });
@@ -517,8 +532,13 @@ export const assignLeads = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Unassign case
     if (!bdmId) {
-      res.status(400).json({ error: 'BDM ID is required' });
+      const result = await Lead.updateMany(
+        { _id: { $in: leadIds } },
+        { $unset: { assignedTo: '' }, $set: { assignedAt: new Date() } }
+      );
+      res.json({ message: `Unassigned ${result.modifiedCount} lead(s)`, modifiedCount: result.modifiedCount });
       return;
     }
 

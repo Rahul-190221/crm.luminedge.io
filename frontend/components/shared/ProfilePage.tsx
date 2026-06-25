@@ -116,12 +116,14 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-5">
+        <div className="max-w-5xl mx-auto space-y-4 pb-6">
 
             {/* Page header */}
-            <div>
-                <h1 className="text-[21px] font-bold text-[#00000F] tracking-tight">My Profile</h1>
-                <p className="text-[12px] text-[#00000F]/40 font-medium mt-0.5">Manage your personal information and settings</p>
+            <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center gap-4">
+                <div>
+                    <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">My Profile</h1>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">Manage your personal information and settings</p>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

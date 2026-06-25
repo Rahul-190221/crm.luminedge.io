@@ -135,9 +135,9 @@ export default function FollowUpPage() {
       setLoading(true)
       setError(null)
       try {
-        const leads = await getLeads()
+        const data = await getLeads({ limit: 500 })
         if (!active) return
-        setRows(leadsToRows(Array.isArray(leads) ? leads : []))
+        setRows(leadsToRows(Array.isArray(data.leads) ? data.leads : []))
       } catch (err: any) {
         if (!active) return
         setError(err?.message || 'Could not load follow-ups.')
@@ -363,8 +363,8 @@ export default function FollowUpPage() {
                 <div>
                   <label className={labelCls}>Follow-up Date</label>
                   <input
-                    type="datetime-local"
-                    min={new Date().toISOString().slice(0, 16)}
+                    type="date"
+                    min={new Date().toISOString().slice(0, 10)}
                     value={formData.followUpDate}
                     onChange={e => setFormData(p => ({ ...p, followUpDate: e.target.value }))}
                     className={inputCls}
@@ -373,8 +373,8 @@ export default function FollowUpPage() {
                 <div>
                   <label className={labelCls}>Next Follow-up Date</label>
                   <input
-                    type="datetime-local"
-                    min={new Date().toISOString().slice(0, 16)}
+                    type="date"
+                    min={new Date().toISOString().slice(0, 10)}
                     value={formData.nextFollowUpDate}
                     onChange={e => setFormData(p => ({ ...p, nextFollowUpDate: e.target.value }))}
                     className={inputCls}

@@ -81,8 +81,8 @@ export default function CreateUserPage() {
   }
 
   const inputClass = (hasError: boolean) =>
-    `w-full px-4 py-3 rounded-2xl border text-sm text-[#00000F] placeholder-gray-400 bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#FACE39]/40 transition ${
-      hasError ? "border-red-400 bg-red-50/30" : "border-gray-200 focus:border-[#FACE39]/60"
+    `w-full px-4 py-3 rounded-2xl border text-sm text-[#00000F] placeholder-gray-400 bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition ${
+      hasError ? "border-red-400 bg-red-50/30" : "border-gray-200 focus:border-blue-400/60"
     }`;
 
   return (
@@ -125,13 +125,13 @@ export default function CreateUserPage() {
         </AnimatePresence>
 
         {/* Card */}
-        <div className="relative bg-white border border-[#FACE39]/15 rounded-3xl shadow-[0_8px_80px_rgba(250,206,57,0.12),0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#FACE39] to-transparent" />
+        <div className="relative bg-white border border-blue-200/30 rounded-3xl shadow-[0_8px_80px_rgba(59,130,246,0.10),0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
 
           <div className="p-8 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FACE39]/15 flex items-center justify-center">
-                <UserPlus size={18} className="text-[#FACE39]" />
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <UserPlus size={18} className="text-blue-600" />
               </div>
               <div>
                 <h1 className="text-xl font-black text-[#00000F] tracking-tight">Create Staff Account</h1>
@@ -153,13 +153,13 @@ export default function CreateUserPage() {
                     onClick={() => handleChange("role", value)}
                     className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 ${
                       form.role === value
-                        ? "border-[#FACE39] bg-[#FACE39]/8 shadow-[0_0_0_1px_rgba(250,206,57,0.3)]"
-                        : "border-gray-200 hover:border-[#FACE39]/50 hover:bg-[#FACE39]/4"
+                        ? "border-blue-500 bg-blue-50 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]"
+                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/40"
                     }`}
                   >
                     {form.role === value && (
-                      <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#FACE39] flex items-center justify-center">
-                        <Check size={11} className="text-[#00000F]" />
+                      <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                        <Check size={11} className="text-white" />
                       </span>
                     )}
                     <p className="text-sm font-extrabold text-[#00000F] mb-1">{label}</p>
@@ -237,7 +237,7 @@ export default function CreateUserPage() {
               disabled={loading}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="auth-submit-btn relative w-full py-3.5 rounded-2xl font-bold text-sm text-[#00000F] overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
+              className="relative w-full py-3.5 rounded-2xl font-bold text-sm text-white overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 shadow-[0_4px_24px_rgba(59,130,246,0.35)] transition-colors"
             >
               <motion.span
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12"

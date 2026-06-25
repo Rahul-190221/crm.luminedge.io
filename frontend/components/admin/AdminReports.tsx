@@ -65,7 +65,7 @@ const STAGE_COLORS: Record<string, string> = {
   Dead: '#ef4444',
 }
 
-const SOURCE_COLORS = ['#FACE39', '#3b82f6', '#8b5cf6', '#22c55e', '#f97316', '#ef4444', '#14b8a6']
+const SOURCE_COLORS = ['#3b82f6', '#8b5cf6', '#22c55e', '#f97316', '#ef4444', '#14b8a6', '#06b6d4']
 
 const months = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
@@ -73,7 +73,7 @@ const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getAvatarColor = (name?: string) => {
-  const colors = ['bg-[#FACE39]','bg-blue-500','bg-purple-500','bg-green-500','bg-pink-500','bg-indigo-500','bg-red-500','bg-orange-500']
+  const colors = ['bg-sky-400','bg-blue-500','bg-purple-500','bg-green-500','bg-pink-500','bg-indigo-500','bg-red-500','bg-orange-500']
   if (!name) return colors[0]
   return colors[name.charCodeAt(0) % colors.length]
 }
@@ -93,7 +93,7 @@ const fmtCurrency = (v: any) => new Intl.NumberFormat('en-US', { style: 'currenc
 const convColor = (r: any) => {
   const n = fmt(r)
   if (n >= 60) return 'text-green-600'
-  if (n >= 40) return 'text-yellow-600'
+  if (n >= 40) return 'text-blue-600'
   return 'text-red-600'
 }
 
@@ -121,7 +121,7 @@ const Card = ({ children, className = '' }: { children: React.ReactNode; classNa
 
 const Spinner = () => (
   <div className="flex items-center justify-center py-12">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]" />
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
   </div>
 )
 
@@ -152,7 +152,23 @@ function OverviewTab() {
 
   const payload = data?.data ?? data ?? {}
 
-  const stats: AdminStats = payload?.stats ?? {}
+  // Backend returns each stat as {value, change} — extract the numeric value
+  const extractVal = (v: any, fallback: number = 0): number => {
+    if (v !== null && v !== undefined && typeof v === 'object' && 'value' in v) {
+      return parseFloat(String(v.value)) || fallback
+    }
+    return parseFloat(String(v ?? fallback)) || fallback
+  }
+  const rawStats = payload?.stats ?? {}
+  const stats: AdminStats = {
+    totalLeads:     extractVal(rawStats.totalLeads, 0),
+    convertedLeads: extractVal(rawStats.convertedLeads ?? rawStats.todaysConverted, 0),
+    conversionRate: extractVal(rawStats.conversionRate, 0),
+    totalBDMs:      extractVal(rawStats.activeBDMs ?? rawStats.totalBDMs, 0),
+    newLeadsToday:  extractVal(rawStats.todaysLead, 0),
+    activeLeads:    extractVal(rawStats.activeLeads, 0),
+  }
+
   const topPerformers: TopPerformer[] = payload?.topPerformers ?? []
   const stageDistribution: StageData[] = (payload?.stageDistribution ?? []).map((s: any) => ({
     name: s._id ?? s.name ?? s.stage ?? '',
@@ -178,7 +194,7 @@ function OverviewTab() {
         <KpiCard icon={Users}      color="bg-blue-100 text-blue-600"    value={stats.totalLeads ?? 0}     label="Total Leads" />
         <KpiCard icon={Target}     color="bg-green-100 text-green-600"  value={stats.convertedLeads ?? 0} label="Converted" />
         <KpiCard icon={TrendingUp} color="bg-purple-100 text-purple-600" value={fmtPct(stats.conversionRate ?? 0)} label="Conversion Rate" />
-        <KpiCard icon={Users}      color="bg-yellow-100 text-yellow-600" value={stats.totalBDMs ?? 0}     label="Active BDMs" />
+        <KpiCard icon={Users}      color="bg-blue-100 text-blue-600" value={stats.totalBDMs ?? 0}     label="Active BDMs" />
       </div>
 
       {/* Charts Row 1 */}
@@ -195,7 +211,7 @@ function OverviewTab() {
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} unit="%" domain={[0, 100]} />
                 <Tooltip formatter={(v) => [`${v}%`, 'Conversion Rate']} />
-                <Line type="monotone" dataKey="rate" stroke="#FACE39" strokeWidth={2.5} dot={{ r: 4, fill: '#FACE39' }} />
+                <Line type="monotone" dataKey="rate" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 4, fill: '#3b82f6' }} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -268,7 +284,7 @@ function OverviewTab() {
               {topPerformers.slice(0, 5).map((p, i) => (
                 <div key={p._id ?? p.id ?? `${p.name}-${i}`} className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
-                    ${i === 0 ? 'bg-[#FACE39] text-[#00000F]' : i === 1 ? 'bg-gray-200 text-gray-700' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-gray-400'}`}>
+                    ${i === 0 ? 'bg-blue-600 text-white' : i === 1 ? 'bg-gray-200 text-gray-700' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-gray-400'}`}>
                     {i + 1}
                   </span>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 ${getAvatarColor(p.name)}`}>
@@ -490,7 +506,7 @@ function BDMPerformanceTab() {
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Date Range</label>
             <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent">
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-transparent">
               <option value="today">Today</option>
               <option value="specific_date">Specific Date</option>
               <option value="this_week">This Week</option>
@@ -506,7 +522,7 @@ function BDMPerformanceTab() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
               <input type="date" value={specificDate} onChange={(e) => setSpecificDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent" />
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent" />
             </div>
           )}
 
@@ -515,14 +531,14 @@ function BDMPerformanceTab() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Month</label>
                 <select value={selectedMonth} onChange={(e) => setSelectedMonth(+e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent">
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-transparent">
                   {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Year</label>
                 <select value={selectedYear} onChange={(e) => setSelectedYear(+e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent">
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-transparent">
                   {years.map((y) => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
@@ -534,12 +550,12 @@ function BDMPerformanceTab() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent" />
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
                 <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent" />
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent" />
               </div>
             </>
           )}
@@ -547,7 +563,7 @@ function BDMPerformanceTab() {
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">BDM</label>
             <select value={selectedBDM} onChange={(e) => setSelectedBDM(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent">
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-transparent">
               <option value="all">All BDMs</option>
               {bdmList.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
             </select>
@@ -555,7 +571,7 @@ function BDMPerformanceTab() {
 
           <div className="flex items-end">
             <button onClick={fetchData}
-              className="w-full px-4 py-2 bg-[#FACE39] text-gray-900 rounded-lg text-sm font-medium hover:bg-yellow-300 transition-colors">
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
               Generate
             </button>
           </div>
@@ -568,7 +584,7 @@ function BDMPerformanceTab() {
           <KpiCard icon={Users}      color="bg-blue-100 text-blue-600"    value={summary.totalBDMs}                    label="Total BDMs" />
           <KpiCard icon={Target}     color="bg-green-100 text-green-600"  value={summary.convertedLeads}               label="Conversions" />
           <KpiCard icon={TrendingUp} color="bg-purple-100 text-purple-600" value={fmtPct(summary.overallConversionRate)} label="Conv. Rate" />
-          <KpiCard icon={BarChart3}  color="bg-yellow-100 text-yellow-600" value={fmtCurrency(summary.totalRevenue)}    label="Revenue" />
+          <KpiCard icon={BarChart3}  color="bg-blue-100 text-blue-600" value={fmtCurrency(summary.totalRevenue)}    label="Revenue" />
         </div>
       )}
 
@@ -582,7 +598,7 @@ function BDMPerformanceTab() {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} unit="%" domain={[0, 100]} />
               <Tooltip formatter={(v) => [`${v}%`, 'Conversion Rate']} />
-              <Bar dataKey="rate" fill="#FACE39" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="rate" fill="#3b82f6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -604,27 +620,27 @@ function BDMPerformanceTab() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#FACE39]">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-900">BDM</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-900">Leads</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-900">Converted</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-900">Conv.%</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-900">Calls</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-900">Emails</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-900">Avg Response</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-900">Revenue</th>
+              <tr className="bg-blue-600">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white">BDM</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-white">Leads</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-white">Converted</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-white">Conv.%</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-white">Calls</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-white">Emails</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-white">Avg Response</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-white">Revenue</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-10 text-center"><div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#FACE39] mx-auto" /></td></tr>
+                <tr><td colSpan={8} className="py-10 text-center"><div className="animate-spin rounded-full h-7 w-7 border-b-2 border-blue-500 mx-auto" /></td></tr>
               ) : performances.length === 0 ? (
                 <tr><td colSpan={8} className="py-10 text-center text-sm text-gray-400">No data for selected period</td></tr>
               ) : (
                 performances.map((p, idx) => (
                   <Fragment key={p._id}>
                     <tr
-                      className={`cursor-pointer transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${expandedId === p._id ? 'bg-yellow-50/40' : 'hover:bg-gray-100/60'}`}
+                      className={`cursor-pointer transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${expandedId === p._id ? 'bg-blue-50/40' : 'hover:bg-gray-100/60'}`}
                       onClick={() => setExpandedId(expandedId === p._id ? null : p._id)}
                     >
                       <td className="px-4 py-3">
@@ -648,7 +664,7 @@ function BDMPerformanceTab() {
                       <tr>
                         <td colSpan={8} className="bg-gray-50/50 px-10 py-4 border-t border-gray-100">
                           <p className="text-xs font-bold text-gray-700 mb-3 flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-[#FACE39]" /> Activity Timeline
+                            <Clock className="w-3.5 h-3.5 text-blue-500" /> Activity Timeline
                           </p>
                           {p.activities && p.activities.length > 0 ? (
                             <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -720,15 +736,12 @@ export default function AdminReports() {
   const [activeTab, setActiveTab] = useState<Tab>('overview')
 
   return (
-    <div className="min-h-full">
+    <div className="space-y-4 pb-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#00000F]/85 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-[#FACE39]" />
-            Reports
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Comprehensive analytics across leads, conversions, and team performance</p>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Reports</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">Comprehensive analytics across leads, conversions, and team performance</p>
         </div>
       </div>
 
@@ -740,7 +753,7 @@ export default function AdminReports() {
             onClick={() => setActiveTab(t.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
               ${activeTab === t.id
-                ? 'bg-[#FACE39] text-[#00000F] font-semibold shadow-sm'
+                ? 'bg-blue-600 text-white font-semibold shadow-sm'
                 : 'text-gray-500 hover:text-gray-800'
               }`}
           >

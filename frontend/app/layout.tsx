@@ -16,6 +16,11 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: 'Luminedge CRM',
   description: 'Premium CRM for exam venue management',
+  icons: {
+    icon: '/assets/logo.png',
+    shortcut: '/assets/logo.png',
+    apple: '/assets/logo.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

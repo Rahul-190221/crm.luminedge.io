@@ -8,7 +8,7 @@ import { BDM } from '@/types/admin'
 // Avatar color generator based on name
 const getAvatarColor = (name: string): string => {
   const colors = [
-    'bg-[#FACE39]',
+    'bg-sky-400',
     'bg-blue-500',
     'bg-purple-500',
     'bg-green-500',
@@ -123,11 +123,13 @@ export default function BDMRemove() {
   const removableBDMs = bdmUsers.filter(u => (u.activeLeads || 0) === 0).length
 
   return (
-    <div className="min-h-full">
+    <div className="space-y-4 pb-6">
       {/* Page Header */}
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-lg sm:text-xl font-bold text-[#00000F]/85">Remove BDM</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage and remove Business Development Managers from the system</p>
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Remove BDM</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">Manage and remove Business Development Managers from the system</p>
+        </div>
       </div>
 
       {/* Search and Filter Bar */}
@@ -141,7 +143,7 @@ export default function BDMRemove() {
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
             />
           </div>
 
@@ -150,7 +152,7 @@ export default function BDMRemove() {
             title="Filter by role"
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
           >
             <option value="all">All Roles</option>
             <option value="bdm">BDM</option>
@@ -163,15 +165,15 @@ export default function BDMRemove() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px]">
             <thead>
-              <tr className="bg-[#FACE39]">
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Name</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Email</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Role</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Active Leads</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Converted</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Join Date</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Status</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Action</th>
+              <tr className="bg-blue-600">
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Name</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Email</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Role</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Active Leads</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Converted</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Join Date</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Status</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -179,7 +181,7 @@ export default function BDMRemove() {
                 <tr>
                   <td colSpan={8} className="text-center py-8">
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
                   </td>
                 </tr>

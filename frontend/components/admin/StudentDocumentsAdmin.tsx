@@ -21,7 +21,7 @@ function statusBadge(s: DocumentStatus) {
     Rejected: 'text-red-500 bg-red-50',
     Uploaded: 'text-blue-600 bg-blue-50',
     'Under Review': 'text-purple-600 bg-purple-50',
-    'Revision Requested': 'text-yellow-600 bg-yellow-50',
+    'Revision Requested': 'text-blue-600 bg-blue-50',
     Requested: 'text-gray-600 bg-gray-100',
   }
   return m[s] || 'text-gray-600 bg-gray-100'
@@ -74,14 +74,14 @@ export default function StudentDocumentsAdmin() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black text-[#00000F]">Documents Review</h2>
         <div className="flex items-center gap-2">
-          <select className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] transition w-48"
+          <select className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 transition w-48"
             value={selectedStudent} onChange={e => loadDocs(e.target.value)}>
             <option value="">Select student</option>
             {students.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
           {selectedStudent && (
             <button onClick={() => setShowRequest(true)}
-              className="flex items-center gap-1.5 text-xs font-black text-[#00000F] bg-[#FACE39] px-3 py-2 rounded-xl hover:bg-[#f0c020] transition">
+              className="flex items-center gap-1.5 text-xs font-black text-white bg-blue-600 px-3 py-2 rounded-xl hover:bg-blue-700 transition">
               <Plus size={12} /> Request Doc
             </button>
           )}
@@ -89,23 +89,23 @@ export default function StudentDocumentsAdmin() {
       </div>
 
       {showRequest && (
-        <div className="rounded-2xl border border-[#FACE39]/30 bg-white p-5 space-y-3">
+        <div className="rounded-2xl border border-blue-200/50 bg-white p-5 space-y-3">
           <h3 className="text-sm font-black text-[#00000F]">Request Document</h3>
           <div>
             <label className="block text-xs font-bold text-[#00000F]/50 mb-1 uppercase">Document Type</label>
-            <select className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] transition"
+            <select className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 transition"
               value={reqType} onChange={e => setReqType(e.target.value)}>
               {DOC_TYPES.map(t => <option key={t}>{t}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-bold text-[#00000F]/50 mb-1 uppercase">Note to Student</label>
-            <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] transition"
+            <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 transition"
               value={reqNote} onChange={e => setReqNote(e.target.value)} placeholder="Why this document is needed..." />
           </div>
           <div className="flex gap-2">
             <button onClick={handleRequest}
-              className="px-4 py-2 rounded-xl text-sm font-black text-[#00000F] bg-[#FACE39] hover:bg-[#f0c020] transition">
+              className="px-4 py-2 rounded-xl text-sm font-black text-white bg-blue-600 hover:bg-blue-700 transition">
               Send Request
             </button>
             <button onClick={() => setShowRequest(false)}
@@ -118,7 +118,7 @@ export default function StudentDocumentsAdmin() {
 
       {loading ? (
         <div className="flex justify-center py-8">
-          <div className="w-6 h-6 border-2 border-[#FACE39] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : docs.length > 0 ? (
         <div className="space-y-3">
@@ -126,7 +126,7 @@ export default function StudentDocumentsAdmin() {
             <div key={doc._id} className="rounded-2xl border border-gray-100 bg-white p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileText size={14} className="text-[#b08800]" />
+                  <FileText size={14} className="text-blue-600" />
                   <p className="text-sm font-bold text-[#00000F]">{doc.documentType}</p>
                   {doc.originalName && (
                     <span className="text-xs text-[#00000F]/40">{doc.originalName}</span>

@@ -52,20 +52,20 @@ export default function NewsManagement() {
     load()
   }
 
-  const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-[#FACE39] focus:ring-2 focus:ring-[#FACE39]/20 transition"
+  const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-[#00000F] focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition"
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black text-[#00000F]">News Management</h2>
         <button onClick={() => { setShowForm(true); setEditItem(null); setForm({ title: '', content: '', category: 'General', isPinned: false }) }}
-          className="flex items-center gap-1.5 text-xs font-black text-[#00000F] bg-[#FACE39] px-3 py-2 rounded-xl hover:bg-[#f0c020] transition">
+          className="flex items-center gap-1.5 text-xs font-black text-white bg-blue-600 px-3 py-2 rounded-xl hover:bg-blue-700 transition">
           <Plus size={12} /> Create Post
         </button>
       </div>
 
       {showForm && (
-        <div className="rounded-2xl border border-[#FACE39]/30 bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-blue-200/50 bg-white p-6 space-y-4">
           <h3 className="text-sm font-black text-[#00000F]">{editItem ? 'Edit Post' : 'New Post'}</h3>
           <div>
             <label className="block text-xs font-bold text-[#00000F]/50 mb-1 uppercase">Title</label>
@@ -87,14 +87,14 @@ export default function NewsManagement() {
             <div className="flex items-end pb-0.5">
               <label className="flex items-center gap-2 text-sm font-bold text-[#00000F]/60 cursor-pointer">
                 <input type="checkbox" checked={form.isPinned} onChange={e => setForm(f => ({ ...f, isPinned: e.target.checked }))}
-                  className="accent-[#FACE39]" />
+                  className="accent-blue-600" />
                 Pin this post
               </label>
             </div>
           </div>
           <div className="flex gap-2">
             <button onClick={save} disabled={saving || !form.title || !form.content}
-              className="px-4 py-2 rounded-xl text-sm font-black text-[#00000F] bg-[#FACE39] hover:bg-[#f0c020] transition disabled:opacity-60">
+              className="px-4 py-2 rounded-xl text-sm font-black text-white bg-blue-600 hover:bg-blue-700 transition disabled:opacity-60">
               {saving ? 'Saving...' : 'Save Post'}
             </button>
             <button onClick={() => { setShowForm(false); setEditItem(null) }}
@@ -111,9 +111,9 @@ export default function NewsManagement() {
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  {n.isPinned && <Pin size={11} className="text-[#b08800] flex-shrink-0" />}
+                  {n.isPinned && <Pin size={11} className="text-blue-600 flex-shrink-0" />}
                   <h4 className="text-sm font-bold text-[#00000F] truncate">{n.title}</h4>
-                  <span className="text-[10px] font-bold text-[#b08800] bg-[#FACE39]/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded flex-shrink-0">
                     {n.category}
                   </span>
                 </div>
@@ -121,7 +121,7 @@ export default function NewsManagement() {
               </div>
               <div className="flex items-center gap-1 ml-3 flex-shrink-0">
                 <button onClick={() => togglePin(n)} title="Toggle pin"
-                  className={`p-1.5 rounded-lg transition ${n.isPinned ? 'text-[#b08800] bg-[#FACE39]/10' : 'text-gray-400 hover:bg-gray-100'}`}>
+                  className={`p-1.5 rounded-lg transition ${n.isPinned ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:bg-gray-100'}`}>
                   <Pin size={12} />
                 </button>
                 <button onClick={() => { setEditItem(n); setForm({ title: n.title, content: n.content, category: n.category, isPinned: n.isPinned }); setShowForm(true) }}

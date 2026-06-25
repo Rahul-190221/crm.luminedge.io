@@ -166,10 +166,10 @@ const CourseDetails: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-6">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <div className="-mx-6 -mt-6 mb-8 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4 shadow-sm">
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4 shadow-sm">
         <div>
           <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">Active Batches</h1>
         </div>

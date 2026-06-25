@@ -47,7 +47,7 @@ const initialFormData: FormData = {
 // Avatar color generator based on name
 const getAvatarColor = (name: string): string => {
   const colors = [
-    'bg-[#FACE39]',
+    'bg-sky-400',
     'bg-blue-500',
     'bg-purple-500',
     'bg-green-500',
@@ -185,11 +185,13 @@ export default function BDMAdd() {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="space-y-4 pb-6">
       {/* Page Header */}
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-lg sm:text-xl font-bold text-[#00000F]/85">Add New BDM</h1>
-        <p className="text-sm text-gray-500 mt-1">Add a new Business Development Manager to the system</p>
+      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Add New BDM</h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">Add a new Business Development Manager to the system</p>
+        </div>
       </div>
 
       {/* Form Card */}
@@ -199,7 +201,7 @@ export default function BDMAdd() {
             {/* Profile Image Upload */}
             <div className="flex-shrink-0">
               <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
-              <div className="w-full sm:w-44 h-36 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-[#FACE39] transition-colors relative">
+              <div className="w-full sm:w-44 h-36 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition-colors relative">
                 <input
                   type="file"
                   title="Upload profile image"
@@ -235,7 +237,7 @@ export default function BDMAdd() {
                   onChange={handleInputChange}
                   placeholder="Enter first name"
                   required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
 
@@ -251,7 +253,7 @@ export default function BDMAdd() {
                   onChange={handleInputChange}
                   placeholder="Enter last name"
                   required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
 
@@ -267,7 +269,7 @@ export default function BDMAdd() {
                   onChange={handleInputChange}
                   placeholder="email@luminedge.com"
                   required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
 
@@ -283,7 +285,7 @@ export default function BDMAdd() {
                   onChange={handleInputChange}
                   placeholder="+1 (555) 000-0000"
                   required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
 
@@ -298,7 +300,7 @@ export default function BDMAdd() {
                   value={formData.role}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
                 >
                   <option value="">Select role</option>
                   <option value="bdm">BDM</option>
@@ -314,7 +316,7 @@ export default function BDMAdd() {
                   value={formData.employeeId}
                   onChange={handleInputChange}
                   placeholder="EMP-001"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
 
@@ -326,7 +328,7 @@ export default function BDMAdd() {
                   name="reportingTo"
                   value={formData.reportingTo}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
                 >
                   <option value="">Select manager</option>
                   {managers.map(manager => (
@@ -346,7 +348,7 @@ export default function BDMAdd() {
                   name="joinDate"
                   value={formData.joinDate}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                 />
               </div>
 
@@ -364,7 +366,7 @@ export default function BDMAdd() {
                     placeholder="Set a temporary password (min. 8 characters)"
                     required
                     minLength={8}
-                    className="w-full px-4 py-2.5 pr-11 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+                    className="w-full px-4 py-2.5 pr-11 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
                   />
                   <button
                     type="button"

@@ -8,7 +8,7 @@ import { BDM } from '@/types/admin'
 // Avatar color generator based on name
 const getAvatarColor = (name?: string): string => {
   const colors = [
-    'bg-[#FACE39]',
+    'bg-sky-400',
     'bg-blue-500',
     'bg-purple-500',
     'bg-green-500',
@@ -156,7 +156,7 @@ export default function BDMRole() {
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
             />
           </div>
 
@@ -165,7 +165,7 @@ export default function BDMRole() {
             title="Filter by role"
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+            className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
           >
             <option value="all">All Roles</option>
             <option value="bdm">BDM</option>
@@ -178,13 +178,13 @@ export default function BDMRole() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px]">
             <thead>
-              <tr className="bg-[#FACE39]">
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Name</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Email</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Current Role</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Reporting To</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Active Leads</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-900">Action</th>
+              <tr className="bg-blue-600">
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Name</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Email</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Current Role</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-white">Reporting To</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Active Leads</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-white">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -192,7 +192,7 @@ export default function BDMRole() {
                 <tr>
                   <td colSpan={6} className="text-center py-8">
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FACE39]"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
                   </td>
                 </tr>
@@ -220,7 +220,7 @@ export default function BDMRole() {
                           title="Change role"
                           value={editRole}
                           onChange={(e) => setEditRole(e.target.value)}
-                          className="px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-[#FACE39]/40 focus:border-transparent bg-white"
+                          className="px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-blue-400/40 focus:border-transparent bg-white"
                         >
                           <option value="bdm">BDM</option>
                         </select>
