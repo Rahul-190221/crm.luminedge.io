@@ -182,6 +182,7 @@ export interface Lead {
   fullName: string;
   email: string;
   phone: string;
+  countryCode?: string;
   whom?: 'Personal' | 'Parents' | 'Cousin' | 'Uncle' | 'Sibling' | 'Spouse';
   source: LeadSource;
   serviceInterest: ServiceInterest[];

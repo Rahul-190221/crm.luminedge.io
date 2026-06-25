@@ -9,32 +9,21 @@ import { createLead, getBDMsForAssignment as getBDMs, getLeads as fetchLeads, im
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import { getProfile } from '@/lib/api/auth'
 import type { LeadSource, ServiceInterest, BDM } from '@/types/admin'
+import {
+  PHONE_COUNTRIES,
+  buildInternationalPhone,
+  countryRules,
+  extractPhoneDigits,
+  formatPhoneCountryLabel,
+  normalizePhone,
+  sanitizePhoneTypingInput,
+  validatePhone,
+} from '@/lib/phone/phone.utils'
 
 interface FollowUpEntry { id: number; date: string; note: string; nextFollowUpDate: string }
 interface PhoneLookupSuggestion { _id: string; fullName: string; phone: string; whom?: string }
 
-const countryCodes = [
-  { code: '+880', flag: '🇧🇩', name: 'Bangladesh' },
-  { code: '+91',  flag: '🇮🇳', name: 'India' },
-  { code: '+92',  flag: '🇵🇰', name: 'Pakistan' },
-  { code: '+94',  flag: '🇱🇰', name: 'Sri Lanka' },
-  { code: '+977', flag: '🇳🇵', name: 'Nepal' },
-  { code: '+95',  flag: '🇲🇲', name: 'Myanmar' },
-  { code: '+1',   flag: '🇺🇸', name: 'United States' },
-  { code: '+1',   flag: '🇨🇦', name: 'Canada' },
-  { code: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
-  { code: '+61',  flag: '🇦🇺', name: 'Australia' },
-  { code: '+971', flag: '🇦🇪', name: 'UAE' },
-  { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
-  { code: '+65',  flag: '🇸🇬', name: 'Singapore' },
-  { code: '+60',  flag: '🇲🇾', name: 'Malaysia' },
-  { code: '+66',  flag: '🇹🇭', name: 'Thailand' },
-  { code: '+81',  flag: '🇯🇵', name: 'Japan' },
-  { code: '+82',  flag: '🇰🇷', name: 'South Korea' },
-  { code: '+86',  flag: '🇨🇳', name: 'China' },
-  { code: '+49',  flag: '🇩🇪', name: 'Germany' },
-  { code: '+33',  flag: '🇫🇷', name: 'France' },
-]
+const countryCodes = PHONE_COUNTRIES
 
 const leadSources: LeadSource[] = ['Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other']
 const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse'] as const
@@ -52,25 +41,18 @@ const labelCls = 'flex items-center gap-1.5 text-[11px] font-extrabold text-gray
 
 const getTodayStartLocal = () => new Date().toISOString().split('T')[0]
 
-const phoneDigitRules: Record<string, { min: number; max: number }> = {
-  '+880': { min: 10, max: 11 }, '+91': { min: 10, max: 10 }, '+92': { min: 10, max: 11 },
-  '+94': { min: 9, max: 10 },   '+977': { min: 9, max: 10 }, '+95': { min: 8, max: 10 },
-  '+1': { min: 10, max: 10 },   '+44': { min: 10, max: 11 }, '+61': { min: 9, max: 9 },
-  '+971': { min: 9, max: 9 },   '+966': { min: 9, max: 9 }, '+65': { min: 8, max: 8 },
-  '+60': { min: 9, max: 11 },   '+66': { min: 9, max: 10 }, '+81': { min: 10, max: 11 },
-  '+82': { min: 9, max: 11 },   '+86': { min: 11, max: 11 }, '+49': { min: 10, max: 12 },
-  '+33': { min: 9, max: 10 },
+const phoneDigitRules = countryRules
+
+function normalizePhoneInput(phone: string, countryCode: string): string {
+  return extractPhoneDigits(sanitizePhoneTypingInput(phone))
+}
+
+function canonicalizePhoneDigits(phone: string, countryCode: string): string {
+  return normalizePhone(phone, countryCode)
 }
 
 function validatePhoneDigits(phone: string, code: string): string | null {
-  const digits = phone.replace(/\D/g, '')
-  if (!digits) return null
-  const rule = phoneDigitRules[code]
-  if (!rule) return null
-  const range = rule.min === rule.max ? `${rule.min}` : `${rule.min}–${rule.max}`
-  if (digits.length < rule.min) return `Phone too short for ${code}: need ${range} digits, got ${digits.length}.`
-  if (digits.length > rule.max) return `Phone too long for ${code}: need ${range} digits, got ${digits.length}.`
-  return null
+  return validatePhone(phone, code)
 }
 
 export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
@@ -165,7 +147,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
 
   useEffect(() => {
     const query = formData.phone.trim()
-    const queryDigits = query.replace(/\D/g, '')
+    const queryDigits = canonicalizePhoneDigits(query, countryCode)
 
     if (phoneLookupTimerRef.current) {
       window.clearTimeout(phoneLookupTimerRef.current)
@@ -193,27 +175,9 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
       }
     }
   }, [formData.phone, countryCode, existingLeads])
-  const normalizePhoneLookup = (value: string) => {
-    const countryDigits = countryCode.replace(/\D/g, '')
-    let normalized = value.replace(/\D/g, '')
-    if (countryDigits && normalized.startsWith(countryDigits)) {
-      normalized = normalized.slice(countryDigits.length)
-    }
-    if (normalized.startsWith('0')) {
-      normalized = normalized.slice(1)
-    }
-    return normalized
-  }
+  const normalizePhoneLookup = (value: string) => buildInternationalPhone(value, countryCode)
 
-  const stripCountryCodeFromPhone = (value: string) => {
-    const countryDigits = countryCode.replace(/\D/g, '')
-    const normalized = value.replace(/\D/g, '')
-    if (!countryDigits) return normalized
-    if (normalized.startsWith(countryDigits)) {
-      return normalized.slice(countryDigits.length)
-    }
-    return normalized
-  }
+  const stripCountryCodeFromPhone = (value: string) => normalizePhone(value, countryCode)
 
   const handlePhoneSuggestionSelect = (suggestion: PhoneLookupSuggestion) => {
     setFormData(prev => ({
@@ -230,11 +194,10 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
     const digitError = validatePhoneDigits(phoneValue, countryCode)
     if (digitError) { setPhoneError(digitError); return true }
 
-    const combinedPhone = `${countryCode} ${phoneValue}`.trim()
-    const digits = combinedPhone.replace(/\D/g, '')
-    if (digits.length < 7) return false
+    const normalizedPhone = buildInternationalPhone(phoneValue, countryCode)
+    if (!normalizedPhone) return false
 
-    const exactMatch = existingLeads.some(lead => normalizePhoneLookup(lead.phone) === normalizePhoneLookup(combinedPhone))
+    const exactMatch = existingLeads.some(lead => buildInternationalPhone(lead.phone, countryCode) === normalizedPhone)
     if (exactMatch) {
       setPhoneError('This number already exists. Already used, try with another number.')
       return true
@@ -265,7 +228,8 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
 
       await createLead({
         ...formData,
-        phone: `${countryCode} ${formData.phone}`,
+        phone: buildInternationalPhone(formData.phone, countryCode),
+        countryCode,
         whom: formData.whom || undefined,
         source: formData.source as LeadSource,
         serviceInterest: formData.serviceInterest as ServiceInterest[],
@@ -307,7 +271,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
     input.click()
   }
 
-  // ─── Shared section-header strip ─────────────────────────────────────────
+  // --- Shared section-header strip -----------------------------------------
 
   const SectionStrip = ({ title, subtitle, icon: Icon, colorClass }: { title: string; subtitle: string; icon: any; colorClass: string }) => (
     <div className="px-6 md:px-8 py-4 border-b border-gray-100 bg-white flex items-center gap-4">
@@ -324,7 +288,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
   return (
     <div className="w-full space-y-4 pb-12">
 
-      {/* ── Header ───────────────────────────────────────────────────────────── */}
+      {/* -- Header ------------------------------------------------------------- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
           <button
@@ -348,14 +312,14 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
           className="flex items-center justify-center gap-2 h-10 px-5 border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50 transition-all bg-white disabled:opacity-50 shadow-sm hover:shadow-md active:scale-95"
         >
           <Upload className="w-4 h-4 text-[#1a56db]" />
-          {isImporting ? 'Importing…' : 'Import CSV'}
+          {isImporting ? 'Importing...' : 'Import CSV'}
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* ── Contact Information ───────────────────────────────────────────── */}
+          {/* -- Contact Information --------------------------------------------- */}
           <div className="bg-white rounded-[20px] border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col h-full">
             <SectionStrip 
               title="Contact Information" 
@@ -399,7 +363,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                       className="h-11 bg-transparent border-0 pr-8 pl-3 appearance-none text-[13.5px] font-bold text-gray-800 min-w-[90px] cursor-pointer focus:ring-0"
                     >
                       {countryCodes.map((c, i) => (
-                        <option key={`${c.code}-${i}`} value={c.code}>{c.flag} {c.code}</option>
+                        <option key={`${c.code}-${i}`} value={c.code}>{formatPhoneCountryLabel(c)}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
@@ -412,18 +376,21 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                       setIsPhoneFocused(false)
                       if (formData.phone.trim()) setPhoneError(validatePhoneDigits(formData.phone, countryCode))
                     }, 120)}
-                    onKeyDown={async e => { if (e.key === 'Enter') { e.preventDefault(); await checkPhoneDuplicate(); } }}
-                    onChange={e => {
-                      const v = e.target.value
-                      setFormData({ ...formData, phone: v })
-                      setError(null)
-                      const digits = v.replace(/\D/g, '')
-                      const rule = phoneDigitRules[countryCode]
-                      if (rule && digits.length > rule.max) {
-                        setPhoneError(`Phone too long for ${countryCode}: max ${rule.max} digits.`)
-                      } else {
-                        setPhoneError(null)
+                    onKeyDown={async e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        await checkPhoneDuplicate()
+                        return
                       }
+                      if (e.key.length === 1 && /\D/.test(e.key)) {
+                        e.preventDefault()
+                      }
+                    }}
+                    onChange={e => {
+                      const nextValue = normalizePhoneInput(e.target.value, countryCode)
+                      setFormData({ ...formData, phone: nextValue })
+                      setError(null)
+                      setPhoneError(nextValue ? validatePhoneDigits(nextValue, countryCode) : null)
                     }}
                     className="h-11 px-3 bg-transparent border-y border-gray-200 text-[13.5px] text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:bg-white focus:border-[#1a56db] transition-all group-hover:border-gray-300 group-focus-within:border-[#1a56db] group-focus-within:bg-white"
                   />
@@ -494,7 +461,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
             </div>
           </div>
 
-          {/* ── Service & Assignment ──────────────────────────────────────────── */}
+          {/* -- Service & Assignment -------------------------------------------- */}
           <div className="bg-white rounded-[20px] border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col h-full">
             <SectionStrip 
               title="Service & Assignment" 
@@ -587,7 +554,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                   <FileText className="w-3.5 h-3.5 text-gray-400" /> Notes & Requirements <span className="text-red-500 normal-case ml-0.5">*</span>
                 </label>
                 <textarea
-                  placeholder="Add background information or specific requirements…"
+                  placeholder="Add background information or specific requirements..."
                   value={formData.notes} rows={4} required
                   onChange={e => setFormData({ ...formData, notes: e.target.value })}
                   className="w-full flex-1 min-h-[100px] px-4 py-3 bg-[#f8fafc] border border-gray-200 rounded-xl text-[13.5px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#1a56db] focus:bg-white transition-all resize-none shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:border-gray-300 leading-relaxed"
@@ -597,7 +564,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
           </div>
         </div>
 
-        {/* ── Follow-Up Details ─────────────────────────────────────────────── */}
+        {/* -- Follow-Up Details ----------------------------------------------- */}
         <div className="bg-white rounded-[20px] border border-gray-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
           <SectionStrip 
             title="Follow-Up Schedule" 
@@ -677,7 +644,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
           </div>
         </div>
 
-        {/* ── Action Buttons ────────────────────────────────────────────────── */}
+        {/* -- Action Buttons -------------------------------------------------- */}
         <div className="flex items-center justify-end gap-4 pt-4 pb-6">
           <button
             type="button" onClick={onCancel}
@@ -701,7 +668,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
         </div>
       </form>
 
-      {/* ── Toast ────────────────────────────────────────────────────────────── */}
+      {/* -- Toast -------------------------------------------------------------- */}
       {(error || success) && (
         <div className="fixed bottom-8 right-8 max-w-sm z-50 animate-in slide-in-from-bottom-6 fade-in duration-300">
           {error && (
@@ -727,4 +694,11 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
     </div>
   )
 }
+
+
+
+
+
+
+
 
