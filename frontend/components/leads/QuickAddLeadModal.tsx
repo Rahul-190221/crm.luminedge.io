@@ -9,7 +9,7 @@ import {
   PHONE_COUNTRIES,
   buildInternationalPhone,
   extractPhoneDigits,
-  formatPhoneCountryLabel,
+  formatPhoneCountryCode,
   normalizePhone,
   sanitizePhoneTypingInput,
   validatePhone,
@@ -32,6 +32,8 @@ const serviceInterests: ServiceInterest[] = [
 interface Props {
   onClose: () => void
   onSuccess: () => void
+  title?: string
+  subtitle?: string
 }
 
 const inputClass =
@@ -45,7 +47,7 @@ const validatePhoneDigits = (phone: string, countryCode: string): string | null 
 
 const normalizePhoneInput = (value: string): string => extractPhoneDigits(sanitizePhoneTypingInput(value))
 
-export default function QuickAddLeadModal({ onClose, onSuccess }: Props) {
+export default function QuickAddLeadModal({ onClose, onSuccess, title = 'Quick Add Lead', subtitle = 'Rapidly input a new prospect' }: Props) {
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -231,7 +233,7 @@ export default function QuickAddLeadModal({ onClose, onSuccess }: Props) {
         whom: form.whom || undefined,
         source: form.source,
         serviceInterest: form.serviceInterest,
-        lifecycleStage: 'Intake',
+        lifecycleStage: 'New Inquiry',
         assignedTo: form.assignedTo || undefined,
       }
       if (form.email.trim()) payload.email = form.email.trim()
@@ -273,8 +275,8 @@ export default function QuickAddLeadModal({ onClose, onSuccess }: Props) {
               <Zap className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-[15px] font-bold text-white tracking-tight leading-tight">Quick Add Lead</h2>
-              <p className="text-white/60 text-[11.5px] font-medium mt-0.5">Rapidly input a new prospect</p>
+              <h2 className="text-[15px] font-bold text-white tracking-tight leading-tight">{title}</h2>
+              <p className="text-white/60 text-[11.5px] font-medium mt-0.5">{subtitle}</p>
             </div>
           </div>
           <button
@@ -312,14 +314,14 @@ export default function QuickAddLeadModal({ onClose, onSuccess }: Props) {
               </label>
               <div className="flex rounded-xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/12 transition-all">
                 {/* Country selector — fixed width so phone input gets priority space */}
-                <div className="relative w-[130px] flex-shrink-0 border-r border-gray-200 bg-gray-50/80 overflow-hidden">
+                <div className="relative w-[92px] flex-shrink-0 border-r border-gray-200 bg-gray-50/80 overflow-hidden">
                   <select
                     value={countryCode}
                     onChange={e => { const nextCode = e.target.value; setCountryCode(nextCode); if (form.phone.trim()) setPhoneError(validatePhoneDigits(form.phone, nextCode)); }}
-                    className="h-11 w-full bg-transparent border-0 pl-3 pr-7 appearance-none text-[12px] font-semibold text-gray-700 cursor-pointer focus:ring-0 focus:outline-none"
+                    className="h-11 w-full bg-transparent border-0 pl-3 pr-6 appearance-none text-[12px] font-semibold text-gray-700 cursor-pointer focus:ring-0 focus:outline-none"
                   >
                     {countryCodes.map((code, i) => (
-                      <option key={`${code.code}-${i}`} value={code.code}>{formatPhoneCountryLabel(code)}</option>
+                      <option key={`${code.code}-${i}`} value={code.code}>{formatPhoneCountryCode(code)}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />

@@ -157,7 +157,7 @@ export const statusBadgeColors: Record<string, string> = {
 
 // Lead Types
 export type LeadSource = 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
-export type LeadStage = 'Intake' | 'Processing' | 'Hot' | 'Converted' | 'Dead';
+export type LeadStage = 'New Inquiry' | 'Contacted' | 'Trial Class' | 'Enrolled' | 'Lost';
 export type ServiceInterest =
   | 'IELTS Premium'
   | 'IELTS Crash'
@@ -175,6 +175,7 @@ export interface FollowUp {
   date: string;
   note: string;
   nextFollowUpDate: string;
+  createdAt?: string;
 }
 
 export interface Lead {
@@ -211,10 +212,3 @@ export interface BDM {
   updatedAt?: string;
 }
 
-export const leadStageBadgeColors: Record<LeadStage, string> = {
-  'Intake': 'bg-blue-100 text-blue-700',
-  'Processing': 'bg-yellow-100 text-yellow-700',
-  'Hot': 'bg-orange-100 text-orange-700',
-  'Converted': 'bg-green-100 text-green-700',
-  'Dead': 'bg-red-100 text-red-700',
-};

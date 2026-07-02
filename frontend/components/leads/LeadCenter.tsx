@@ -6,84 +6,15 @@ import { getLeads, updateLeadStage, importLeadsFromFile, assignLeads, getBDMsFor
 import type { Lead, LeadStage as LeadStageType, BDM } from '@/types/admin';
 import { getLeadEditRequests } from '@/lib/api/leadEditRequests';
 import type { LeadEditRequestItem } from '@/lib/api/leadEditRequests';
-import InputLead from './InputLead';
+import QuickAddLeadModal from './QuickAddLeadModal';
+import LeadDetail from './LeadDetail';
+import StageDropdown from './StageDropdown';
 import { getUserIdFromToken } from '@/lib/helpers/jwt';
+import { LEAD_STAGES } from '@/lib/constants/leadStages';
 
 // ---
 
-const stageColors: Record<LeadStageType, { bg: string; text: string; border: string; dot: string }> = {
-    'Intake':     { bg: 'bg-gray-100',       text: 'text-gray-600',    border: 'border-gray-200',     dot: 'bg-gray-400' },
-    'Processing': { bg: 'bg-blue-50',        text: 'text-blue-700',    border: 'border-blue-200',     dot: 'bg-blue-600' },
-    'Hot':        { bg: 'bg-orange-50',      text: 'text-orange-700',  border: 'border-orange-200',   dot: 'bg-orange-500' },
-    'Converted':  { bg: 'bg-green-50',       text: 'text-green-700',   border: 'border-green-200',    dot: 'bg-green-600' },
-    'Dead':       { bg: 'bg-red-50',         text: 'text-red-700',     border: 'border-red-200',      dot: 'bg-red-600' },
-};
-
-const stages: LeadStageType[] = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
-
-// ---
-
-const StageDropdown: React.FC<{ value: LeadStageType; onChange: (s: LeadStageType) => void; disabled?: boolean }> = ({ value, onChange, disabled }) => {
-    const [open, setOpen] = useState(false);
-    const [pos, setPos] = useState({ top: 0, left: 0 });
-    const btnRef = useRef<HTMLButtonElement>(null);
-    const colors = stageColors[value];
-
-    const handleOpen = () => {
-        if (disabled) return;
-        if (!open && btnRef.current) {
-            const r = btnRef.current.getBoundingClientRect();
-            setPos({ top: r.bottom + 6, left: r.left });
-        }
-        setOpen(v => !v);
-    };
-
-    return (
-        <div className="relative">
-            <button
-                ref={btnRef}
-                onClick={handleOpen}
-                disabled={disabled}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[12px] font-bold border transition-all duration-200 ${
-                    disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-sm cursor-pointer'
-                } ${colors.bg} ${colors.text} ${colors.border}`}
-            >
-                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${colors.dot}`} />
-                <span className="whitespace-nowrap tracking-wide">{value}</span>
-                {!disabled && <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />}
-            </button>
-
-            {open && (
-                <>
-                    <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                    <div
-                        className="fixed z-50 bg-white rounded-2xl shadow-xl border border-gray-200 py-1 min-w-[150px]"
-                        style={{ top: pos.top, left: pos.left }}
-                    >
-                        <p className="px-3.5 py-1.5 text-[9.5px] font-bold text-gray-400 uppercase tracking-[0.14em] border-b border-gray-100 mb-1">Select Stage</p>
-                        {stages.map(stage => {
-                            const sc = stageColors[stage];
-                            const isSelected = stage === value;
-                            return (
-                                <button
-                                    key={stage}
-                                    onClick={() => { onChange(stage); setOpen(false); }}
-                                    className={`w-full flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold transition-colors ${
-                                        isSelected ? `${sc.bg} ${sc.text}` : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${sc.dot}`} />
-                                    {stage}
-                                    {isSelected && <Check className="ml-auto w-3.5 h-3.5 flex-shrink-0" />}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-};
+const stages: LeadStageType[] = LEAD_STAGES;
 
 // ---
 
@@ -200,26 +131,26 @@ const downloadTemplate = async () => {
     headerRow.height = 22;
     ws.views = [{ state: 'frozen', ySplit: 1 }];
     const rows: any[][] = [
-        ['John Doe',    'john@example.com',  '01700000000', 'Social Media', 'IELTS',         'Interested in IELTS preparation course', 'Intake',     new Date('2026-05-14'), new Date('2026-05-21')],
-        ['Jane Smith',  'jane@example.com',  '01800000000', 'Referral',     'PTE',           'Wants PTE coaching and mock tests',      'Processing', new Date('2026-05-10'), new Date('2026-05-17')],
-        ['Alice Rahman','alice@example.com', '01900000000', 'Walk-in',      'Study Abroad',  'Needs study abroad guidance',            'Intake',     null,                   null],
+        ['John Doe',    'john@example.com',  '01700000000', 'Social Media', 'IELTS',         'Interested in IELTS preparation course', 'New Inquiry', new Date('2026-05-14'), new Date('2026-05-21')],
+        ['Jane Smith',  'jane@example.com',  '01800000000', 'Referral',     'PTE',           'Wants PTE coaching and mock tests',      'Contacted',   new Date('2026-05-10'), new Date('2026-05-17')],
+        ['Alice Rahman','alice@example.com', '01900000000', 'Walk-in',      'Study Abroad',  'Needs study abroad guidance',            'New Inquiry', null,                   null],
     ];
     rows.forEach(r => { const row = ws.addRow(r); row.eachCell(cell => { cell.alignment = { vertical: 'middle' } }); row.height = 18; });
     for (let i = 2; i <= 500; i++) {
         ws.getCell(`D${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Website,Referral,Social Media,Email Campaign,Walk-in,Phone,Other"'], showErrorMessage: true, errorTitle: 'Invalid Source', error: 'Must be one of: Website, Referral, Social Media, Email Campaign, Walk-in, Phone, Other' };
         ws.getCell(`E${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"IELTS,PTE,GRE,TOEFL,Study Abroad,Visa Processing"'], showErrorMessage: true, errorTitle: 'Invalid Service', error: 'Must be one of: IELTS, PTE, GRE, TOEFL, Study Abroad, Visa Processing' };
-        ws.getCell(`G${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Intake,Processing,Hot,Converted,Dead"'], showErrorMessage: true, errorTitle: 'Invalid Stage', error: 'Must be: Intake, Processing, Hot, Converted, or Dead.' };
+        ws.getCell(`G${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"New Inquiry,Contacted,Trial Class,Enrolled,Lost"'], showErrorMessage: true, errorTitle: 'Invalid Stage', error: 'Must be: New Inquiry, Contacted, Trial Class, Enrolled, or Lost.' };
     }
     const ref = wb.addWorksheet('Valid Options');
     const refHeaders = ['Lead Source Options', 'Service Interest Options', 'Stage Options', 'Date Format'];
     const refData = [
-        ['Website',        'IELTS',           'Intake',     'YYYY-MM-DD'],
-        ['Referral',       'PTE',             'Processing', '(e.g. 2026-05-21)'],
-        ['Social Media',   'GRE',             'Hot',        ''],
-        ['Email Campaign', 'TOEFL',           'Converted',  ''],
-        ['Walk-in',        'Study Abroad',    'Dead',       ''],
-        ['Phone',          'Visa Processing', '',           ''],
-        ['Other',          '',                '',           ''],
+        ['Website',        'IELTS',           'New Inquiry', 'YYYY-MM-DD'],
+        ['Referral',       'PTE',             'Contacted',   '(e.g. 2026-05-21)'],
+        ['Social Media',   'GRE',             'Trial Class', ''],
+        ['Email Campaign', 'TOEFL',           'Enrolled',    ''],
+        ['Walk-in',        'Study Abroad',    'Lost',        ''],
+        ['Phone',          'Visa Processing', '',            ''],
+        ['Other',          '',                '',            ''],
     ];
     ref.columns = [{ width: 22 }, { width: 22 }, { width: 14 }, { width: 22 }];
     const refHead = ref.addRow(refHeaders);
@@ -239,6 +170,8 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
     const tokenData = getUserIdFromToken();
     const isAdmin = tokenData?.role === 'admin';
     const [view, setView] = useState<'list' | 'form'>('list');
+    const [drawerLeadId, setDrawerLeadId] = useState<string | null>(null);
+    const [drawerVisible, setDrawerVisible] = useState(false);
     const [leads, setLeads] = useState<Lead[]>([]);
     const [bdms, setBdms] = useState<BDM[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -255,30 +188,30 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
 
     const stats = useMemo(() => ({
         total:      apiTotal,
-        intake:     leads.filter(l => l.lifecycleStage === 'Intake').length,
-        processing: leads.filter(l => l.lifecycleStage === 'Processing').length,
-        hot:        leads.filter(l => l.lifecycleStage === 'Hot').length,
-        converted:  leads.filter(l => l.lifecycleStage === 'Converted').length,
-        dead:       leads.filter(l => l.lifecycleStage === 'Dead').length,
+        newInquiry: leads.filter(l => l.lifecycleStage === 'New Inquiry').length,
+        contacted:  leads.filter(l => l.lifecycleStage === 'Contacted').length,
+        trialClass: leads.filter(l => l.lifecycleStage === 'Trial Class').length,
+        enrolled:   leads.filter(l => l.lifecycleStage === 'Enrolled').length,
+        lost:       leads.filter(l => l.lifecycleStage === 'Lost').length,
     }), [leads, apiTotal]);
 
     const filterCards = [
-        { key: 'all' as const,        label: 'Total Leads', count: stats.total,
+        { key: 'all' as const,          label: 'Total Leads',  count: stats.total,
           active: 'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:shadow-md',   activeNum: 'text-blue-600', activeLbl: 'text-blue-500',
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:shadow-md' },
-        { key: 'Intake' as const,     label: 'Intake',      count: stats.intake,
+        { key: 'New Inquiry' as const,  label: 'New Inquiry',  count: stats.newInquiry,
           active: 'bg-gradient-to-b from-gray-50 to-gray-100 border-gray-300 shadow-md shadow-gray-400/10', activeNum: 'text-gray-800', activeLbl: 'text-gray-500',
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-gray-300 hover:shadow-md hover:shadow-blue-900/10' },
-        { key: 'Processing' as const, label: 'Processing',  count: stats.processing,
+        { key: 'Contacted' as const,    label: 'Contacted',    count: stats.contacted,
           active: 'bg-gradient-to-b from-blue-50 to-blue-100 border-blue-300 shadow-md shadow-blue-500/10', activeNum: 'text-blue-800', activeLbl: 'text-blue-600',
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/10' },
-        { key: 'Hot' as const,        label: 'Hot Leads',   count: stats.hot,
+        { key: 'Trial Class' as const,  label: 'Trial Class',  count: stats.trialClass,
           active: 'bg-gradient-to-b from-orange-50 to-orange-100 border-orange-300 shadow-md shadow-orange-500/10', activeNum: 'text-orange-800', activeLbl: 'text-orange-600',
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-orange-300 hover:shadow-md hover:shadow-blue-900/10' },
-        { key: 'Converted' as const,  label: 'Converted',   count: stats.converted,
+        { key: 'Enrolled' as const,     label: 'Enrolled',     count: stats.enrolled,
           active: 'bg-gradient-to-b from-green-50 to-green-100 border-green-300 shadow-md shadow-green-500/10', activeNum: 'text-green-800', activeLbl: 'text-green-600',
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-green-300 hover:shadow-md hover:shadow-blue-900/10' },
-        { key: 'Dead' as const,       label: 'Dead Leads',  count: stats.dead,
+        { key: 'Lost' as const,         label: 'Lost Leads',   count: stats.lost,
           active: 'bg-gradient-to-b from-red-50 to-red-100 border-red-300 shadow-md shadow-red-500/10', activeNum: 'text-red-800', activeLbl: 'text-red-600',
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-red-300 hover:shadow-md hover:shadow-blue-900/10' },
     ];
@@ -336,6 +269,16 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
 
 
 
+    const openLeadDrawer = (id: string) => {
+        setDrawerLeadId(id);
+        requestAnimationFrame(() => setDrawerVisible(true));
+    };
+    const closeLeadDrawer = () => {
+        setDrawerVisible(false);
+        window.setTimeout(() => setDrawerLeadId(null), 250);
+        fetchLeads();
+    };
+
     const handleStageChange = async (id: string, newStage: LeadStageType) => {
         setUpdatingStageId(id);
         try {
@@ -367,10 +310,6 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
         input.click();
     };
 
-    if (view === 'form') {
-        return <InputLead onSuccess={() => setView('list')} onCancel={() => setView('list')} />;
-    }
-
     return (
         <div className="space-y-4 pb-6">
 
@@ -384,7 +323,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                             className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-bold text-[12px] rounded-lg hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 transition-all duration-200"
                         >
                             <Plus className="w-3 h-3" strokeWidth={2.5} />
-                            Add New Lead
+                            Add Lead
                         </button>
                     </div>
                     <p className="text-xs text-gray-500 font-medium mt-0.5">Manage and track all your leads in one place</p>
@@ -484,7 +423,8 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                 displayedLeads.map((lead, idx) => (
                                     <tr
                                         key={lead._id}
-                                        className={`group relative transition-all duration-150 border-b border-slate-100 last:border-0 hover:bg-blue-50/25 hover:shadow-[inset_3px_0_0_#3b82f6] ${idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white'}`}
+                                        onClick={() => openLeadDrawer(lead._id)}
+                                        className={`group relative transition-all duration-150 border-b border-slate-100 last:border-0 hover:bg-blue-50/25 hover:shadow-[inset_3px_0_0_#3b82f6] cursor-pointer ${idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white'}`}
                                     >
                                         <td className="px-5 py-3.5 align-middle">
                                             <div className="flex items-center gap-3">
@@ -493,7 +433,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <button
-                                                        onClick={() => onViewLead?.(lead._id)}
+                                                        onClick={() => openLeadDrawer(lead._id)}
                                                         className="text-[13px] font-semibold text-slate-800 truncate hover:text-blue-600 transition-colors block leading-snug text-left w-full"
                                                     >
                                                         {lead.fullName}
@@ -525,14 +465,14 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                 ))}
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3.5 align-middle">
+                                        <td className="px-5 py-3.5 align-middle" onClick={e => e.stopPropagation()}>
                                             <StageDropdown
                                                 value={lead.lifecycleStage}
                                                 onChange={(stage) => handleStageChange(lead._id, stage)}
                                                 disabled={updatingStageId === lead._id}
                                             />
                                         </td>
-                                        <td className="px-5 py-3.5 hidden md:table-cell align-middle">
+                                        <td className="px-5 py-3.5 hidden md:table-cell align-middle" onClick={e => e.stopPropagation()}>
                                             {isAdmin ? (
                                                 <BDMDropdown
                                                     lead={lead}
@@ -600,7 +540,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                 return null;
                                             })()}
                                         </td>
-                                        <td className="px-5 py-3.5 text-right align-middle">
+                                        <td className="px-5 py-3.5 text-right align-middle" onClick={e => e.stopPropagation()}>
                                             <button
                                                 onClick={() => onViewLead?.(lead._id)}
                                                 className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white rounded-lg text-[11px] font-semibold transition-all shadow-sm shadow-blue-900/20 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] hover:-translate-y-px active:scale-95 whitespace-nowrap ml-auto"
@@ -671,6 +611,29 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                             ? <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-500" />
                             : <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />}
                         <p className="text-[13px] font-semibold text-gray-700">{importToast.message}</p>
+                    </div>
+                </div>
+            )}
+
+            {view === 'form' && (
+                <QuickAddLeadModal
+                    title="Add New Lead"
+                    subtitle="Add a prospective student to the pipeline"
+                    onClose={() => setView('list')}
+                    onSuccess={() => { setView('list'); fetchLeads(); }}
+                />
+            )}
+
+            {drawerLeadId && (
+                <div className="fixed inset-0 z-50 flex justify-end">
+                    <div
+                        className={`absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 ${drawerVisible ? 'opacity-100' : 'opacity-0'}`}
+                        onClick={closeLeadDrawer}
+                    />
+                    <div className={`relative w-full max-w-4xl h-full bg-[#f8fafc] shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${drawerVisible ? 'translate-x-0' : 'translate-x-full'}`}>
+                        <div className="p-4 md:p-6">
+                            <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} requireApproval={!isAdmin} />
+                        </div>
                     </div>
                 </div>
             )}

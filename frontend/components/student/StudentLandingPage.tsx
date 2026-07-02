@@ -16,7 +16,7 @@ const features = [
   {
     icon: <BadgeCheck className="w-5 h-5" />,
     title: "Application Status",
-    desc: "See exactly where your application stands — Intake, Processing, Hot, or Enrolled.",
+    desc: "See exactly where your application stands — New Inquiry, Contacted, Trial Class, or Enrolled.",
   },
   {
     icon: <MessageSquare className="w-5 h-5" />,
@@ -161,7 +161,7 @@ export default function StudentLandingPage() {
               <div className="rounded-xl bg-white border border-gray-100 px-5 py-4">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Application Status</p>
                 <div className="flex items-center gap-1">
-                  {["Intake", "Processing", "Hot", "Enrolled"].map((s, i) => (
+                  {["New Inquiry", "Contacted", "Trial Class", "Enrolled"].map((s, i) => (
                     <div key={s} className="flex items-center flex-1">
                       <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex-1 text-center ${
                         i === 1

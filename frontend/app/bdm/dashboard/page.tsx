@@ -41,6 +41,7 @@ function BDMDashboardContent() {
   const router = useRouter()
   const [activePage, setActivePage] = useState<Page>('dashboard')
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
+  const [leadDetailReturnTo, setLeadDetailReturnTo] = useState<Page>('lead-center')
   const [leadCenterRefreshKey, setLeadCenterRefreshKey] = useState(0)
   const [user, setUser] = useState<any>(null)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -51,7 +52,9 @@ function BDMDashboardContent() {
 
   const fetchFollowUpCount = useCallback(async () => {
     try {
-      const data = await getLeads({ limit: 500 })
+      const decoded = getUserIdFromToken()
+      const currentUserId = decoded?.id || decoded?.userId || null
+      const data = await getLeads(currentUserId ? { assignedTo: currentUserId, limit: 500 } : { limit: 500 })
       const arr = Array.isArray(data.leads) ? data.leads : []
       const count = arr.filter((lead: any) => {
         const lastFU = lead.followUps?.at(-1)
@@ -149,7 +152,7 @@ function BDMDashboardContent() {
       case 'dashboard':
         return (
           <BDMDashboard
-            onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail') }}
+            onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail') }}
             onAddLead={() => setActivePage('lead-center')}
             onViewAllLeads={() => setActivePage('lead-center')}
             onBookExam={() => setActivePage('bdm-exam-slots')}
@@ -160,13 +163,13 @@ function BDMDashboardContent() {
           />
         )
       case 'bdm-pipeline':
-        return <BDMPipeline setActivePage={setActivePage} />
+        return <BDMPipeline setActivePage={setActivePage} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('bdm-pipeline'); setActivePage('lead-detail') }} />
       case 'lead-center':
-        return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail') }} />
+        return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail') }} />
       case 'lead-detail':
         return selectedLeadId
-          ? <LeadDetail id={selectedLeadId} requireApproval onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage('lead-center'); }} />
-          : <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setActivePage('lead-detail'); }} />
+          ? <LeadDetail id={selectedLeadId} requireApproval onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage(leadDetailReturnTo); }} />
+          : <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail'); }} />
       case 'lead-stage':
         return <LeadStage />
       case 'course-details':

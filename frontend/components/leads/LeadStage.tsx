@@ -1,103 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Upload, Download, RefreshCw, ChevronDown, Check } from 'lucide-react';
+import { Search, Upload, Download, RefreshCw } from 'lucide-react';
 import { getLeads, updateLeadStage, importLeadsFromCSV } from '@/lib/api/leads';
 import type { Lead, LeadStage as LeadStageType } from '@/types/admin';
+import StageDropdown from './StageDropdown';
 
 interface LeadStats {
     total: number;
-    intake: number;
-    processing: number;
-    hot: number;
-    converted: number;
-    dead: number;
+    newInquiry: number;
+    contacted: number;
+    trialClass: number;
+    enrolled: number;
+    lost: number;
 }
-
-const stageColors: Record<LeadStageType, { bg: string; text: string; border: string }> = {
-    'Intake': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-    'Processing': { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
-    'Hot': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
-    'Converted': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-    'Dead': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-};
-
-const stages: LeadStageType[] = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
-
-const stageDotColors: Record<LeadStageType, string> = {
-    'Intake':     'bg-blue-400',
-    'Processing': 'bg-yellow-400',
-    'Hot':        'bg-orange-400',
-    'Converted':  'bg-green-500',
-    'Dead':       'bg-red-400',
-};
-
-const StageDropdown: React.FC<{ value: LeadStageType; onChange: (s: LeadStageType) => void }> = ({ value, onChange }) => {
-    const [open, setOpen] = useState(false);
-    const btnRef = useRef<HTMLButtonElement>(null);
-    const [pos, setPos] = useState({ top: 0, left: 0 });
-
-    const toggle = () => {
-        if (!open && btnRef.current) {
-            const r = btnRef.current.getBoundingClientRect();
-            const dropH = stages.length * 44 + 48;
-            setPos({
-                top: window.innerHeight - r.bottom > dropH ? r.bottom + 4 : r.top - dropH - 4,
-                left: r.left,
-            });
-        }
-        setOpen(v => !v);
-    };
-
-    const colors = stageColors[value];
-
-    return (
-        <>
-            <button
-                ref={btnRef}
-                onClick={toggle}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all hover:shadow-md ${colors.bg} ${colors.text} ${colors.border}`}
-            >
-                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${stageDotColors[value]}`} />
-                {value}
-                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-            </button>
-
-            {open && (
-                <>
-                    <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                    <div
-                        className="fixed z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 min-w-[170px] overflow-hidden"
-                        style={{ top: pos.top, left: pos.left }}
-                    >
-                        <p className="px-3.5 pt-1 pb-2.5 text-[12px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                            Change Stage
-                        </p>
-                        {stages.map(stage => {
-                            const sc = stageColors[stage];
-                            const isSelected = stage === value;
-                            return (
-                                <button
-                                    key={stage}
-                                    onClick={() => { onChange(stage); setOpen(false); }}
-                                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium transition-colors ${
-                                        isSelected
-                                            ? `${sc.bg} ${sc.text}`
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stageDotColors[stage]}`} />
-                                    {stage}
-                                    {isSelected && <Check className="ml-auto w-3.5 h-3.5 flex-shrink-0" />}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </>
-            )}
-        </>
-    );
-};
 
 const LeadStage: React.FC = () => {
     const [leads, setLeads] = useState<Lead[]>([]);
@@ -105,7 +21,7 @@ const LeadStage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState<'all' | LeadStageType>('all');
     const [stats, setStats] = useState<LeadStats>({
-        total: 0, intake: 0, processing: 0, hot: 0, converted: 0, dead: 0
+        total: 0, newInquiry: 0, contacted: 0, trialClass: 0, enrolled: 0, lost: 0
     });
 
     const fetchLeads = async () => {
@@ -125,11 +41,11 @@ const LeadStage: React.FC = () => {
     const calculateStats = (leadsData: Lead[]) => {
         const newStats: LeadStats = {
             total: leadsData.length,
-            intake: leadsData.filter(l => l.lifecycleStage === 'Intake').length,
-            processing: leadsData.filter(l => l.lifecycleStage === 'Processing').length,
-            hot: leadsData.filter(l => l.lifecycleStage === 'Hot').length,
-            converted: leadsData.filter(l => l.lifecycleStage === 'Converted').length,
-            dead: leadsData.filter(l => l.lifecycleStage === 'Dead').length,
+            newInquiry: leadsData.filter(l => l.lifecycleStage === 'New Inquiry').length,
+            contacted: leadsData.filter(l => l.lifecycleStage === 'Contacted').length,
+            trialClass: leadsData.filter(l => l.lifecycleStage === 'Trial Class').length,
+            enrolled: leadsData.filter(l => l.lifecycleStage === 'Enrolled').length,
+            lost: leadsData.filter(l => l.lifecycleStage === 'Lost').length,
         };
         setStats(newStats);
     };
@@ -219,12 +135,12 @@ const LeadStage: React.FC = () => {
     }, [leads, activeFilter, searchTerm]);
 
     const filterCards = [
-        { key: 'all' as const,        label: 'Total Leads', count: stats.total,      accent: 'border-gray-900  bg-gray-900',  activeText: 'text-white',       activeSub: 'text-white/70',  idle: 'border-gray-200 hover:border-gray-400' },
-        { key: 'Intake' as const,     label: 'Intake',      count: stats.intake,     accent: 'border-blue-500  bg-blue-50',   activeText: 'text-blue-700',    activeSub: 'text-blue-500',  idle: 'border-gray-200 hover:border-blue-300' },
-        { key: 'Processing' as const, label: 'Processing',  count: stats.processing, accent: 'border-yellow-500 bg-yellow-50', activeText: 'text-yellow-700', activeSub: 'text-yellow-600', idle: 'border-gray-200 hover:border-yellow-300' },
-        { key: 'Hot' as const,        label: 'Hot Leads',   count: stats.hot,        accent: 'border-orange-500 bg-orange-50', activeText: 'text-orange-700', activeSub: 'text-orange-500', idle: 'border-gray-200 hover:border-orange-300' },
-        { key: 'Converted' as const,  label: 'Converted',   count: stats.converted,  accent: 'border-green-500  bg-green-50', activeText: 'text-green-700',  activeSub: 'text-green-500',  idle: 'border-gray-200 hover:border-green-300' },
-        { key: 'Dead' as const,       label: 'Dead Leads',  count: stats.dead,       accent: 'border-red-500    bg-red-50',   activeText: 'text-red-700',    activeSub: 'text-red-500',    idle: 'border-gray-200 hover:border-red-300' },
+        { key: 'all' as const,          label: 'Total Leads', count: stats.total,      accent: 'border-gray-900  bg-gray-900',  activeText: 'text-white',       activeSub: 'text-white/70',  idle: 'border-gray-200 hover:border-gray-400' },
+        { key: 'New Inquiry' as const,  label: 'New Inquiry', count: stats.newInquiry, accent: 'border-blue-500  bg-blue-50',   activeText: 'text-blue-700',    activeSub: 'text-blue-500',  idle: 'border-gray-200 hover:border-blue-300' },
+        { key: 'Contacted' as const,    label: 'Contacted',   count: stats.contacted,  accent: 'border-yellow-500 bg-yellow-50', activeText: 'text-yellow-700', activeSub: 'text-yellow-600', idle: 'border-gray-200 hover:border-yellow-300' },
+        { key: 'Trial Class' as const,  label: 'Trial Class', count: stats.trialClass, accent: 'border-orange-500 bg-orange-50', activeText: 'text-orange-700', activeSub: 'text-orange-500', idle: 'border-gray-200 hover:border-orange-300' },
+        { key: 'Enrolled' as const,     label: 'Enrolled',    count: stats.enrolled,   accent: 'border-green-500  bg-green-50', activeText: 'text-green-700',  activeSub: 'text-green-500',  idle: 'border-gray-200 hover:border-green-300' },
+        { key: 'Lost' as const,         label: 'Lost Leads',  count: stats.lost,       accent: 'border-red-500    bg-red-50',   activeText: 'text-red-700',    activeSub: 'text-red-500',    idle: 'border-gray-200 hover:border-red-300' },
     ];
 
     return (
@@ -357,9 +273,9 @@ const LeadStage: React.FC = () => {
                 <div className="px-4 py-3 border-t border-gray-100 flex justify-between items-center text-sm text-gray-600">
                     <span>Showing {filteredLeads.length} of {stats.total} leads</span>
                     <span className="text-right">
-                        <span className="text-green-600 font-medium">{stats.converted} converted</span>
+                        <span className="text-green-600 font-medium">{stats.enrolled} enrolled</span>
                         <span className="mx-2">·</span>
-                        <span className="text-red-600 font-medium">{stats.dead} dead leads</span>
+                        <span className="text-red-600 font-medium">{stats.lost} lost leads</span>
                     </span>
                 </div>
             </div>

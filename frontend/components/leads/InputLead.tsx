@@ -14,7 +14,7 @@ import {
   buildInternationalPhone,
   countryRules,
   extractPhoneDigits,
-  formatPhoneCountryLabel,
+  formatPhoneCountryCode,
   normalizePhone,
   sanitizePhoneTypingInput,
   validatePhone,
@@ -234,7 +234,7 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
         source: formData.source as LeadSource,
         serviceInterest: formData.serviceInterest as ServiceInterest[],
         followUps: followUps.filter(f => f.date || f.note || f.nextFollowUpDate).map(f => ({ date: f.date, note: f.note, nextFollowUpDate: f.nextFollowUpDate })),
-        lifecycleStage: 'Intake' as const
+        lifecycleStage: 'New Inquiry' as const
       })
       setSuccess('Lead created successfully!')
       setTimeout(() => { onSuccess?.() }, 1000)
@@ -299,9 +299,9 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
           </button>
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-              Input New Lead
+              Input Lead
               <span className="px-2.5 py-0.5 bg-[#ebf0ff] text-[#1a56db] text-[10px] uppercase tracking-widest font-extrabold rounded-md border border-[#1a56db]/20 shadow-sm">
-                Intake Stage
+                New Inquiry Stage
               </span>
             </h1>
             <p className="text-[13px] text-gray-500 font-medium mt-0.5">Add a prospective student manually or via CSV import.</p>
@@ -360,10 +360,10 @@ export default function InputLead({ onSuccess, onCancel }: InputLeadProps) {
                         setCountryCode(c)
                         if (formData.phone.trim()) setPhoneError(validatePhoneDigits(formData.phone, c))
                       }}
-                      className="h-11 bg-transparent border-0 pr-8 pl-3 appearance-none text-[13.5px] font-bold text-gray-800 min-w-[90px] cursor-pointer focus:ring-0"
+                      className="h-11 bg-transparent border-0 pr-8 pl-3 appearance-none text-[13.5px] font-bold text-gray-800 min-w-[74px] cursor-pointer focus:ring-0"
                     >
                       {countryCodes.map((c, i) => (
-                        <option key={`${c.code}-${i}`} value={c.code}>{formatPhoneCountryLabel(c)}</option>
+                        <option key={`${c.code}-${i}`} value={c.code}>{formatPhoneCountryCode(c)}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />

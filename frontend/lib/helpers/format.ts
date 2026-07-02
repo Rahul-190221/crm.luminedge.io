@@ -36,3 +36,9 @@ export function formatShortDate(date: string): string {
     day: 'numeric', month: 'short', year: 'numeric',
   }).format(new Date(date))
 }
+
+export function extractTargetScore(notes?: string | null): string | null {
+  if (!notes) return null
+  const match = notes.match(/Target Score\/Band:\s*([^\n,]+)/i)
+  return match ? match[1].trim() : null
+}

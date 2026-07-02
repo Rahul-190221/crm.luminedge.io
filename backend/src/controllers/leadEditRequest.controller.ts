@@ -4,7 +4,7 @@ import User from '../models/User';
 import LeadEditRequest, { ILeadEditRequest } from '../models/LeadEditRequest';
 import { createAndEmitNotification, createAndEmitToAdmins } from '../services/notification.service';
 
-const LEAD_STAGES = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'] as const;
+const LEAD_STAGES = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'] as const;
 const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with another number.';
 
 const normalizePhoneDigits = (value: unknown): string => String(value ?? '').replace(/\D/g, '');

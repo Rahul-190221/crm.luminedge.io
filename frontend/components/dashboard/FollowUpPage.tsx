@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   Phone,
   MessageSquare,
@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { getLeads, addFollowUp } from '@/lib/api/leads'
+import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import { useSocket } from '@/components/providers/SocketProvider'
 import type { Lead } from '@/types/admin'
 import { formatTimeAgo, formatShortDate } from '@/lib/helpers/format'
@@ -119,6 +120,12 @@ export default function FollowUpPage() {
   const [formData,    setFormData]    = useState({ followUpDate: '', nextFollowUpDate: '', note: '' })
   const [saving,      setSaving]      = useState(false)
 
+  // Get the logged-in BDM's userId from JWT, so only their own leads' follow-ups show
+  const currentUserId = useMemo(() => {
+    const decoded = getUserIdFromToken()
+    return decoded?.id || decoded?.userId || null
+  }, [])
+
   // Socket.IO: real-time refresh on any new notification/lead activity
   useEffect(() => {
     const rawSocket = socket?.socket
@@ -135,7 +142,7 @@ export default function FollowUpPage() {
       setLoading(true)
       setError(null)
       try {
-        const data = await getLeads({ limit: 500 })
+        const data = await getLeads(currentUserId ? { assignedTo: currentUserId, limit: 500 } : { limit: 500 })
         if (!active) return
         setRows(leadsToRows(Array.isArray(data.leads) ? data.leads : []))
       } catch (err: any) {
@@ -147,7 +154,7 @@ export default function FollowUpPage() {
     }
     load()
     return () => { active = false }
-  }, [refreshTick])
+  }, [refreshTick, currentUserId])
 
   const markDone = useCallback(async (row: DisplayRow) => {
     setDoneIds(prev => new Set(prev).add(row.id))
@@ -277,9 +284,19 @@ export default function FollowUpPage() {
                       <p className="text-[11px] text-gray-400 font-medium mt-0.5">{item.phone}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11.5px] font-bold ${badge.cls}`}>
-                        {badge.icon} {item.type}
-                      </span>
+                      {item.type === 'Call' ? (
+                        <a
+                          href={`tel:${item.phone}`}
+                          title="Call"
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11.5px] font-bold cursor-pointer hover:opacity-80 transition-opacity ${badge.cls}`}
+                        >
+                          {badge.icon} {item.type}
+                        </a>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11.5px] font-bold ${badge.cls}`}>
+                          {badge.icon} {item.type}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11.5px] font-bold ${courseCls}`}>

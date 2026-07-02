@@ -15,7 +15,7 @@ const leadsData = [
         phone: '+1 234 567 8900',
         source: 'Website',
         serviceInterest: 'IELTS',
-        lifecycleStage: 'Intake',
+        lifecycleStage: 'New Inquiry',
         notes: 'Interested in evening batch',
         assignToEmail: 'john.bdm@luminedge.com'
     },
@@ -25,7 +25,7 @@ const leadsData = [
         phone: '+1 234 567 8901',
         source: 'Referral',
         serviceInterest: 'Study Abroad',
-        lifecycleStage: 'Processing',
+        lifecycleStage: 'Contacted',
         notes: 'Looking for UK universities',
         assignToEmail: 'jane.bdm@luminedge.com'
     },
@@ -35,7 +35,7 @@ const leadsData = [
         phone: '+1 234 567 8902',
         source: 'Social Media',
         serviceInterest: 'PTE',
-        lifecycleStage: 'Hot',
+        lifecycleStage: 'Trial Class',
         notes: 'Urgent - exam in 2 months',
         assignToEmail: 'robert.bdm@luminedge.com'
     },
@@ -45,7 +45,7 @@ const leadsData = [
         phone: '+1 234 567 8903',
         source: 'Walk-in',
         serviceInterest: 'Visa Processing',
-        lifecycleStage: 'Converted',
+        lifecycleStage: 'Enrolled',
         notes: 'Student visa for Canada',
         assignToEmail: 'jane.bdm@luminedge.com'
     },
@@ -55,7 +55,7 @@ const leadsData = [
         phone: '+1 234 567 8904',
         source: 'Email Campaign',
         serviceInterest: 'GRE',
-        lifecycleStage: 'Intake',
+        lifecycleStage: 'New Inquiry',
         notes: 'Prefers weekend classes',
         assignToEmail: 'john.bdm@luminedge.com'
     },
@@ -65,7 +65,7 @@ const leadsData = [
         phone: '+1 234 567 8905',
         source: 'Phone',
         serviceInterest: 'TOEFL',
-        lifecycleStage: 'Dead',
+        lifecycleStage: 'Lost',
         notes: 'Not interested anymore',
         assignToEmail: 'robert.bdm@luminedge.com'
     },
@@ -75,7 +75,7 @@ const leadsData = [
         phone: '+1 234 567 8906',
         source: 'Website',
         serviceInterest: 'Study Abroad',
-        lifecycleStage: 'Processing',
+        lifecycleStage: 'Contacted',
         notes: 'Interested in USA universities',
         assignToEmail: 'john.bdm@luminedge.com'
     },
@@ -85,7 +85,7 @@ const leadsData = [
         phone: '+1 234 567 8907',
         source: 'Referral',
         serviceInterest: 'IELTS',
-        lifecycleStage: 'Hot',
+        lifecycleStage: 'Trial Class',
         notes: 'Ready to enroll',
         assignToEmail: 'jane.bdm@luminedge.com'
     }

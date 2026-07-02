@@ -49,7 +49,7 @@ export const getActivities = async (req: Request, res: Response): Promise<void> 
       });
 
       // Conversion event
-      if (lead.lifecycleStage === 'Converted') {
+      if (lead.lifecycleStage === 'Enrolled') {
         activities.push({
           _id: `${lead._id}_converted`,
           userName: bdmName,

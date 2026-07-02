@@ -196,8 +196,8 @@ Recommended setup:
    - `MONGODB_URI`
    - `JWT_SECRET`
    - `GOOGLE_CLIENT_ID`
-   - `ALLOWED_ORIGINS=https://luminedgecrm.netlify.app`
-   - `FRONTEND_URL=https://luminedgecrm.netlify.app`
+   - `ALLOWED_ORIGINS=https://crmluminedge.netlify.app`
+   - `FRONTEND_URL=https://crmluminedge.netlify.app`
    - SMTP vars if you use password reset emails
 
 3. Set frontend env vars on Netlify:

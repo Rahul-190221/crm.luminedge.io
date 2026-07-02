@@ -6,43 +6,31 @@ import {
   MessageSquare,
   Plus,
   Search,
-  ChevronRight,
   AlertCircle,
-  RefreshCw,
-  StickyNote,
-  Filter,
-  Mail,
-  X,
   Clock,
   CheckCircle2,
-  MoreHorizontal,
-  Kanban,
-  BookOpen
+  X,
+  BookOpen,
 } from 'lucide-react'
-import { getLeads, updateLeadStage, addFollowUp } from '@/lib/api/leads'
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { CSS } from '@dnd-kit/utilities'
+import { getLeads, updateLeadStage } from '@/lib/api/leads'
 import type { Lead, LeadStage } from '@/types/admin'
+import { LEAD_STAGES, LEAD_STAGE_META } from '@/lib/constants/leadStages'
+import StageDropdown from '@/components/leads/StageDropdown'
 import QuickAddLeadModal from '@/components/leads/QuickAddLeadModal'
-import { formatTimeAgo, getInitials } from '@/lib/helpers/format'
+import { formatTimeAgo, extractTargetScore } from '@/lib/helpers/format'
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import type { Page } from '@/types/navigation'
 import toast from 'react-hot-toast'
-
-// ─── Column config ──────────────────────────────────────────────────────────────────
-
-const COLUMNS: {
-  stage: LeadStage; label: string; emptyLabel: string
-  bg: string; headerText: string; countBg: string; countText: string
-}[] = [
-  { stage: 'Intake',     label: 'Intake',         emptyLabel: 'No Intake leads',     bg: 'bg-[#f1f3f5]', headerText: 'text-[#868e96]', countBg: 'bg-white', countText: 'text-[#868e96]' },
-  { stage: 'Processing', label: 'Processing',     emptyLabel: 'No Processing leads', bg: 'bg-[#eef2fc]', headerText: 'text-[#4c6ef5]', countBg: 'bg-white', countText: 'text-[#4c6ef5]' },
-  { stage: 'Hot',        label: 'Hot',            emptyLabel: 'No Hot leads',        bg: 'bg-[#fff8d6]', headerText: 'text-[#f59f00]', countBg: 'bg-white', countText: 'text-[#f59f00]' },
-  { stage: 'Converted',  label: 'Converted',      emptyLabel: 'No Converted leads',  bg: 'bg-[#e6f8ea]', headerText: 'text-[#40c057]', countBg: 'bg-white', countText: 'text-[#40c057]' },
-  { stage: 'Dead',       label: 'Dead',           emptyLabel: 'No Dead leads',       bg: 'bg-[#fdebea]', headerText: 'text-[#fa5252]', countBg: 'bg-white', countText: 'text-[#fa5252]' },
-]
-
-const NEXT_STAGE: Partial<Record<LeadStage, LeadStage>> = {
-  Intake: 'Processing', Processing: 'Hot', Hot: 'Converted',
-}
 
 const EXAMS = ['All Exams', 'IELTS', 'PTE', 'TOEFL', 'GRE', 'SAT', 'GMAT']
 
@@ -50,33 +38,47 @@ const EXAMS = ['All Exams', 'IELTS', 'PTE', 'TOEFL', 'GRE', 'SAT', 'GMAT']
 
 function LeadCard({
   lead,
-  onAdvance,
-  onNote,
+  onStageChange,
+  onView,
+  savingStageId,
 }: {
   lead: Lead
-  onAdvance: (id: string, nextStage: LeadStage) => void
-  onNote: (id: string, name: string) => void
+  onStageChange: (id: string, nextStage: LeadStage) => void
+  onView: (id: string) => void
+  savingStageId: string | null
 }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: lead._id })
+  const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined
+
   const svc        = Array.isArray(lead.serviceInterest) ? lead.serviceInterest[0] : lead.serviceInterest || ''
   const lastFU     = lead.followUps?.at(-1)
-  const isOverdue  = lastFU?.nextFollowUpDate && new Date(lastFU.nextFollowUpDate) < new Date()
+  const isOverdue  = !!(lastFU?.nextFollowUpDate && new Date(lastFU.nextFollowUpDate) < new Date())
   const nextFUDate = lastFU?.nextFollowUpDate
     ? new Date(lastFU.nextFollowUpDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
     : null
+  const targetScore = !isOverdue && !nextFUDate ? extractTargetScore(lead.notes) : null
 
   const serviceText = [svc, lead.source].filter(Boolean).join(' - ')
 
+  const stopDrag = (e: React.PointerEvent | React.MouseEvent) => e.stopPropagation()
+
   return (
-    <div className="bg-white rounded-xl p-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-transparent hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all flex flex-col group cursor-pointer relative h-[116px]">
-      
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      onClick={() => onView(lead._id)}
+      className={`bg-white rounded-xl p-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-transparent hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all flex flex-col gap-1.5 group cursor-pointer touch-none ${isDragging ? 'opacity-50' : ''}`}
+    >
       {/* Name */}
       <p className="text-[12.5px] font-bold text-[#343a40] truncate leading-tight pr-2">{lead.fullName}</p>
 
       {/* Service Info */}
-      <div className="flex items-center gap-1.5 text-[10.5px] text-[#495057] mt-1.5">
-        {lead.lifecycleStage === 'Converted' ? (
+      <div className="flex items-center gap-1.5 text-[10.5px] text-[#495057]">
+        {lead.lifecycleStage === 'Enrolled' ? (
           <CheckCircle2 className="w-3 h-3 text-[#40c057] flex-shrink-0" />
-        ) : lead.lifecycleStage === 'Dead' ? (
+        ) : lead.lifecycleStage === 'Lost' ? (
           <X className="w-3 h-3 text-[#fa5252] flex-shrink-0" />
         ) : (
           <BookOpen className="w-3 h-3 text-[#d6336c] flex-shrink-0" />
@@ -84,29 +86,36 @@ function LeadCard({
         <span className="truncate font-medium">{serviceText}</span>
       </div>
 
-      {/* Follow-up info - fixed height wrapper to maintain card height consistency */}
-      <div className="h-[18px] mt-1 flex items-center">
-        {isOverdue ? (
-          <div className="flex items-center gap-1 text-[10px] text-[#fa5252] font-semibold">
-            <AlertCircle className="w-3 h-3 flex-shrink-0" />
-            Follow-up overdue
-          </div>
-        ) : nextFUDate ? (
-          <div className="flex items-center gap-1 text-[10px] text-[#f59f00] font-semibold">
-            <Clock className="w-3 h-3 flex-shrink-0" />
-            Follow-up: {nextFUDate}
-          </div>
-        ) : null}
-      </div>
+      {/* Follow-up / target-score highlight line */}
+      {(isOverdue || nextFUDate || targetScore) && (
+        <div className="flex items-center">
+          {isOverdue ? (
+            <div className="flex items-center gap-1 text-[10px] text-[#fa5252] font-semibold">
+              <AlertCircle className="w-3 h-3 flex-shrink-0" />
+              Follow-up overdue
+            </div>
+          ) : nextFUDate ? (
+            <div className="flex items-center gap-1 text-[10px] text-[#f59f00] font-semibold">
+              <Clock className="w-3 h-3 flex-shrink-0" />
+              Follow-up: {nextFUDate}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-[10px] text-[#f59f00] font-semibold">
+              Target: {targetScore}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Actions and Time */}
-      <div className="flex items-center justify-between mt-auto pt-1.5">
+      <div className="flex items-center justify-between mt-1">
         <div className="flex items-center gap-1.5">
           <a
             href={`tel:${lead.phone}`}
             className="w-[22px] h-[22px] rounded md:rounded-md bg-[#fff0f6] flex items-center justify-center hover:bg-[#ffdeeb] text-[#d6336c] transition-colors"
             title={`Call ${lead.fullName}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={stopDrag}
+            onPointerDown={stopDrag}
           >
             <Phone className="w-[10px] h-[10px]" fill="currentColor" strokeWidth={0.5} />
           </a>
@@ -116,20 +125,58 @@ function LeadCard({
             rel="noreferrer"
             className="w-[22px] h-[22px] rounded md:rounded-md bg-[#ebfbee] flex items-center justify-center hover:bg-[#d3f9d8] text-[#40c057] transition-colors"
             title="WhatsApp"
-            onClick={(e) => e.stopPropagation()}
+            onClick={stopDrag}
+            onPointerDown={stopDrag}
           >
             <MessageSquare className="w-[10px] h-[10px]" fill="currentColor" strokeWidth={0.5} />
           </a>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onNote(lead._id, lead.fullName); }}
-            className="w-[22px] h-[22px] rounded md:rounded-md bg-[#fff9db] flex items-center justify-center hover:bg-[#ffec99] text-[#f59f00] transition-colors"
-            title="Add note / follow-up"
-          >
-            <StickyNote className="w-[10px] h-[10px]" fill="currentColor" strokeWidth={0.5} />
-          </button>
+          <div onClick={stopDrag} onPointerDown={stopDrag}>
+            <StageDropdown
+              value={lead.lifecycleStage}
+              onChange={(stage) => onStageChange(lead._id, stage)}
+              saving={savingStageId === lead._id}
+              size="compact"
+            />
+          </div>
         </div>
         <span className="text-[10px] text-[#adb5bd] font-medium whitespace-nowrap">{formatTimeAgo(lead.createdAt)}</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Column ─────────────────────────────────────────────────────────────────────────
+
+function Column({
+  stage,
+  count,
+  loading,
+  children,
+}: {
+  stage: LeadStage
+  count: number
+  loading: boolean
+  children: React.ReactNode
+}) {
+  const meta = LEAD_STAGE_META[stage]
+  const { setNodeRef, isOver } = useDroppable({ id: stage })
+
+  return (
+    <div className="flex flex-col min-w-0">
+      <div className={`relative flex items-center justify-center py-3 px-2 flex-shrink-0 rounded-xl mb-3 ${meta.bg}`}>
+        <span className={`text-[13px] font-bold tracking-[0.5px] uppercase text-center ${meta.headerText}`}>
+          {meta.label}
+        </span>
+        <span className={`absolute right-2 top-1/2 -translate-y-1/2 min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center bg-white ${meta.countText}`}>
+          {loading ? '…' : count}
+        </span>
+      </div>
+
+      <div
+        ref={setNodeRef}
+        className={`flex flex-col gap-3 min-h-[90px] rounded-xl p-1 transition-colors ${isOver ? 'bg-blue-50/60 ring-2 ring-blue-200' : ''}`}
+      >
+        {children}
       </div>
     </div>
   )
@@ -139,16 +186,20 @@ function LeadCard({
 
 interface BDMPipelineProps {
   setActivePage?: (page: Page) => void
+  onViewLead?: (id: string) => void
 }
 
-export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
-  const [leads,        setLeads]        = useState<Lead[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [error,        setError]        = useState<string | null>(null)
-  const [refreshTick,  setRefreshTick]  = useState(0)
-  const [search,       setSearch]       = useState('')
-  const [typeFilter,   setTypeFilter]   = useState('All Exams')
-  const [showQuickAdd, setShowQuickAdd] = useState(false)
+export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelineProps) {
+  const [leads,         setLeads]         = useState<Lead[]>([])
+  const [loading,       setLoading]       = useState(true)
+  const [error,         setError]         = useState<string | null>(null)
+  const [refreshTick,   setRefreshTick]   = useState(0)
+  const [search,        setSearch]        = useState('')
+  const [typeFilter,    setTypeFilter]    = useState('All Exams')
+  const [showQuickAdd,  setShowQuickAdd]  = useState(false)
+  const [savingStageId, setSavingStageId] = useState<string | null>(null)
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   // Get the logged-in BDM's userId from JWT
   const currentUserId = useMemo(() => {
@@ -176,10 +227,14 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
     return () => { active = false }
   }, [refreshTick, currentUserId])
 
-  const handleAdvance = useCallback(async (id: string, nextStage: LeadStage) => {
+  const handleStageChange = useCallback(async (id: string, nextStage: LeadStage) => {
+    const prevStage = leads.find(l => l._id === id)?.lifecycleStage
+    if (!prevStage || prevStage === nextStage) return
+
+    setSavingStageId(id)
+    setLeads(prev => prev.map(l => l._id === id ? { ...l, lifecycleStage: nextStage } : l))
     try {
       await updateLeadStage(id, nextStage)
-      setLeads(prev => prev.map(l => l._id === id ? { ...l, lifecycleStage: nextStage } : l))
       toast.success(`Lead moved to ${nextStage}`, {
         style: {
           borderRadius: '10px',
@@ -189,25 +244,18 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
         },
       })
     } catch {
+      setLeads(prev => prev.map(l => l._id === id ? { ...l, lifecycleStage: prevStage } : l))
       toast.error('Could not update stage')
+    } finally {
+      setSavingStageId(null)
     }
-  }, [])
+  }, [leads])
 
-  const handleNote = useCallback(async (id: string, name: string) => {
-    const note = window.prompt(`Add a note for ${name}:`)
-    if (!note) return
-    try {
-      await addFollowUp(id, {
-        date: new Date().toISOString(),
-        note,
-        nextFollowUpDate: new Date(Date.now() + 86400000).toISOString(),
-      })
-      toast.success('Follow-up note saved')
-      setRefreshTick(t => t + 1)
-    } catch {
-      toast.error('Could not save note')
-    }
-  }, [])
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
+    handleStageChange(String(active.id), over.id as LeadStage)
+  }, [handleStageChange])
 
   const q = search.toLowerCase().trim()
 
@@ -229,35 +277,17 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
   }, [leads, q, typeFilter])
 
   const grouped = useMemo(() => {
-    const map: Record<LeadStage, Lead[]> = {
-      Intake: [], Processing: [], Hot: [], Converted: [], Dead: [],
-    }
+    const map = {} as Record<LeadStage, Lead[]>
+    for (const stage of LEAD_STAGES) map[stage] = []
     for (const l of filtered) {
       if (map[l.lifecycleStage]) map[l.lifecycleStage].push(l)
-      else map.Intake.push(l)
+      else map[LEAD_STAGES[0]].push(l)
     }
     return map
   }, [filtered])
 
   return (
     <div className="flex flex-col h-full bg-white -m-6 min-h-[calc(100vh-64px)]">
-      
-      <style dangerouslySetInnerHTML={{ __html: `
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-          height: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(173, 181, 189, 0.4);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(173, 181, 189, 0.6);
-        }
-      ` }} />
 
       {/* Page header */}
       <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 bg-white sticky top-0 z-20">
@@ -325,49 +355,35 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
 
       {/* Kanban Board Area */}
       <div className="flex-1 p-6 pt-8 bg-white min-h-0">
-        <div className="grid grid-cols-5 gap-4 h-full">
-          {COLUMNS.map(col => {
-            const colLeads = loading ? [] : (grouped[col.stage] || [])
-            return (
-              <div
-                key={col.stage}
-                className="flex flex-col h-full min-h-0 bg-[#f8f9fa] rounded-xl border border-gray-100 shadow-sm"
-              >
-                {/* Column header */}
-                <div className={`relative flex items-center justify-center py-3 px-2 flex-shrink-0 rounded-t-xl ${col.bg}`}>
-                  <span className={`text-[13px] font-bold tracking-[0.5px] uppercase text-center ${col.headerText}`}>
-                    {col.label}
-                  </span>
-                  <span className={`absolute right-2 top-1/2 -translate-y-1/2 min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${col.countBg} ${col.countText}`}>
-                    {loading ? '…' : colLeads.length}
-                  </span>
-                </div>
-
-                {/* Cards */}
-                <div
-                  className="flex flex-col gap-3 flex-1 overflow-y-auto p-3 custom-scrollbar min-h-0"
-                >
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-5 gap-4">
+            {LEAD_STAGES.map(stage => {
+              const colLeads = loading ? [] : (grouped[stage] || [])
+              const meta = LEAD_STAGE_META[stage]
+              return (
+                <Column key={stage} stage={stage} count={colLeads.length} loading={loading}>
                   {loading ? (
                     [...Array(2)].map((_, i) => (
-                      <div key={i} className="h-[120px] bg-white/50 rounded-xl animate-pulse" />
+                      <div key={i} className="h-[90px] bg-gray-50 rounded-xl animate-pulse" />
                     ))
                   ) : colLeads.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center pt-8 opacity-50">
-                      <p className={`text-[12px] font-medium ${col.headerText}`}>{col.emptyLabel}</p>
+                    <div className="flex flex-col items-center justify-center py-4 opacity-50">
+                      <p className={`text-[12px] font-medium ${meta.headerText}`}>No {meta.label} leads</p>
                     </div>
                   ) : (
                     colLeads.map(lead => (
                       <LeadCard
                         key={lead._id}
                         lead={lead}
-                        onAdvance={handleAdvance}
-                        onNote={handleNote}
+                        onStageChange={handleStageChange}
+                        onView={(id) => onViewLead?.(id)}
+                        savingStageId={savingStageId}
                       />
                     ))
                   )}
-                  
-                  {/* Add Lead inline button at bottom of Intake column */}
-                  {col.stage === 'Intake' && !loading && (
+
+                  {/* Add Lead inline button at bottom of first column */}
+                  {stage === LEAD_STAGES[0] && !loading && (
                     <button
                       type="button"
                       onClick={() => setShowQuickAdd(true)}
@@ -377,11 +393,11 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
                       Add Lead
                     </button>
                   )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+                </Column>
+              )
+            })}
+          </div>
+        </DndContext>
       </div>
 
       {/* FAB - bottom right */}
@@ -406,5 +422,3 @@ export default function BDMPipeline({ setActivePage }: BDMPipelineProps) {
     </div>
   )
 }
-
-

@@ -148,10 +148,11 @@ export const deleteLead = async (id: string): Promise<void> => {
 };
 
 // Phone lookup for suggestions / duplicate checks
-export const lookupLeadPhones = async (query: string, limit = 8): Promise<PhoneLookupResult> => {
+export const lookupLeadPhones = async (query: string, limit = 8, excludeId?: string): Promise<PhoneLookupResult> => {
   const params = new URLSearchParams();
   params.append('query', query);
   params.append('limit', String(limit));
+  if (excludeId) params.append('excludeId', excludeId);
 
   const response = await fetch(`${API_BASE_URL}/leads/phone-lookup?${params.toString()}`, {
     headers: getAuthHeader()
@@ -184,7 +185,7 @@ export const getLeadStats = async (): Promise<{
 
 // Map a row of values using a headers array to a lead object
 const mapRowToLead = (headers: string[], values: string[]): any => {
-  const leadData: any = { followUps: [], lifecycleStage: 'Intake' };
+  const leadData: any = { followUps: [], lifecycleStage: 'New Inquiry' };
   let lastFollowUp = '';
   let nextFollowUp = '';
   headers.forEach((header, index) => {
@@ -203,7 +204,7 @@ const mapRowToLead = (headers: string[], values: string[]): any => {
       case 'notes': case 'note':
         leadData.notes = value; break;
       case 'stage': case 'lifecycle stage': case 'lifecyclestage':
-        leadData.lifecycleStage = value || 'Intake'; break;
+        leadData.lifecycleStage = value || 'New Inquiry'; break;
       case 'last follow up': case 'lastfollowup': case 'last follow-up':
         lastFollowUp = value; break;
       case 'next follow up': case 'nextfollowup': case 'next follow-up': case 'next follow up date': case 'nextfollowupdate':
@@ -268,7 +269,7 @@ export const parseCSV = (csvContent: string): Omit<Lead, '_id' | 'createdAt' | '
     const values = lines[i].split(',').map(v => v.trim());
     const leadData: any = {
       followUps: [],
-      lifecycleStage: 'Intake'
+      lifecycleStage: 'New Inquiry'
     };
 
     headers.forEach((header, index) => {
@@ -302,7 +303,7 @@ export const parseCSV = (csvContent: string): Omit<Lead, '_id' | 'createdAt' | '
         case 'stage':
         case 'lifecycle stage':
         case 'lifecyclestage':
-          leadData.lifecycleStage = value || 'Intake';
+          leadData.lifecycleStage = value || 'New Inquiry';
           break;
       }
     });

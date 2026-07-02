@@ -110,11 +110,11 @@ export default function AdminDashboard() {
   const SOURCE_COLORS = ['#3B82F6','#22C55E','#FACE39','#A855F7','#F97316','#0EA5E9','#EC4899','#14B8A6','#F43F5E']
 
   const STAGE_CONFIG: Record<string, { bg: string; text: string; border: string; accent: string }> = {
-    Intake:     { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    accent: 'bg-blue-500'    },
-    Processing: { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   accent: 'bg-amber-500'   },
-    Hot:        { bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  accent: 'bg-orange-500'  },
-    Converted:  { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', accent: 'bg-emerald-500' },
-    Dead:       { bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    accent: 'bg-rose-500'    },
+    'New Inquiry': { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    accent: 'bg-blue-500'    },
+    Contacted:     { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   accent: 'bg-amber-500'   },
+    'Trial Class': { bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  accent: 'bg-orange-500'  },
+    Enrolled:      { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', accent: 'bg-emerald-500' },
+    Lost:          { bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    accent: 'bg-rose-500'    },
   }
 
   const maxCourse = coursePerformance.length > 0 ? Math.max(...coursePerformance.map(s => s.count), 1) : 1
@@ -307,13 +307,13 @@ export default function AdminDashboard() {
                 <p className="text-sm font-medium text-gray-400">No stage data this month</p>
               </div>
             ) : stageDistribution.map((item) => {
-              const cfg = STAGE_CONFIG[item.stage] ?? STAGE_CONFIG.Intake
+              const cfg = STAGE_CONFIG[item.stage] ?? STAGE_CONFIG['New Inquiry']
               return (
                 <div key={item.stage} className={`relative overflow-hidden p-4 rounded-xl border ${cfg.bg} ${cfg.border} text-center hover:shadow-sm transition-shadow`}>
                   <div className={`absolute inset-x-0 top-0 h-1 ${cfg.accent}`} />
                   <h4 className={`text-2xl font-black tabular-nums mt-1 ${cfg.text}`}>{item.count}</h4>
                   <p className={`text-[10px] font-bold mt-2 uppercase tracking-widest opacity-70 ${cfg.text}`}>
-                    {item.stage === 'Hot' ? 'Hot Leads' : item.stage === 'Dead' ? 'Dead Leads' : item.stage}
+                    {item.stage === 'Trial Class' ? 'Trial Class Leads' : item.stage === 'Lost' ? 'Lost Leads' : item.stage}
                   </p>
                 </div>
               )
@@ -345,10 +345,10 @@ export default function AdminDashboard() {
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 600 }} width={24} />
                   <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', fontSize: 12 }} />
                   <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: '10px', fontWeight: 700, paddingTop: '12px' }} />
-                  <Line type="monotone" dataKey="Converted" stroke="#22C55E" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="Hot"        stroke="#F97316" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="Intake"     stroke="#3B82F6" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="Processing" stroke="#A855F7" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="Enrolled"    stroke="#22C55E" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="Trial Class" stroke="#F97316" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="New Inquiry" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="Contacted"   stroke="#A855F7" strokeWidth={2} dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : <div className="h-[200px]" />}

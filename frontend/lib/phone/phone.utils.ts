@@ -122,6 +122,25 @@ export const validatePhone = (phone: string, countryCode: string): string | null
   return null
 }
 
+export const detectPhoneCountry = (phone: string): { countryCode: PhoneCountryCode; nationalNumber: string } => {
+  const digits = extractPhoneDigits(phone)
+  const sortedCountries = [...PHONE_COUNTRIES].sort(
+    (a, b) => extractPhoneDigits(b.code).length - extractPhoneDigits(a.code).length
+  )
+
+  for (const country of sortedCountries) {
+    const countryDigits = extractPhoneDigits(country.code)
+    if (countryDigits && digits.startsWith(countryDigits)) {
+      return { countryCode: country.code, nationalNumber: normalizePhone(phone, country.code) }
+    }
+  }
+
+  return {
+    countryCode: DEFAULT_PHONE_COUNTRY_CODE,
+    nationalNumber: normalizePhone(phone, DEFAULT_PHONE_COUNTRY_CODE),
+  }
+}
+
 export const splitPhoneEntries = (value?: string | null): string[] =>
   (value || '')
     .split(/[;,\n]+/)
@@ -160,6 +179,9 @@ export const mergePhoneEntries = (
 
 export const formatPhoneCountryLabel = (country: PhoneCountryOption): string =>
   `${country.flag} ${country.name} (${country.code})`
+
+export const formatPhoneCountryCode = (country: PhoneCountryOption): string =>
+  country.code
 
 export const getPhoneSearchVariants = (value: string, countryCode?: string): string[] => {
   const raw = String(value ?? '').trim()

@@ -95,7 +95,7 @@ export const getBDMReport = async (req: Request, res: Response): Promise<void> =
       });
 
       const leadsAssigned = leads.length;
-      const leadsConverted = leads.filter(l => l.lifecycleStage === 'Converted').length;
+      const leadsConverted = leads.filter(l => l.lifecycleStage === 'Enrolled').length;
       const conversionRate = leadsAssigned > 0
         ? parseFloat(((leadsConverted / leadsAssigned) * 100).toFixed(1))
         : 0;
@@ -116,7 +116,7 @@ export const getBDMReport = async (req: Request, res: Response): Promise<void> =
             note: `New lead added: ${lead.fullName}`
           });
         }
-        if (lead.lifecycleStage === 'Converted' && lead.updatedAt >= start && lead.updatedAt <= end) {
+        if (lead.lifecycleStage === 'Enrolled' && lead.updatedAt >= start && lead.updatedAt <= end) {
           activities.push({
             type: 'lead_converted',
             leadName: lead.fullName,

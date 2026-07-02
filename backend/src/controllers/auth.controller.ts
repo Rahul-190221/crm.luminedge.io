@@ -408,10 +408,10 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
           $group: {
             _id: '$assignedTo',
             activeLeads: {
-              $sum: { $cond: [{ $in: ['$lifecycleStage', ['Converted', 'Dead']] }, 0, 1] }
+              $sum: { $cond: [{ $in: ['$lifecycleStage', ['Enrolled', 'Lost']] }, 0, 1] }
             },
             convertedLeads: {
-              $sum: { $cond: [{ $eq: ['$lifecycleStage', 'Converted'] }, 1, 0] }
+              $sum: { $cond: [{ $eq: ['$lifecycleStage', 'Enrolled'] }, 1, 0] }
             }
           }
         }
@@ -678,7 +678,7 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
     const Lead = require('../models/Lead').default;
 
     const totalLeads = await Lead.countDocuments({ assignedTo: userId });
-    const convertedLeads = await Lead.countDocuments({ assignedTo: userId, lifecycleStage: 'Converted' });
+    const convertedLeads = await Lead.countDocuments({ assignedTo: userId, lifecycleStage: 'Enrolled' });
     const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : '0';
 
     res.json({

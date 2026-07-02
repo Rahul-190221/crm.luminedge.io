@@ -121,19 +121,31 @@ export const lookupLeadPhone = async (req: Request, res: Response): Promise<void
   try {
     const query = String(req.query.query ?? req.query.phone ?? '').trim();
     const limit = Number.parseInt(String(req.query.limit ?? '8'), 10);
+    const excludeId = req.query.excludeId ? String(req.query.excludeId) : undefined;
 
     if (!query) {
       res.json({ suggestions: [], exactMatch: false });
       return;
     }
 
-    const { suggestions, exactMatch } = await getPhoneCandidates(query, Number.isNaN(limit) ? 8 : Math.min(Math.max(limit, 1), 20));
+    const { suggestions, exactMatch } = await getPhoneCandidates(query, Number.isNaN(limit) ? 8 : Math.min(Math.max(limit, 1), 20), excludeId);
     res.json({ suggestions, exactMatch });
   } catch (error) {
     console.error('Error looking up phone suggestions:', error);
     res.status(500).json({ error: 'Failed to lookup phone suggestions' });
   }
 };
+const sortFollowUpsDesc = (leadObj: any) => {
+  if (Array.isArray(leadObj?.followUps)) {
+    leadObj.followUps = [...leadObj.followUps].sort((a: any, b: any) => {
+      const bTime = new Date(b.createdAt || b.date || 0).getTime();
+      const aTime = new Date(a.createdAt || a.date || 0).getTime();
+      return bTime - aTime;
+    });
+  }
+  return leadObj;
+};
+
 // Get single lead
 export const getLead = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -144,7 +156,7 @@ export const getLead = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json(lead);
+    res.json(sortFollowUpsDesc(lead.toObject()));
   } catch (error) {
     console.error('Error fetching lead:', error);
     res.status(500).json({ error: 'Failed to fetch lead' });
@@ -178,7 +190,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       assignedTo: assignedTo || undefined,
       notes,
       followUps: processedFollowUps,
-      lifecycleStage: lifecycleStage || 'Intake'
+      lifecycleStage: lifecycleStage || 'New Inquiry'
     });
 
     await lead.save();
@@ -314,7 +326,7 @@ export const addFollowUp = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    res.json(lead);
+    res.json(sortFollowUpsDesc(lead.toObject()));
   } catch (error) {
     console.error('Error adding follow-up:', error);
     res.status(500).json({ error: 'Failed to add follow-up' });
@@ -327,7 +339,7 @@ export const updateLeadStage = async (req: Request, res: Response): Promise<void
     const { lifecycleStage } = req.body;
     const reqUser = (req as any).user;
 
-    if (!['Intake', 'Processing', 'Hot', 'Converted', 'Dead'].includes(lifecycleStage)) {
+    if (!['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'].includes(lifecycleStage)) {
       res.status(400).json({ error: 'Invalid lifecycle stage' });
       return;
     }
@@ -352,7 +364,7 @@ export const updateLeadStage = async (req: Request, res: Response): Promise<void
       await createAndEmitToAdmins(
         'Lead Stage Updated',
         `${actorName} updated lead "${lead.fullName}" to ${lifecycleStage}`,
-        lifecycleStage === 'Converted' ? 'success' : 'info'
+        lifecycleStage === 'Enrolled' ? 'success' : 'info'
       );
 
       // 2. Notify other BDMs
@@ -468,7 +480,7 @@ export const importLeads = async (req: Request, res: Response): Promise<void> =>
             source: leadData.source || 'Other',
             serviceInterest: leadData.serviceInterest,
             notes: leadData.notes,
-            lifecycleStage: leadData.lifecycleStage || 'Intake',
+            lifecycleStage: leadData.lifecycleStage || 'New Inquiry',
             followUps: processedFollowUps
           });
           await lead.save();

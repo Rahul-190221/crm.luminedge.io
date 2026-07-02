@@ -12,19 +12,25 @@ import { submitLeadEditRequest } from '@/lib/api/leadEditRequests';
 import LeadEditRequestHistory from '@/components/leads/LeadEditRequestHistory';
 import toast from 'react-hot-toast';
 import type { Lead, LeadStage as LeadStageType } from '@/types/admin';
+import StageDropdown from '@/components/leads/StageDropdown';
+import {
+  PHONE_COUNTRIES,
+  DEFAULT_PHONE_COUNTRY_CODE,
+  type PhoneCountryCode,
+  buildInternationalPhone,
+  detectPhoneCountry,
+  extractPhoneDigits,
+  formatPhoneCountryCode,
+  hasMatchingPhoneEntry,
+  phoneEntryMatches,
+  sanitizePhoneTypingInput,
+  splitPhoneEntries,
+  validatePhone,
+} from '@/lib/phone/phone.utils';
 
 // ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Stage config (prototype color-aligned) ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
 
-const STAGE_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  Intake:     { bg: 'bg-gray-100',       text: 'text-gray-600',    border: 'border-gray-200',     dot: 'bg-gray-400' },
-  Processing: { bg: 'bg-[#ebf0ff]',      text: 'text-[#1a56db]',   border: 'border-[#1a56db]/25', dot: 'bg-[#1a56db]' },
-  Hot:        { bg: 'bg-[#fffbeb]',      text: 'text-[#92400e]',   border: 'border-[#e3a008]/35', dot: 'bg-[#e3a008]' },
-  Converted:  { bg: 'bg-[#f0fdf4]',      text: 'text-[#0e9f6e]',   border: 'border-[#0e9f6e]/30', dot: 'bg-[#0e9f6e]' },
-  Dead:       { bg: 'bg-[#fef2f2]',      text: 'text-[#e02424]',   border: 'border-[#e02424]/20', dot: 'bg-[#e02424]' },
-};
-
-const STAGES: LeadStageType[] = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
-const countryCodes = ['+880', '+91', '+92', '+94', '+977', '+95', '+1', '+44', '+61', '+971', '+966', '+65', '+60', '+66', '+81', '+82', '+86', '+49', '+33'] as const;
+const countryCodes = PHONE_COUNTRIES;
 const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse'] as const;
 type WhomOption = (typeof whomOptions)[number];
 const leadSources = ['Website', 'Referral', 'Social Media', 'Facebook', 'Instagram', 'WhatsApp', 'Email Campaign', 'Walk-in', 'Phone', 'Other'] as const;
@@ -32,50 +38,7 @@ const serviceInterests = ['IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELT
 
 interface PhoneLookupSuggestion { _id: string; fullName: string; phone: string; whom?: string }
 
-const normalizePhoneDigits = (value: string) => value.replace(/\D/g, '');
-const splitPhoneEntries = (value?: string | null) => (value || '').split(',').map(part => part.trim()).filter(Boolean);
-
-const phoneDigitRules: Record<string, { min: number; max: number }> = {
-  '+880': { min: 10, max: 11 }, '+91': { min: 10, max: 10 }, '+92': { min: 10, max: 11 },
-  '+94': { min: 9, max: 10 },   '+977': { min: 9, max: 10 }, '+95': { min: 8, max: 10 },
-  '+1': { min: 10, max: 10 },   '+44': { min: 10, max: 11 }, '+61': { min: 9, max: 9 },
-  '+971': { min: 9, max: 9 },   '+966': { min: 9, max: 9 }, '+65': { min: 8, max: 8 },
-  '+60': { min: 9, max: 11 },   '+66': { min: 9, max: 10 }, '+81': { min: 10, max: 11 },
-  '+82': { min: 9, max: 11 },   '+86': { min: 11, max: 11 }, '+49': { min: 10, max: 12 },
-  '+33': { min: 9, max: 10 },
-};
-
-function validatePhoneDigits(phone: string, code: string): string | null {
-  const digits = phone.replace(/\D/g, '');
-  if (!digits) return null;
-  const rule = phoneDigitRules[code];
-  if (!rule) return null;
-  const range = rule.min === rule.max ? `${rule.min}` : `${rule.min}–${rule.max}`;
-  if (digits.length < rule.min) return `Phone too short for ${code}: need ${range} digits, got ${digits.length}.`;
-  if (digits.length > rule.max) return `Phone too long for ${code}: need ${range} digits, got ${digits.length}.`;
-  return null;
-}
-
-const normalizePhoneLookup = (value: string, countryCode: string) => {
-  const countryDigits = countryCode.replace(/\D/g, '');
-  let normalized = value.replace(/\D/g, '');
-  if (countryDigits && normalized.startsWith(countryDigits)) {
-    normalized = normalized.slice(countryDigits.length);
-  }
-  if (normalized.startsWith('0')) {
-    normalized = normalized.slice(1);
-  }
-  return normalized;
-};
-
-const stripCountryCodeFromPhone = (value: string, countryCode: string) => {
-  const countryDigits = countryCode.replace(/\D/g, '');
-  const normalized = value.replace(/\D/g, '');
-  if (countryDigits && normalized.startsWith(countryDigits)) {
-    return normalized.slice(countryDigits.length);
-  }
-  return normalized;
-};
+const normalizePhoneInput = (value: string): string => extractPhoneDigits(sanitizePhoneTypingInput(value));
 
 function fmt(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -89,56 +52,7 @@ function todayISO() { return new Date().toISOString().split('T')[0]; }
 
 const inputCls = "w-full h-10 px-3 border border-gray-200 rounded-xl text-[13.5px] font-medium text-gray-800 placeholder:text-gray-300 bg-[#f8fafc] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#1a56db] transition-all focus:bg-white";
 
-function StageDropdown({ value, onChange, saving }: { value: LeadStageType; onChange: (s: LeadStageType) => void; saving: boolean }) {
-  const [open, setOpen] = useState(false);
-  const style = STAGE_STYLES[value] ?? STAGE_STYLES.Intake;
-
-  return (
-    <div className="relative inline-block">
-      <button
-        disabled={saving}
-        onClick={() => setOpen(v => !v)}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[12.5px] font-bold border transition-all hover:shadow-sm active:scale-95 disabled:opacity-60 ${style.bg} ${style.text} ${style.border}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
-        {value}
-        {saving
-          ? <RefreshCw className="w-3 h-3 animate-spin ml-0.5" />
-          : <ChevronDown className={`w-3 h-3 transition-transform duration-200 opacity-60 ml-0.5 ${open ? 'rotate-180' : ''}`} />}
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1.5 z-50 bg-white rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 py-1.5 min-w-[180px] animate-in fade-in zoom-in-95 duration-100">
-            <p className="px-3 py-1.5 text-[9px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">Change Stage</p>
-            <div className="px-1 space-y-0.5">
-              {STAGES.map(stage => {
-                const sc = STAGE_STYLES[stage];
-                const isSelected = stage === value;
-                return (
-                  <button
-                    key={stage}
-                    onClick={() => { onChange(stage); setOpen(false); }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-bold transition-all ${
-                      isSelected ? `${sc.bg} ${sc.text}` : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 shadow-sm ${sc.dot}`} />
-                    {stage}
-                    {isSelected && <Check className="ml-auto w-3.5 h-3.5 flex-shrink-0 opacity-80" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Main Component ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
+//ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Main Component ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
 
 interface LeadDetailProps { id: string; onBack: () => void; requireApproval?: boolean; }
 
@@ -151,7 +65,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
   const [editingContact, setEditingContact] = useState(false);
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
-  const [editCountryCode, setEditCountryCode] = useState<(typeof countryCodes)[number]>('+880');
+  const [editCountryCode, setEditCountryCode] = useState<PhoneCountryCode>(DEFAULT_PHONE_COUNTRY_CODE);
   const [editWhom, setEditWhom] = useState<WhomOption | ''>('');
   const [phoneSuggestions, setPhoneSuggestions] = useState<PhoneLookupSuggestion[]>([]);
   const [isPhoneFocused, setIsPhoneFocused] = useState(false);
@@ -172,6 +86,13 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
   const [editingNotes, setEditingNotes] = useState(false);
   const [editNotes, setEditNotes] = useState('');
   const [notesSaving, setNotesSaving] = useState(false);
+  const [emailEditIdx, setEmailEditIdx] = useState<number | null>(null);
+  const [emailEditValue, setEmailEditValue] = useState('');
+  const [phoneEditIdx, setPhoneEditIdx] = useState<number | null>(null);
+  const [phoneEditDigits, setPhoneEditDigits] = useState('');
+  const [phoneEditCountryCode, setPhoneEditCountryCode] = useState<PhoneCountryCode>(DEFAULT_PHONE_COUNTRY_CODE);
+  const [phoneEditError, setPhoneEditError] = useState<string | null>(null);
+  const [contactEditRequestSaving, setContactEditRequestSaving] = useState(false);
   const phoneLookupTimerRef = useRef<number | null>(null);
 
   const copyToClipboard = (text: string, key: string) => {
@@ -190,7 +111,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
 
   useEffect(() => {
     const query = editPhone.trim();
-    const queryDigits = query.replace(/\D/g, '');
+    const queryDigits = extractPhoneDigits(query);
 
     if (phoneLookupTimerRef.current) {
       window.clearTimeout(phoneLookupTimerRef.current);
@@ -205,8 +126,8 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
     setIsPhoneChecking(true);
     phoneLookupTimerRef.current = window.setTimeout(async () => {
       try {
-        const lookupQuery = `${editCountryCode} ${query}`.trim();
-        const result = await lookupLeadPhones(lookupQuery, 6);
+        const lookupQuery = buildInternationalPhone(query, editCountryCode) || query;
+        const result = await lookupLeadPhones(lookupQuery, 6, lead?._id);
         setPhoneSuggestions(result.suggestions || []);
         setPhoneError(null);
       } catch {
@@ -221,7 +142,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
         window.clearTimeout(phoneLookupTimerRef.current);
       }
     };
-  }, [editPhone, editCountryCode, editingContact]);
+  }, [editPhone, editCountryCode, editingContact, lead?._id]);
 
   const handleStageChange = async (newStage: LeadStageType) => {
     if (!lead) return;
@@ -243,24 +164,22 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
   const checkPhoneDuplicate = async (phoneValue = editPhone) => {
     if (!phoneValue.trim()) return false;
 
-    const digitError = validatePhoneDigits(phoneValue, editCountryCode);
+    const digitError = validatePhone(phoneValue, editCountryCode);
     if (digitError) { setPhoneError(digitError); return true; }
 
-    const combinedPhone = `${editCountryCode} ${phoneValue}`.trim();
-    const digits = normalizePhoneLookup(combinedPhone, editCountryCode);
-    if (digits.length < 7) return false;
+    const normalizedPhone = buildInternationalPhone(phoneValue, editCountryCode);
+    if (!normalizedPhone) return false;
 
-    const currentLeadDuplicate = splitPhoneEntries(lead?.phone).some(existing => normalizePhoneDigits(existing) === digits);
+    const currentLeadDuplicate = hasMatchingPhoneEntry(lead?.phone, phoneValue, editCountryCode);
     if (currentLeadDuplicate) {
       setPhoneError('This number is already added to this lead.');
       return true;
     }
 
     try {
-      const result = await lookupLeadPhones(combinedPhone, 8);
+      const result = await lookupLeadPhones(normalizedPhone, 8, lead?._id);
       const exactSuggestion = result.suggestions?.some(suggestion =>
-        splitPhoneEntries(suggestion.phone).some(existing => normalizePhoneDigits(existing) === digits) &&
-        suggestion._id !== lead?._id
+        hasMatchingPhoneEntry(suggestion.phone, phoneValue, editCountryCode) && suggestion._id !== lead?._id
       );
 
       if (result.exactMatch || exactSuggestion) {
@@ -287,37 +206,110 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
       const newEmail = editEmail.trim()
         ? (lead.email ? `${lead.email}, ${editEmail.trim()}` : editEmail.trim())
         : lead.email;
-      const nextPhone = editPhone.trim() ? `${editCountryCode} ${editPhone.trim()}`.trim() : '';
+      const nextPhone = editPhone.trim() ? buildInternationalPhone(editPhone, editCountryCode) : '';
       const newPhone = editPhone.trim()
         ? (lead.phone ? `${lead.phone}, ${nextPhone}` : nextPhone)
         : lead.phone;
 
-      if (requireApproval) {
-        await submitLeadEditRequest(lead._id, {
-          section: 'contact',
-          payload: { email: newEmail, phone: newPhone, ...(editWhom ? { whom: editWhom } : {}) },
-        });
-        toast.success('Contact change request sent to admin');
-      } else {
-        setLead(await updateLead(lead._id, { email: newEmail, phone: newPhone, ...(editWhom ? { whom: editWhom } : {}) }));
-      }
+      // Adding a brand-new email/phone is always saved directly — no approval needed.
+      setLead(await updateLead(lead._id, { email: newEmail, phone: newPhone, ...(editWhom ? { whom: editWhom } : {}) }));
+      toast.success('Contact added');
 
-      setEditingContact(false); setEditEmail(''); setEditPhone(''); setEditCountryCode('+880'); setEditWhom('');
+      setEditingContact(false); setEditEmail(''); setEditPhone(''); setEditCountryCode(DEFAULT_PHONE_COUNTRY_CODE); setEditWhom('');
       setPhoneSuggestions([]); setPhoneError(null);
     } catch (e: any) { alert(e.message || 'Failed to update contact info'); }
     finally { setContactSaving(false); }
   };
+
+  const startEditEmail = (idx: number, value: string) => {
+    setPhoneEditIdx(null); setPhoneEditDigits(''); setPhoneEditError(null);
+    setEmailEditIdx(idx); setEmailEditValue(value);
+  };
+  const cancelEditEmail = () => { setEmailEditIdx(null); setEmailEditValue(''); };
+  const submitEditEmail = async () => {
+    if (!lead || emailEditIdx === null || !emailEditValue.trim()) return;
+    setContactEditRequestSaving(true);
+    try {
+      const emails = splitPhoneEntries(lead.email);
+      emails[emailEditIdx] = emailEditValue.trim();
+      // Editing an existing email always requires admin approval.
+      await submitLeadEditRequest(lead._id, { section: 'contact', payload: { email: emails.join(', ') } });
+      toast.success('Email edit request sent for admin approval');
+      cancelEditEmail();
+    } catch (e: any) { toast.error(e.message || 'Failed to submit edit request'); }
+    finally { setContactEditRequestSaving(false); }
+  };
+
+  const startEditPhone = (idx: number, value: string) => {
+    setEmailEditIdx(null); setEmailEditValue('');
+    const { countryCode, nationalNumber } = detectPhoneCountry(value);
+    setPhoneEditIdx(idx);
+    setPhoneEditCountryCode(countryCode);
+    setPhoneEditDigits(nationalNumber);
+    setPhoneEditError(null);
+  };
+  const cancelEditPhone = () => {
+    setPhoneEditIdx(null); setPhoneEditDigits(''); setPhoneEditCountryCode(DEFAULT_PHONE_COUNTRY_CODE); setPhoneEditError(null);
+  };
+
+  const checkEditPhoneDuplicate = async () => {
+    if (!phoneEditDigits.trim() || phoneEditIdx === null) return false;
+
+    const digitError = validatePhone(phoneEditDigits, phoneEditCountryCode);
+    if (digitError) { setPhoneEditError(digitError); return true; }
+
+    const normalizedPhone = buildInternationalPhone(phoneEditDigits, phoneEditCountryCode);
+    if (!normalizedPhone) { setPhoneEditError('Enter a valid phone number.'); return true; }
+
+    const otherEntries = splitPhoneEntries(lead?.phone).filter((_, i) => i !== phoneEditIdx);
+    const currentLeadDuplicate = otherEntries.some(entry => phoneEntryMatches(entry, phoneEditDigits, phoneEditCountryCode));
+    if (currentLeadDuplicate) {
+      setPhoneEditError('This number is already added to this lead.');
+      return true;
+    }
+
+    try {
+      const result = await lookupLeadPhones(normalizedPhone, 8, lead?._id);
+      const exactSuggestion = result.suggestions?.some(suggestion =>
+        hasMatchingPhoneEntry(suggestion.phone, phoneEditDigits, phoneEditCountryCode) && suggestion._id !== lead?._id
+      );
+
+      if (result.exactMatch || exactSuggestion) {
+        setPhoneEditError('This number already exists. Already used, try with another number.');
+        return true;
+      }
+    } catch {
+      // Let the save continue if the lookup service is unavailable.
+    }
+
+    setPhoneEditError(null);
+    return false;
+  };
+
+  const submitEditPhone = async () => {
+    if (!lead || phoneEditIdx === null || !phoneEditDigits.trim()) return;
+    const duplicate = await checkEditPhoneDuplicate();
+    if (duplicate) return;
+
+    setContactEditRequestSaving(true);
+    try {
+      const phones = splitPhoneEntries(lead.phone);
+      phones[phoneEditIdx] = buildInternationalPhone(phoneEditDigits, phoneEditCountryCode);
+      // Editing an existing phone always requires admin approval.
+      await submitLeadEditRequest(lead._id, { section: 'contact', payload: { phone: phones.join(', ') } });
+      toast.success('Phone edit request sent for admin approval');
+      cancelEditPhone();
+    } catch (e: any) { toast.error(e.message || 'Failed to submit edit request'); }
+    finally { setContactEditRequestSaving(false); }
+  };
+
   const handleSaveSourceService = async () => {
     if (!lead) return;
     setSourceServiceSaving(true);
     try {
-      if (requireApproval) {
-        await submitLeadEditRequest(lead._id, { section: 'source-service', payload: { source: editSource, serviceInterest: editServiceInterest } });
-        toast.success('Source/Service change request sent to admin');
-      } else {
-        setLead(await updateLead(lead._id, { source: editSource as any, serviceInterest: editServiceInterest as any }));
-        toast.success('Source & Service updated');
-      }
+      // Source & Service updates are always saved directly — no approval needed.
+      setLead(await updateLead(lead._id, { source: editSource as any, serviceInterest: editServiceInterest as any }));
+      toast.success('Source & Service updated');
       setEditingSourceService(false);
     } catch (e: any) { toast.error(e.message || 'Failed to update'); }
     finally { setSourceServiceSaving(false); }
@@ -327,13 +319,9 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
     if (!lead) return;
     setNotesSaving(true);
     try {
-      if (requireApproval) {
-        await submitLeadEditRequest(lead._id, { section: 'notes', payload: { notes: editNotes } });
-        toast.success('Notes change request sent to admin');
-      } else {
-        setLead(await updateLead(lead._id, { notes: editNotes } as any));
-        toast.success('Notes updated');
-      }
+      // Notes updates are always saved directly — no approval needed.
+      setLead(await updateLead(lead._id, { notes: editNotes } as any));
+      toast.success('Notes updated');
       setEditingNotes(false);
     } catch (e: any) { toast.error(e.message || 'Failed to update'); }
     finally { setNotesSaving(false); }
@@ -344,15 +332,9 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
     if (!lead || !fuNote.trim()) return;
     setFuSaving(true); setFuError(null);
     try {
-      if (requireApproval) {
-        await submitLeadEditRequest(lead._id, {
-          section: 'follow-up',
-          payload: { note: fuNote.trim(), date: fuDate || undefined, nextFollowUpDate: fuNext || undefined },
-        });
-        toast.success('Follow-up request sent to admin');
-      } else {
-        setLead(await addFollowUp(lead._id, { note: fuNote.trim(), date: fuDate || undefined, nextFollowUpDate: fuNext || undefined }));
-      }
+      // Follow-ups are always saved directly — no approval needed.
+      setLead(await addFollowUp(lead._id, { note: fuNote.trim(), date: fuDate || undefined, nextFollowUpDate: fuNext || undefined }));
+      toast.success('Follow-up saved');
       setFuNote(''); setFuDate(todayISO()); setFuNext('');
       setShowFollowUpForm(false);
     } catch (err: any) { setFuError(err.message || 'Failed to save follow-up'); }
@@ -384,6 +366,13 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
     ? (typeof lead.assignedTo === 'object' ? lead.assignedTo.name : lead.assignedTo)
     : null;
   const assignedBdmLabel = assignedName && String(assignedName).trim() ? String(assignedName).trim() : 'Not assigned yet';
+
+  // Latest follow-up first.
+  const sortedFollowUps = [...(lead.followUps || [])].sort((a, b) => {
+    const bTime = new Date(b.createdAt || b.date || 0).getTime();
+    const aTime = new Date(a.createdAt || a.date || 0).getTime();
+    return bTime - aTime;
+  });
 
   return (
     <div className="w-full space-y-3 pb-8">
@@ -496,7 +485,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
               </div>
               {!editingContact && (
                 <button
-                  onClick={() => { setEditEmail(''); setEditPhone(''); setEditCountryCode('+880'); setPhoneSuggestions([]); setPhoneError(null); setEditingContact(true); }}
+                  onClick={() => { setEditEmail(''); setEditPhone(''); setEditCountryCode(DEFAULT_PHONE_COUNTRY_CODE); setPhoneSuggestions([]); setPhoneError(null); setEditingContact(true); }}
                   className="flex items-center gap-1.5 text-[12px] font-bold text-[#1a56db] hover:text-[#1341a8] transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" strokeWidth={2.5} /> Add New
@@ -512,16 +501,39 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                 </div>
                 <div className="space-y-1.5">
                   {lead.email?.split(',').map((e, i) => (
-                    <div key={i} className="flex items-center gap-2.5 bg-[#f8fafc] border border-gray-100 rounded-xl px-3 py-2.5 group hover:border-gray-200 transition-all">
-                      <p className="text-[13.5px] font-semibold text-gray-800 break-all flex-1">{e.trim()}</p>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(e.trim(), `email-${i}`)}
-                        className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
-                      >
-                        {copiedField === `email-${i}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
+                    emailEditIdx === i ? (
+                      <div key={i} className="flex items-center gap-2 bg-white border border-[#1a56db]/30 rounded-xl px-3 py-2 ring-4 ring-blue-500/10">
+                        <input
+                          type="email" autoFocus value={emailEditValue} onChange={ev => setEmailEditValue(ev.target.value)}
+                          className="flex-1 min-w-0 text-[13.5px] font-semibold text-gray-800 outline-none bg-transparent"
+                        />
+                        <button type="button" disabled={contactEditRequestSaving} onClick={cancelEditEmail} className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <button type="button" disabled={contactEditRequestSaving || !emailEditValue.trim()} onClick={submitEditEmail} className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#ebf0ff] text-[#1a56db] disabled:opacity-50 transition-all">
+                          {contactEditRequestSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    ) : (
+                      <div key={i} className="flex items-center gap-2.5 bg-[#f8fafc] border border-gray-100 rounded-xl px-3 py-2.5 group hover:border-gray-200 transition-all">
+                        <p className="text-[13.5px] font-semibold text-gray-800 break-all flex-1">{e.trim()}</p>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(e.trim(), `email-${i}`)}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
+                        >
+                          {copiedField === `email-${i}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          title="Edit (requires admin approval)"
+                          onClick={() => startEditEmail(i, e.trim())}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-[#1a56db] transition-all"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )
                   )) || <p className="text-[13px] text-gray-400 italic px-1">No email</p>}
                 </div>
                 {editingContact && (
@@ -540,16 +552,70 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                 </div>
                 <div className="space-y-1.5">
                   {lead.phone?.split(',').map((p, i) => (
-                    <div key={i} className="flex items-center gap-2.5 bg-[#f8fafc] border border-gray-100 rounded-xl px-3 py-2.5 group hover:border-gray-200 transition-all">
-                      <p className="text-[13.5px] font-semibold text-gray-800 flex-1">{p.trim()}</p>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(p.trim(), `phone-${i}`)}
-                        className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
-                      >
-                        {copiedField === `phone-${i}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
+                    phoneEditIdx === i ? (
+                      <div key={i} className="bg-white border border-[#1a56db]/30 rounded-xl px-3 py-2.5 ring-4 ring-blue-500/10 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="grid grid-cols-[auto_minmax(0,1fr)] flex-1 rounded-lg overflow-hidden border border-gray-200 bg-[#f8fafc] focus-within:border-[#1a56db] transition-colors">
+                            <div className="relative flex-shrink-0 border-r border-gray-200">
+                              <select
+                                value={phoneEditCountryCode}
+                                onChange={e => {
+                                  const code = e.target.value as PhoneCountryCode;
+                                  setPhoneEditCountryCode(code);
+                                  if (phoneEditDigits.trim()) setPhoneEditError(validatePhone(phoneEditDigits, code));
+                                }}
+                                className="h-9 bg-transparent border-0 pl-2.5 pr-7 appearance-none text-[12.5px] font-bold text-gray-800 min-w-[70px] cursor-pointer focus:ring-0"
+                              >
+                                {countryCodes.map((c, i2) => (
+                                  <option key={`${c.code}-${i2}`} value={c.code}>{formatPhoneCountryCode(c)}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                            </div>
+                            <input
+                              type="tel" autoFocus value={phoneEditDigits}
+                              onKeyDown={async e => {
+                                if (e.key === 'Enter') { e.preventDefault(); await checkEditPhoneDuplicate(); return; }
+                                if (e.key.length === 1 && /\D/.test(e.key)) e.preventDefault();
+                              }}
+                              onChange={ev => {
+                                const next = normalizePhoneInput(ev.target.value);
+                                setPhoneEditDigits(next);
+                                setPhoneEditError(next ? validatePhone(next, phoneEditCountryCode) : null);
+                              }}
+                              onBlur={() => { if (phoneEditDigits.trim()) setPhoneEditError(validatePhone(phoneEditDigits, phoneEditCountryCode)); }}
+                              className="h-9 px-2.5 bg-transparent border-0 text-[13.5px] text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none min-w-0"
+                            />
+                          </div>
+                          <button type="button" disabled={contactEditRequestSaving} onClick={cancelEditPhone} className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" disabled={contactEditRequestSaving || !phoneEditDigits.trim() || Boolean(phoneEditError)} onClick={submitEditPhone} className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#ebf0ff] text-[#1a56db] disabled:opacity-50 transition-all">
+                            {contactEditRequestSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                        {phoneEditError && <p className="text-[11.5px] font-semibold text-red-600 pl-0.5">{phoneEditError}</p>}
+                      </div>
+                    ) : (
+                      <div key={i} className="flex items-center gap-2.5 bg-[#f8fafc] border border-gray-100 rounded-xl px-3 py-2.5 group hover:border-gray-200 transition-all">
+                        <p className="text-[13.5px] font-semibold text-gray-800 flex-1">{p.trim()}</p>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(p.trim(), `phone-${i}`)}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
+                        >
+                          {copiedField === `phone-${i}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          title="Edit (requires admin approval)"
+                          onClick={() => startEditPhone(i, p.trim())}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-[#1a56db] transition-all"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )
                   ))}
                 </div>
                 {editingContact && (
@@ -559,14 +625,14 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                           <select
                             value={editCountryCode}
                             onChange={e => {
-                              const code = e.target.value as (typeof countryCodes)[number];
+                              const code = e.target.value as PhoneCountryCode;
                               setEditCountryCode(code);
-                              if (editPhone.trim()) setPhoneError(validatePhoneDigits(editPhone, code));
+                              if (editPhone.trim()) setPhoneError(validatePhone(editPhone, code));
                             }}
                             className="h-10 bg-transparent border-0 pl-3 pr-8 appearance-none text-[13px] font-bold text-gray-800 min-w-[88px] cursor-pointer focus:ring-0"
                           >
-                            {countryCodes.map((code, i) => (
-                              <option key={`${code}-${i}`} value={code}>{code}</option>
+                            {countryCodes.map((c, i) => (
+                              <option key={`${c.code}-${i}`} value={c.code}>{formatPhoneCountryCode(c)}</option>
                             ))}
                           </select>
                           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
@@ -577,19 +643,16 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                           onFocus={() => setIsPhoneFocused(true)}
                           onBlur={() => window.setTimeout(() => {
                             setIsPhoneFocused(false);
-                            if (editPhone.trim()) setPhoneError(validatePhoneDigits(editPhone, editCountryCode));
+                            if (editPhone.trim()) setPhoneError(validatePhone(editPhone, editCountryCode));
                           }, 120)}
-                          onKeyDown={async e => { if (e.key === 'Enter') { e.preventDefault(); await checkPhoneDuplicate(); } }}
+                          onKeyDown={async e => {
+                            if (e.key === 'Enter') { e.preventDefault(); await checkPhoneDuplicate(); return; }
+                            if (e.key.length === 1 && /\D/.test(e.key)) e.preventDefault();
+                          }}
                           onChange={e => {
-                            const v = e.target.value;
-                            setEditPhone(v);
-                            const digits = v.replace(/\D/g, '');
-                            const rule = phoneDigitRules[editCountryCode];
-                            if (rule && digits.length > rule.max) {
-                              setPhoneError(`Phone too long for ${editCountryCode}: max ${rule.max} digits.`);
-                            } else {
-                              setPhoneError(null);
-                            }
+                            const next = normalizePhoneInput(e.target.value);
+                            setEditPhone(next);
+                            setPhoneError(next ? validatePhone(next, editCountryCode) : null);
                           }}
                           placeholder="Add another phone…"
                           className="h-10 px-3 bg-white border-0 text-[13.5px] text-gray-900 placeholder:text-gray-300 font-medium focus:outline-none"
@@ -625,7 +688,9 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                                   type="button"
                                   onMouseDown={e => {
                                     e.preventDefault();
-                                    setEditPhone(stripCountryCodeFromPhone(suggestion.phone, editCountryCode));
+                                    const detected = detectPhoneCountry(suggestion.phone);
+                                    setEditCountryCode(detected.countryCode);
+                                    setEditPhone(detected.nationalNumber);
                                     setPhoneError(null);
                                     setIsPhoneFocused(false);
                                   }}
@@ -657,7 +722,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
                 <button
                   disabled={contactSaving}
-                  onClick={() => { setEditingContact(false); setEditEmail(''); setEditPhone(''); setEditCountryCode('+880'); setEditWhom(''); setPhoneError(null); setPhoneSuggestions([]); }}
+                  onClick={() => { setEditingContact(false); setEditEmail(''); setEditPhone(''); setEditCountryCode(DEFAULT_PHONE_COUNTRY_CODE); setEditWhom(''); setPhoneError(null); setPhoneSuggestions([]); }}
                   className="h-8 px-4 text-[13px] font-bold text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
                 >
                   Cancel
@@ -668,13 +733,13 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                   className="flex items-center gap-1.5 h-8 px-4 bg-[#1a56db] text-white text-[13px] font-bold rounded-xl shadow-[0_4px_14px_rgba(26,86,219,0.30)] hover:bg-[#1341a8] transition-all disabled:opacity-50"
                 >
                   {contactSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                  {requireApproval ? 'Request Change' : 'Save Contact'}
+                  Save Contact
                 </button>
               </div>
             )}
           </div>
 
-          <LeadEditRequestHistory leadId={id} leadName={lead?.fullName || 'Lead'} enabled={requireApproval} />
+          <LeadEditRequestHistory leadId={id} leadName={lead?.fullName || 'Lead'} enabled />
         </div>
 
         {/* Right Column */}
@@ -732,7 +797,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                     className="flex items-center gap-1.5 h-8 px-4 bg-[#1a56db] text-white text-[13px] font-bold rounded-xl shadow-[0_4px_14px_rgba(26,86,219,0.30)] hover:bg-[#1341a8] transition-all disabled:opacity-50"
                   >
                     {sourceServiceSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                    {requireApproval ? 'Request Change' : 'Save'}
+                    Save
                   </button>
                 </div>
               </div>
@@ -794,7 +859,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                     className="flex items-center gap-1.5 h-8 px-4 bg-amber-500 text-white text-[13px] font-bold rounded-xl shadow-[0_4px_14px_rgba(245,158,11,0.30)] hover:bg-amber-600 transition-all disabled:opacity-50"
                   >
                     {notesSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                    {requireApproval ? 'Request Change' : 'Save'}
+                    Save
                   </button>
                 </div>
               </div>
@@ -913,17 +978,17 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                 className="flex items-center gap-1.5 h-9 px-5 bg-[#1a56db] text-white text-[13px] font-bold rounded-xl shadow-[0_2px_10px_rgba(26,86,219,0.30)] hover:bg-[#1341a8] disabled:opacity-50 transition-all"
               >
                 {fuSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                {fuSaving ? 'Sending...' : requireApproval ? 'Request Follow-Up' : 'Save'}
+                {fuSaving ? 'Saving...' : 'Save Follow-Up'}
               </button>
             </div>
           </form>
         )}
 
-        {lead.followUps && lead.followUps.length > 0 ? (
+        {sortedFollowUps.length > 0 ? (
           <div className="relative pl-5 md:pl-6 py-1">
             <div className="absolute left-[9px] md:left-[13px] top-3 bottom-3 w-[1.5px] bg-gray-200 rounded-full" />
             <div className="space-y-4">
-              {lead.followUps.map((fu, i) => (
+              {sortedFollowUps.map((fu, i) => (
                 <div key={`${fu.date || ''}-${(fu.note || '').slice(0, 48)}-${i}`} className="relative group">
                   <div className="absolute -left-[24px] md:-left-[28px] top-3.5 w-3 h-3 rounded-full bg-[#1a56db] border-2 border-white shadow-sm ring-2 ring-[#ebf0ff] group-hover:scale-125 transition-transform" />
                   <div className="bg-[#f8fafc] border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.03)] rounded-xl p-4 hover:border-[#1a56db]/30 hover:shadow-[0_4px_20px_rgba(26,86,219,0.06)] transition-all">

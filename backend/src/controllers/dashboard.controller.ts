@@ -8,9 +8,9 @@ export const getBDMStats = async (req: Request, res: Response): Promise<void> =>
   try {
     // Get counts for all leads (global view)
     const totalLeads = await Lead.countDocuments({});
-    const converted = await Lead.countDocuments({ lifecycleStage: 'Converted' });
+    const converted = await Lead.countDocuments({ lifecycleStage: 'Enrolled' });
     const inProgress = await Lead.countDocuments({
-      lifecycleStage: { $in: ['Intake', 'Processing', 'Hot'] }
+      lifecycleStage: { $in: ['New Inquiry', 'Contacted', 'Trial Class'] }
     });
 
     // Calculate target percentage (converted / total * 100)
@@ -29,20 +29,20 @@ export const getBDMStats = async (req: Request, res: Response): Promise<void> =>
       ? Math.round(((currentPeriodLeads - previousPeriodLeads) / previousPeriodLeads) * 100)
       : currentPeriodLeads > 0 ? 100 : 0;
 
-    const currentConverted = await Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: thirtyDaysAgo } });
-    const previousConverted = await Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+    const currentConverted = await Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: thirtyDaysAgo } });
+    const previousConverted = await Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
     const convertedChange = previousConverted > 0
       ? Math.round(((currentConverted - previousConverted) / previousConverted) * 100)
       : currentConverted > 0 ? 100 : 0;
 
-    const currentInProgress = await Lead.countDocuments({ lifecycleStage: { $in: ['Intake', 'Processing', 'Hot'] }, updatedAt: { $gte: thirtyDaysAgo } });
-    const previousInProgress = await Lead.countDocuments({ lifecycleStage: { $in: ['Intake', 'Processing', 'Hot'] }, updatedAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+    const currentInProgress = await Lead.countDocuments({ lifecycleStage: { $in: ['New Inquiry', 'Contacted', 'Trial Class'] }, updatedAt: { $gte: thirtyDaysAgo } });
+    const previousInProgress = await Lead.countDocuments({ lifecycleStage: { $in: ['New Inquiry', 'Contacted', 'Trial Class'] }, updatedAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
     const inProgressChange = previousInProgress > 0
       ? Math.round(((currentInProgress - previousInProgress) / previousInProgress) * 100)
       : currentInProgress > 0 ? 100 : 0;
 
     const prevTotalLeads = await Lead.countDocuments({ createdAt: { $lt: thirtyDaysAgo } });
-    const prevConverted = await Lead.countDocuments({ lifecycleStage: 'Converted', createdAt: { $lt: thirtyDaysAgo } });
+    const prevConverted = await Lead.countDocuments({ lifecycleStage: 'Enrolled', createdAt: { $lt: thirtyDaysAgo } });
     const prevTargetPercentage = prevTotalLeads > 0 ? Math.round((prevConverted / prevTotalLeads) * 100) : 0;
     const targetChange = prevTargetPercentage > 0
       ? Math.round(((targetPercentage - prevTargetPercentage) / prevTargetPercentage) * 100)
@@ -123,7 +123,7 @@ export const getLeadStageDistribution = async (req: Request, res: Response): Pro
   try {
     const filter = {};
 
-    const stages = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
+    const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
     const distribution = await Promise.all(
       stages.map(async (stage) => ({
         stage,
@@ -152,24 +152,24 @@ export const getLeadStageTrend = async (req: Request, res: Response): Promise<vo
 
       const monthData = {
         month: date.toLocaleString('default', { month: 'short' }),
-        Converted: await Lead.countDocuments({
+        Enrolled: await Lead.countDocuments({
           ...filter,
-          lifecycleStage: 'Converted',
+          lifecycleStage: 'Enrolled',
           updatedAt: { $gte: date, $lt: nextMonth }
         }),
-        Hot: await Lead.countDocuments({
+        'Trial Class': await Lead.countDocuments({
           ...filter,
-          lifecycleStage: 'Hot',
+          lifecycleStage: 'Trial Class',
           createdAt: { $gte: date, $lt: nextMonth }
         }),
-        Intake: await Lead.countDocuments({
+        'New Inquiry': await Lead.countDocuments({
           ...filter,
-          lifecycleStage: 'Intake',
+          lifecycleStage: 'New Inquiry',
           createdAt: { $gte: date, $lt: nextMonth }
         }),
-        Processing: await Lead.countDocuments({
+        Contacted: await Lead.countDocuments({
           ...filter,
-          lifecycleStage: 'Processing',
+          lifecycleStage: 'Contacted',
           createdAt: { $gte: date, $lt: nextMonth }
         })
       };
@@ -229,7 +229,7 @@ export const getConversionRateTrend = async (req: Request, res: Response): Promi
 
       const convertedInMonth = await Lead.countDocuments({
         ...filter,
-        lifecycleStage: 'Converted',
+        lifecycleStage: 'Enrolled',
         updatedAt: { $gte: date, $lt: nextMonth }
       });
 
@@ -253,12 +253,11 @@ export const getStatusDistribution = async (req: Request, res: Response): Promis
 
     // Using lifecycle stages as status
     const statuses = [
-      { label: 'New', stage: 'Intake', color: '#3B82F6' },
-      { label: 'In Progress', stage: 'Processing', color: '#F59E0B' },
-      { label: 'Contacted', stage: 'Hot', color: '#22C55E' },
-      { label: 'Qualified', stage: 'Hot', color: '#10B981' },
-      { label: 'Converted', stage: 'Converted', color: '#06B6D4' },
-      { label: 'Dead', stage: 'Dead', color: '#EF4444' }
+      { label: 'New Inquiry', stage: 'New Inquiry', color: '#3B82F6' },
+      { label: 'Contacted', stage: 'Contacted', color: '#F59E0B' },
+      { label: 'Trial Class', stage: 'Trial Class', color: '#22C55E' },
+      { label: 'Enrolled', stage: 'Enrolled', color: '#06B6D4' },
+      { label: 'Lost', stage: 'Lost', color: '#EF4444' },
     ];
 
     const distribution = await Promise.all(
@@ -287,7 +286,7 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
     });
     const totalUsers = await User.countDocuments({ isActive: true });
     const totalLeads = await Lead.countDocuments();
-    const convertedLeads = await Lead.countDocuments({ lifecycleStage: 'Converted' });
+    const convertedLeads = await Lead.countDocuments({ lifecycleStage: 'Enrolled' });
 
     const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : '0';
 
@@ -315,7 +314,7 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
       : currentBDMs > 0 ? 100 : 0;
 
     const prevTotalLeads = await Lead.countDocuments({ createdAt: { $lt: thirtyDaysAgo } });
-    const prevConverted = await Lead.countDocuments({ lifecycleStage: 'Converted', createdAt: { $lt: thirtyDaysAgo } });
+    const prevConverted = await Lead.countDocuments({ lifecycleStage: 'Enrolled', createdAt: { $lt: thirtyDaysAgo } });
     const prevConversionRate = prevTotalLeads > 0 ? (prevConverted / prevTotalLeads) * 100 : 0;
     const currentConversionRate = parseFloat(conversionRate);
     const conversionChange = prevConversionRate > 0
@@ -353,10 +352,10 @@ export const getRecentActivity = async (req: Request, res: Response): Promise<vo
       let action = 'Added new lead';
       let type: 'success' | 'info' | 'warning' = 'info';
 
-      if (lead.lifecycleStage === 'Converted') {
+      if (lead.lifecycleStage === 'Enrolled') {
         action = `Converted lead "${lead.fullName}"`;
         type = 'success';
-      } else if (lead.lifecycleStage === 'Dead') {
+      } else if (lead.lifecycleStage === 'Lost') {
         action = `Marked lead as dead`;
         type = 'warning';
       } else {
@@ -396,7 +395,7 @@ export const getTopPerformers = async (req: Request, res: Response): Promise<voi
         const totalLeads = await Lead.countDocuments({ assignedTo: bdm._id });
         const convertedLeads = await Lead.countDocuments({
           assignedTo: bdm._id,
-          lifecycleStage: 'Converted'
+          lifecycleStage: 'Enrolled'
         });
 
         return {
@@ -450,10 +449,10 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
     ] = await Promise.all([
       Lead.countDocuments({ createdAt: { $gte: startOfToday } }),
       Lead.countDocuments({ createdAt: { $gte: startOfYesterday, $lt: startOfToday } }),
-      Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: startOfMonth } }),
-      Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: startOfLastMonth, $lt: startOfMonth } }),
-      Lead.countDocuments({ lifecycleStage: { $in: ['Intake', 'Processing', 'Hot'] }, updatedAt: { $gte: startOfToday } }),
-      Lead.countDocuments({ lifecycleStage: { $in: ['Intake', 'Processing', 'Hot'] }, updatedAt: { $gte: startOfYesterday, $lt: startOfToday } }),
+      Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: startOfMonth } }),
+      Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: startOfLastMonth, $lt: startOfMonth } }),
+      Lead.countDocuments({ lifecycleStage: { $in: ['New Inquiry', 'Contacted', 'Trial Class'] }, updatedAt: { $gte: startOfToday } }),
+      Lead.countDocuments({ lifecycleStage: { $in: ['New Inquiry', 'Contacted', 'Trial Class'] }, updatedAt: { $gte: startOfYesterday, $lt: startOfToday } }),
       Task.countDocuments({ status: { $ne: 'completed' }, dueDate: { $gte: startOfToday, $lte: endOfToday } }),
       // overdue = tasks past their due date, still not completed
       Task.countDocuments({ status: { $ne: 'completed' }, dueDate: { $lt: startOfToday } }),
@@ -486,12 +485,12 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
       .filter(t => t.entityType === 'lead' && t.entityId)
       .map(t => t.entityId);
 
-    const taskLeadMap = new Map<string, { fullName: string; serviceInterest: string }>();
+    const taskLeadMap = new Map<string, { fullName: string; serviceInterest: string; phone: string }>();
     if (leadEntityIds.length > 0) {
-      const taskLeads = await Lead.find({ _id: { $in: leadEntityIds } }, 'fullName serviceInterest').lean();
+      const taskLeads = await Lead.find({ _id: { $in: leadEntityIds } }, 'fullName serviceInterest phone').lean();
       for (const l of taskLeads) {
         const services = Array.isArray(l.serviceInterest) ? l.serviceInterest.join(', ') : (l.serviceInterest || '');
-        taskLeadMap.set(String(l._id), { fullName: l.fullName, serviceInterest: services as string });
+        taskLeadMap.set(String(l._id), { fullName: l.fullName, serviceInterest: services as string, phone: l.phone || '' });
       }
     }
 
@@ -507,11 +506,12 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
           leadId: String(t.entityId),
           leadName: leadInfo.fullName,
           serviceInterest: leadInfo.serviceInterest,
+          leadPhone: leadInfo.phone,
         }),
       };
     });
 
-    const stages = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
+    const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
     // All supported source values in Lead model (including social channels)
     const sources = ['Facebook', 'Instagram', 'WhatsApp', 'Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
     const sourceColors = ['#3B82F6', '#F59E0B', '#22C55E', '#A855F7', '#EC4899', '#6366F1', '#94A3B8', '#10B981', '#F43F5E', '#8B5CF6'];
@@ -567,7 +567,7 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
         { $group: { _id: { monthKey: '$monthKey', stage: '$stage' }, count: { $sum: 1 } } },
       ]),
       Lead.aggregate([
-        { $match: { updatedAt: { $gte: sixMonthsAgo }, lifecycleStage: { $in: ['Converted', 'Dead'] } } },
+        { $match: { updatedAt: { $gte: sixMonthsAgo }, lifecycleStage: { $in: ['Enrolled', 'Lost'] } } },
         { $project: { stage: '$lifecycleStage', monthKey: { $dateToString: { format: '%Y-%m', date: '$updatedAt' } } } },
         { $group: { _id: { monthKey: '$monthKey', stage: '$stage' }, count: { $sum: 1 } } },
       ]),
@@ -630,16 +630,16 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
 
     const stageTrend = monthKeys.map(({ key, label }) => ({
       month: label,
-      Converted: monthStageUpdatedMap.get(`${key}|Converted`) || 0,
-      Hot: monthStageCreatedMap.get(`${key}|Hot`) || 0,
-      Intake: monthStageCreatedMap.get(`${key}|Intake`) || 0,
-      Processing: monthStageCreatedMap.get(`${key}|Processing`) || 0,
-      Dead: monthStageUpdatedMap.get(`${key}|Dead`) || 0,
+      Enrolled: monthStageUpdatedMap.get(`${key}|Enrolled`) || 0,
+      'Trial Class': monthStageCreatedMap.get(`${key}|Trial Class`) || 0,
+      'New Inquiry': monthStageCreatedMap.get(`${key}|New Inquiry`) || 0,
+      Contacted: monthStageCreatedMap.get(`${key}|Contacted`) || 0,
+      Lost: monthStageUpdatedMap.get(`${key}|Lost`) || 0,
     }));
 
     const conversionTrend = monthKeys.map(({ key, label }) => {
       const total = stages.reduce((sum, stage) => sum + (monthStageCreatedMap.get(`${key}|${stage}`) || 0), 0);
-      const converted = monthStageUpdatedMap.get(`${key}|Converted`) || 0;
+      const converted = monthStageUpdatedMap.get(`${key}|Enrolled`) || 0;
       return {
         month: label,
         rate: total > 0 ? Math.round((converted / total) * 100) : 0,
@@ -679,7 +679,7 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
       User.countDocuments({ role: { $in: ['bdm'] }, isActive: true }),
       User.countDocuments({ isActive: true }),
       Lead.countDocuments(),
-      Lead.countDocuments({ lifecycleStage: 'Converted' }),
+      Lead.countDocuments({ lifecycleStage: 'Enrolled' }),
       Lead.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
       Lead.countDocuments({ createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } }),
       User.countDocuments({ isActive: true, createdAt: { $gte: thirtyDaysAgo } }),
@@ -687,11 +687,11 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
       User.countDocuments({ role: { $in: ['bdm'] }, isActive: true, createdAt: { $gte: thirtyDaysAgo } }),
       User.countDocuments({ role: { $in: ['bdm'] }, isActive: true, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } }),
       Lead.countDocuments({ createdAt: { $lt: thirtyDaysAgo } }),
-      Lead.countDocuments({ lifecycleStage: 'Converted', createdAt: { $lt: thirtyDaysAgo } }),
+      Lead.countDocuments({ lifecycleStage: 'Enrolled', createdAt: { $lt: thirtyDaysAgo } }),
       Lead.countDocuments({ createdAt: { $gte: startOfToday } }),
       Lead.countDocuments({ createdAt: { $gte: startOfYesterday, $lt: startOfToday } }),
-      Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: startOfToday } }),
-      Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: startOfYesterday, $lt: startOfToday } }),
+      Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: startOfToday } }),
+      Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: startOfYesterday, $lt: startOfToday } }),
       Task.countDocuments({ status: { $ne: 'completed' }, dueDate: { $gte: startOfToday, $lte: endOfToday } }),
       Task.countDocuments({ status: { $ne: 'completed' }, dueDate: { $gte: startOfYesterday, $lt: startOfToday } })
     ]);
@@ -714,21 +714,21 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
     const recentActivity = recentLeadsRaw.map(lead => {
       let action = `Added new lead "${lead.fullName}"`;
       let type: 'success' | 'info' | 'warning' = 'info';
-      if (lead.lifecycleStage === 'Converted') { action = `Converted lead "${lead.fullName}"`; type = 'success'; }
-      else if (lead.lifecycleStage === 'Dead') { action = `Marked lead as dead`; type = 'warning'; }
+      if (lead.lifecycleStage === 'Enrolled') { action = `Converted lead "${lead.fullName}"`; type = 'success'; }
+      else if (lead.lifecycleStage === 'Lost') { action = `Marked lead as dead`; type = 'warning'; }
       return { id: lead._id, user: (lead.assignedTo as any)?.name || 'Unassigned', action, type, timestamp: lead.updatedAt };
     });
 
     // --- Top Performers ---
     const bdms = await User.find({ role: { $in: ['bdm'] }, isActive: true }).lean();
     const performersRaw = await Promise.all(bdms.map(async bdm => {
-      const [bdmTotal, bdmConverted] = await Promise.all([Lead.countDocuments({ assignedTo: bdm._id }), Lead.countDocuments({ assignedTo: bdm._id, lifecycleStage: 'Converted' })]);
+      const [bdmTotal, bdmConverted] = await Promise.all([Lead.countDocuments({ assignedTo: bdm._id }), Lead.countDocuments({ assignedTo: bdm._id, lifecycleStage: 'Enrolled' })]);
       return { id: bdm._id, name: bdm.name, totalLeads: bdmTotal, convertedLeads: bdmConverted, conversionRate: bdmTotal > 0 ? ((bdmConverted / bdmTotal) * 100).toFixed(1) : '0' };
     }));
     const topPerformers = performersRaw.sort((a, b) => parseFloat(b.conversionRate) - parseFloat(a.conversionRate)).slice(0, 4).map((p, i) => ({ rank: i + 1, ...p }));
 
     // --- Stage Distribution (This Month) ---
-    const stages = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'];
+    const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
     const stageCounts = await Promise.all(stages.map(s => Lead.countDocuments({ lifecycleStage: s, createdAt: { $gte: startOfMonth } })));
     const stageDistribution = stages.map((stage, i) => ({ stage, count: stageCounts[i] }));
 
@@ -738,12 +738,12 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
       const [conv, hot, intake, processing] = await Promise.all([
-        Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: date, $lt: nextMonth } }),
-        Lead.countDocuments({ lifecycleStage: 'Hot', createdAt: { $gte: date, $lt: nextMonth } }),
-        Lead.countDocuments({ lifecycleStage: 'Intake', createdAt: { $gte: date, $lt: nextMonth } }),
-        Lead.countDocuments({ lifecycleStage: 'Processing', createdAt: { $gte: date, $lt: nextMonth } }),
+        Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: date, $lt: nextMonth } }),
+        Lead.countDocuments({ lifecycleStage: 'Trial Class', createdAt: { $gte: date, $lt: nextMonth } }),
+        Lead.countDocuments({ lifecycleStage: 'New Inquiry', createdAt: { $gte: date, $lt: nextMonth } }),
+        Lead.countDocuments({ lifecycleStage: 'Contacted', createdAt: { $gte: date, $lt: nextMonth } }),
       ]);
-      stageTrend.push({ month: date.toLocaleString('default', { month: 'short' }), Converted: conv, Hot: hot, Intake: intake, Processing: processing });
+      stageTrend.push({ month: date.toLocaleString('default', { month: 'short' }), Enrolled: conv, 'Trial Class': hot, 'New Inquiry': intake, Contacted: processing });
     }
 
     // --- Source Distribution (This Month) ---
@@ -759,7 +759,7 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
       const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
       const [total, conv] = await Promise.all([
         Lead.countDocuments({ createdAt: { $gte: date, $lt: nextMonth } }),
-        Lead.countDocuments({ lifecycleStage: 'Converted', updatedAt: { $gte: date, $lt: nextMonth } }),
+        Lead.countDocuments({ lifecycleStage: 'Enrolled', updatedAt: { $gte: date, $lt: nextMonth } }),
       ]);
       conversionTrend.push({ month: date.toLocaleString('default', { month: 'short' }), rate: total > 0 ? Math.round((conv / total) * 100) : 0 });
     }
@@ -783,12 +783,11 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
 
     // --- Status Distribution ---
     const statuses = [
-      { label: 'New', stage: 'Intake', color: '#3B82F6' },
-      { label: 'In Progress', stage: 'Processing', color: '#F59E0B' },
-      { label: 'Contacted', stage: 'Hot', color: '#22C55E' },
-      { label: 'Qualified', stage: 'Hot', color: '#10B981' },
-      { label: 'Converted', stage: 'Converted', color: '#06B6D4' },
-      { label: 'Dead', stage: 'Dead', color: '#EF4444' },
+      { label: 'New Inquiry', stage: 'New Inquiry', color: '#3B82F6' },
+      { label: 'Contacted', stage: 'Contacted', color: '#F59E0B' },
+      { label: 'Trial Class', stage: 'Trial Class', color: '#22C55E' },
+      { label: 'Enrolled', stage: 'Enrolled', color: '#06B6D4' },
+      { label: 'Lost', stage: 'Lost', color: '#EF4444' },
     ];
     const statusCounts = await Promise.all(statuses.map(s => Lead.countDocuments({ lifecycleStage: s.stage })));
     const statusDistribution = statuses.map((s, i) => ({ label: s.label, count: statusCounts[i], color: s.color }));

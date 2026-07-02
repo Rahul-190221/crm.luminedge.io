@@ -17,7 +17,7 @@ export interface ILead extends Document {
   assignedTo?: mongoose.Types.ObjectId;
   notes?: string;
   followUps: IFollowUp[];
-  lifecycleStage: 'Intake' | 'Processing' | 'Hot' | 'Converted' | 'Dead';
+  lifecycleStage: 'New Inquiry' | 'Contacted' | 'Trial Class' | 'Enrolled' | 'Lost';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,8 +82,8 @@ const LeadSchema = new Schema<ILead>(
     },
     lifecycleStage: {
       type: String,
-      enum: ['Intake', 'Processing', 'Hot', 'Converted', 'Dead'],
-      default: 'Intake'
+      enum: ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'],
+      default: 'New Inquiry'
     }
   },
   {

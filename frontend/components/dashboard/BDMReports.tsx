@@ -15,11 +15,11 @@ type StageDistItem       = { stage: string; count: number }
 type StageTrendItem      = Record<string, number | string>
 
 const STAGE_LINE_COLORS: Record<string, string> = {
-  Intake:     '#1a56db',
-  Processing: '#7e3af2',
-  Hot:        '#e3a008',
-  Converted:  '#0e9f6e',
-  Dead:       '#e02424',
+  'New Inquiry': '#1a56db',
+  Contacted:     '#7e3af2',
+  'Trial Class': '#e3a008',
+  Enrolled:      '#0e9f6e',
+  Lost:          '#e02424',
 }
 
 const PIE_COLORS = ['#1a56db', '#0e9f6e', '#e3a008', '#7e3af2', '#e02424', '#3f83f8', '#14b8a6']
@@ -125,7 +125,7 @@ export default function BDMReports() {
 
   const totalLeads       = stageDist.reduce((s, d) => s + d.count, 0)
   const lastRate         = conversionTrend.at(-1)?.rate ?? 0
-  const enrolled         = stats?.converted?.value ?? stageDist.find(d => d.stage === 'Converted')?.count ?? 0
+  const enrolled         = stats?.converted?.value ?? stageDist.find(d => d.stage === 'Enrolled')?.count ?? 0
 
   const courseTotal      = coursePerf.reduce((s, c) => s + c.count, 0)
   const sourceTotal      = sourceDistrib.reduce((s, d) => s + d.count, 0)

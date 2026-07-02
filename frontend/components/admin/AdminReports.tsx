@@ -58,11 +58,11 @@ interface BDMPerf {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STAGE_COLORS: Record<string, string> = {
-  Intake: '#3b82f6',
-  Processing: '#8b5cf6',
-  Hot: '#f97316',
-  Converted: '#22c55e',
-  Dead: '#ef4444',
+  'New Inquiry': '#3b82f6',
+  Contacted: '#8b5cf6',
+  'Trial Class': '#f97316',
+  Enrolled: '#22c55e',
+  Lost: '#ef4444',
 }
 
 const SOURCE_COLORS = ['#3b82f6', '#8b5cf6', '#22c55e', '#f97316', '#ef4444', '#14b8a6', '#06b6d4']
@@ -341,7 +341,7 @@ function LeadAnalyticsTab() {
         getLeadStageTrend(),
         getLeadSourceDistribution(),
       ])
-      // Normalise trend: [{month, Intake, Processing, Hot, Converted, Dead}]
+      // Normalise trend: [{month, 'New Inquiry', Contacted, 'Trial Class', Enrolled, Lost}]
       const trendMap: Record<string, TrendPoint> = {}
       const rawArr = Array.isArray(trendRaw) ? trendRaw : (trendRaw?.data ?? [])
       rawArr.forEach((item: any) => {
@@ -367,7 +367,7 @@ function LeadAnalyticsTab() {
   if (loading) return <Spinner />
 
   const totalSrc = sources.reduce((a, s) => a + s.count, 0) || 1
-  const stageKeys = ['Intake', 'Processing', 'Hot', 'Converted', 'Dead']
+  const stageKeys = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost']
 
   return (
     <div className="space-y-5">
