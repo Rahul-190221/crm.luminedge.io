@@ -59,7 +59,9 @@ const corsOptions: CorsOptions = {
     }
 
     console.warn(`[CORS] Blocked origin: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
+    const corsError: Error & { status?: number } = new Error('Not allowed by CORS');
+    corsError.status = 403;
+    callback(corsError);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
