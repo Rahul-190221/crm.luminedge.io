@@ -59,7 +59,7 @@ function leadsToRows(leads: Lead[]): DisplayRow[] {
     const svc = Array.isArray(lead.serviceInterest) ? lead.serviceInterest[0] : (lead.serviceInterest as string) || 'Unknown'
     rows.push({
       id:             lead._id,
-      name:           lead.fullName,
+      name:           lead.fullName || 'Unnamed lead',
       phone:          lead.phone,
       type:           'Call',
       courseInterest: svc,

@@ -2,19 +2,24 @@ import { Request, Response } from 'express';
 import Lead from '../models/Lead';
 import User from '../models/User';
 import { createAndEmitNotification, createAndEmitToAdmins, createAndEmitToRoles } from '../services/notification.service';
+import { canonicalizePhoneValue, extractPhoneDigits, escapeRegex, buildPhoneEntryFilter } from '../utils/phone.util';
 
 const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with another number.';
 
-const normalizePhoneDigits = (value: unknown): string => String(value ?? '').replace(/\D/g, '');
-const escapeRegex = (value: string): string => value.split('').map((ch) => /[a-zA-Z0-9 ]/.test(ch) ? ch : '\\' + ch).join('');
+const normalizePhoneDigits = extractPhoneDigits;
 
+// Typeahead/suggestions only — matches on a digit prefix so it can still use the phone index
+// as a prefix scan. Not used for the strict duplicate check (see assertPhoneIsUnique below),
+// since a lead's `phone` field may contain multiple comma-separated numbers (LeadDetail.tsx's
+// "add another phone" feature) and a full substring scan is the only way to surface those in
+// suggestions.
 const getPhoneCandidates = async (query: string, limit = 8, excludeId?: string) => {
   const normalizedQuery = normalizePhoneDigits(query);
   if (!normalizedQuery) return { suggestions: [], exactMatch: false };
 
   const safeQuery = escapeRegex(normalizedQuery);
   const filter: Record<string, any> = {
-    phone: { $regex: safeQuery, $options: 'i' }
+    phone: { $regex: `^\\+?${safeQuery}|,\\s*\\+?${safeQuery}`, $options: 'i' }
   };
 
   if (excludeId) {
@@ -54,14 +59,26 @@ const getPhoneCandidates = async (query: string, limit = 8, excludeId?: string) 
   return { suggestions, exactMatch };
 };
 
+// Strict duplicate check for create/update: matches any lead whose `phone` field contains
+// the canonical number as one of its (possibly multiple, comma-separated) entries — not just
+// leads whose entire `phone` field is byte-for-byte identical.
 const assertPhoneIsUnique = async (phone: string, excludeId?: string) => {
-  const { exactMatch } = await getPhoneCandidates(phone, 1, excludeId);
-  return exactMatch;
+  const canonical = canonicalizePhoneValue(phone);
+  if (!canonical) return false;
+
+  const entryFilter = buildPhoneEntryFilter(canonical);
+  if (!entryFilter) return false;
+
+  const filter: Record<string, any> = { ...entryFilter };
+  if (excludeId) filter._id = { $ne: excludeId };
+
+  const existing = await Lead.exists(filter);
+  return Boolean(existing);
 };
 // Get all leads
 export const getLeads = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { stage, source, assignedTo, search, unassigned, page: pageParam, limit: limitParam } = req.query;
+    const { stage, source, assignedTo, bdmName, search, unassigned, page: pageParam, limit: limitParam } = req.query;
 
     const page = Math.max(1, parseInt(String(pageParam || '1'), 10) || 1);
     const limit = Math.min(500, Math.max(1, parseInt(String(limitParam || '50'), 10) || 50));
@@ -70,7 +87,12 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
     const filter: any = {};
 
     if (unassigned === 'true') {
-      filter.$or = [{ assignedTo: { $exists: false } }, { assignedTo: null }];
+      // Genuinely unassigned: no real BDM AND no imported BDM name either (distinct from a
+      // lead that has a bdmName like "Tanha" but no matching User account yet).
+      filter.$and = [
+        { $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }] },
+        { $or: [{ bdmName: { $exists: false } }, { bdmName: null }, { bdmName: '' }] },
+      ];
     }
 
     if (stage && stage !== 'All') {
@@ -85,13 +107,26 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
       filter.assignedTo = String(assignedTo);
     }
 
+    // Filters leads by the original CSV-imported BDM name, for leads with no matching
+    // User account (see backfillBdmName.ts) — a separate filter from assignedTo since it's
+    // a plain string, not a User reference.
+    if (bdmName) {
+      filter.bdmName = String(bdmName);
+    }
+
     if (search) {
-      const safeSearch = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 200);
-      filter.$or = [
-        { fullName: { $regex: safeSearch, $options: 'i' } },
-        { email: { $regex: safeSearch, $options: 'i' } },
-        { phone: { $regex: safeSearch, $options: 'i' } }
-      ];
+      const rawSearch = String(search).slice(0, 200);
+      const isPhoneLike = /^[\d+\-\s()]+$/.test(rawSearch) && normalizePhoneDigits(rawSearch).length >= 3;
+
+      if (isPhoneLike) {
+        // Digit-only queries are almost always a phone number — anchored so it can use the
+        // phone index as a prefix scan instead of an unindexed substring collection scan.
+        const safeDigits = escapeRegex(normalizePhoneDigits(rawSearch));
+        filter.phone = { $regex: `^\\+?${safeDigits}|,\\s*\\+?${safeDigits}`, $options: 'i' };
+      } else {
+        // Name/email search uses the text index instead of an unindexed regex scan.
+        filter.$text = { $search: rawSearch };
+      }
     }
 
     const [leads, total] = await Promise.all([
@@ -203,9 +238,10 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
     try {
       const creator = await User.findById(reqUser?.userId).select('name role');
       const creatorName = creator?.name || 'A BDM';
+      const leadName = fullName || 'Unnamed lead';
       await createAndEmitToAdmins(
         'New Lead Added',
-        `${creatorName} added a new lead: ${fullName}`,
+        `${creatorName} added a new lead: ${leadName}`,
         'info'
       );
       // If assigned to someone other than creator, notify them too
@@ -213,7 +249,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
         await createAndEmitNotification(
           assignedTo,
           'Lead Assigned to You',
-          `New lead assigned: ${fullName}`,
+          `New lead assigned: ${leadName}`,
           'info'
         );
       }
@@ -226,6 +262,8 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
     console.error('Error creating lead:', error);
     if (error.name === 'ValidationError') {
       res.status(400).json({ error: error.message });
+    } else if (error.code === 11000) {
+      res.status(409).json({ error: PHONE_LOOKUP_MESSAGE });
     } else {
       res.status(500).json({ error: 'Failed to create lead' });
     }
@@ -278,6 +316,8 @@ export const updateLead = async (req: Request, res: Response): Promise<void> => 
     console.error('Error updating lead:', error);
     if (error.name === 'ValidationError') {
       res.status(400).json({ error: error.message });
+    } else if (error.code === 11000) {
+      res.status(409).json({ error: PHONE_LOOKUP_MESSAGE });
     } else {
       res.status(500).json({ error: 'Failed to update lead' });
     }
@@ -359,11 +399,12 @@ export const updateLeadStage = async (req: Request, res: Response): Promise<void
     try {
       const user = await User.findById(reqUser?.userId).select('name role');
       const actorName = user?.name || 'A BDM';
+      const leadName = lead.fullName || 'Unnamed lead';
 
       // 1. Notify Admins
       await createAndEmitToAdmins(
         'Lead Stage Updated',
-        `${actorName} updated lead "${lead.fullName}" to ${lifecycleStage}`,
+        `${actorName} updated lead "${leadName}" to ${lifecycleStage}`,
         lifecycleStage === 'Enrolled' ? 'success' : 'info'
       );
 
@@ -371,7 +412,7 @@ export const updateLeadStage = async (req: Request, res: Response): Promise<void
       await createAndEmitToRoles(
         ['bdm'],
         'Lead Stage Updated',
-        `${actorName} updated lead "${lead.fullName}" to ${lifecycleStage}`,
+        `${actorName} updated lead "${leadName}" to ${lifecycleStage}`,
         'info',
         reqUser?.userId
       );
@@ -398,6 +439,48 @@ export const getBDMs = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Error fetching BDMs:', error);
     res.status(500).json({ error: 'Failed to fetch BDMs' });
+  }
+};
+
+// Distinct original BDM names from bulk-imported leads (see backfillBdmName.ts), each with
+// its lead count; the count of leads with no BDM info at all; and real registered BDM users
+// with their CURRENT assignedTo-based count (which can differ from the bdmName counts once
+// leads get reassigned, e.g. bulk-assigning the unassigned batch to a real user). Powers the
+// Lead Center's "filter by BDM" dropdown.
+export const getLeadBdmNames = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const [nameCounts, unassignedCount, bdmUsers] = await Promise.all([
+      Lead.aggregate([
+        { $match: { bdmName: { $exists: true, $nin: [null, ''] } } },
+        { $group: { _id: '$bdmName', count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ]),
+      Lead.countDocuments({
+        $and: [
+          { $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }] },
+          { $or: [{ bdmName: { $exists: false } }, { bdmName: null }, { bdmName: '' }] },
+        ],
+      }),
+      User.find({ role: 'bdm', isActive: true }).select('_id name').lean(),
+    ]);
+
+    const bdmCountRows = await Lead.aggregate([
+      { $match: { assignedTo: { $in: bdmUsers.map((u) => u._id) } } },
+      { $group: { _id: '$assignedTo', count: { $sum: 1 } } },
+    ]);
+    const bdmCountById = new Map(bdmCountRows.map((row) => [String(row._id), row.count as number]));
+
+    res.json({
+      names: nameCounts.map((row) => ({ name: row._id as string, count: row.count as number })),
+      unassignedCount,
+      bdmUsers: bdmUsers
+        .map((u) => ({ _id: String(u._id), name: u.name, count: bdmCountById.get(String(u._id)) || 0 }))
+        .filter((u) => u.count > 0)
+        .sort((a, b) => b.count - a.count),
+    });
+  } catch (error) {
+    console.error('Error fetching lead BDM names:', error);
+    res.status(500).json({ error: 'Failed to fetch lead BDM names' });
   }
 };
 
@@ -473,6 +556,12 @@ export const importLeads = async (req: Request, res: Response): Promise<void> =>
           await Lead.updateOne({ email }, updateOp);
           imported++;
         } else {
+          if (await assertPhoneIsUnique(leadData.phone)) {
+            failed++;
+            errors.push(`Row skipped: phone already exists (${leadData.phone})`);
+            continue;
+          }
+
           const lead = new Lead({
             fullName: leadData.fullName,
             email,
@@ -534,6 +623,29 @@ export const getLeadStats = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+// Per-stage lead counts (optionally scoped to one BDM via `assignedTo`), computed with a
+// single aggregation instead of one countDocuments call per stage — powers BDMPipeline's
+// column headers, which need the true total per stage even beyond the card-rendering cap.
+export const getLeadStageCounts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { assignedTo } = req.query;
+    const match: Record<string, any> = {};
+    if (assignedTo) match.assignedTo = String(assignedTo);
+
+    const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
+    const rows = await Lead.aggregate([
+      { $match: match },
+      { $group: { _id: '$lifecycleStage', count: { $sum: 1 } } },
+    ]);
+    const countByStage = new Map(rows.map((row) => [row._id as string, row.count as number]));
+
+    res.json(Object.fromEntries(stages.map((stage) => [stage, countByStage.get(stage) || 0])));
+  } catch (error) {
+    console.error('Error fetching lead stage counts:', error);
+    res.status(500).json({ error: 'Failed to fetch lead stage counts' });
+  }
+};
+
 // Assign leads to BDM
 export const assignLeads = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -561,14 +673,17 @@ export const assignLeads = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Update all leads
+    // Update all leads. Clearing bdmName here too — it's the original CSV-imported team-member
+    // name (see backfillBdmName.ts), and once a lead has a real assignedTo it should no longer
+    // also count toward that historical name in getLeadBdmNames' "by original CSV name" bucket.
     const result = await Lead.updateMany(
       { _id: { $in: leadIds } },
       {
         $set: {
           assignedTo: bdmId,
           assignedAt: new Date()
-        }
+        },
+        $unset: { bdmName: '' }
       }
     );
 

@@ -51,3 +51,10 @@ next-env.d.ts
 # Local Netlify folder
 .netlify
 
+# Bulk lead import CSVs (contain customer PII, never commit)
+leads/
+
+# AI assistant scratch/session artifacts, not project source
+brain/
+*.patch
+

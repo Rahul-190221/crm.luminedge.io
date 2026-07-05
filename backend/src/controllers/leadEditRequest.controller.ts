@@ -3,25 +3,26 @@ import Lead from '../models/Lead';
 import User from '../models/User';
 import LeadEditRequest, { ILeadEditRequest } from '../models/LeadEditRequest';
 import { createAndEmitNotification, createAndEmitToAdmins } from '../services/notification.service';
+import { canonicalizePhoneValue, buildPhoneEntryFilter } from '../utils/phone.util';
 
 const LEAD_STAGES = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'] as const;
 const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with another number.';
 
-const normalizePhoneDigits = (value: unknown): string => String(value ?? '').replace(/\D/g, '');
-const splitPhoneEntries = (value?: string | null) =>
-  (value || '').split(',').map(part => part.trim()).filter(Boolean);
-
+// Matches any lead whose `phone` field contains the canonical number as one of its (possibly
+// multiple, comma-separated) entries. See leads.controller.ts's assertPhoneIsUnique for the
+// same helper and rationale.
 const isPhoneDuplicate = async (phone: string, excludeId?: string): Promise<boolean> => {
-  const targetDigits = normalizePhoneDigits(phone);
-  if (!targetDigits) return false;
+  const canonical = canonicalizePhoneValue(phone);
+  if (!canonical) return false;
 
-  const filter: Record<string, any> = {};
+  const entryFilter = buildPhoneEntryFilter(canonical);
+  if (!entryFilter) return false;
+
+  const filter: Record<string, any> = { ...entryFilter };
   if (excludeId) filter._id = { $ne: excludeId };
 
-  const leads = await Lead.find(filter).select('phone').lean();
-  return leads.some((lead: any) =>
-    splitPhoneEntries(lead?.phone).some((entry) => normalizePhoneDigits(entry) === targetDigits)
-  );
+  const existing = await Lead.exists(filter);
+  return Boolean(existing);
 };
 
 const safeString = (value: unknown): string => String(value ?? '').trim();
@@ -181,7 +182,7 @@ export const createLeadEditRequest = async (req: Request, res: Response): Promis
 
     await createAndEmitToAdmins(
       'Lead Edit Request',
-      `${requester?.name || 'A BDM'} requested an update for ${(lead as any).fullName}`,
+      `${requester?.name || 'A BDM'} requested an update for ${(lead as any).fullName || 'Unnamed lead'}`,
       'warning',
       '/admin/edit-request'
     );

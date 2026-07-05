@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { canonicalizePhoneValue } from '../utils/phone.util';
 
 export interface IFollowUp {
   date?: Date;
@@ -8,10 +9,12 @@ export interface IFollowUp {
 }
 
 export interface ILead extends Document {
-  fullName: string;
+  fullName?: string;
   email?: string;
   phone: string;
   whom?: 'Personal' | 'Parents' | 'Cousin' | 'Uncle' | 'Sibling' | 'Spouse';
+  /** Original BDM name from a bulk CSV import, for leads with no matching User account yet. */
+  bdmName?: string;
   source: 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
   serviceInterest: ('IELTS Premium' | 'IELTS Crash' | 'IELTS Intense' | 'IELTS Elementary' | 'IELTS Mock Test' | 'Basic English' | 'GRE Premium' | 'TOEFL Premium' | 'PTE Premium' | 'Study Abroad' | 'Visa Processing')[];
   assignedTo?: mongoose.Types.ObjectId;
@@ -36,7 +39,6 @@ const LeadSchema = new Schema<ILead>(
   {
     fullName: {
       type: String,
-      required: [true, 'Full name is required'],
       trim: true
     },
     email: {
@@ -47,7 +49,9 @@ const LeadSchema = new Schema<ILead>(
     phone: {
       type: String,
       required: [true, 'Phone number is required'],
-      trim: true
+      trim: true,
+      unique: true,
+      set: canonicalizePhoneValue
     },
     whom: {
       type: String,
@@ -71,6 +75,10 @@ const LeadSchema = new Schema<ILead>(
     assignedTo: {
       type: Schema.Types.ObjectId,
       ref: 'User'
+    },
+    bdmName: {
+      type: String,
+      trim: true
     },
     notes: {
       type: String,
@@ -100,5 +108,8 @@ LeadSchema.index({ lifecycleStage: 1, createdAt: -1 });
 LeadSchema.index({ lifecycleStage: 1, updatedAt: -1 });
 LeadSchema.index({ source: 1, createdAt: -1 });
 LeadSchema.index({ serviceInterest: 1, createdAt: -1 });
+LeadSchema.index({ fullName: 'text', email: 'text' });
+LeadSchema.index({ 'followUps.nextFollowUpDate': 1 });
+LeadSchema.index({ bdmName: 1 });
 
 export default mongoose.model<ILead>('Lead', LeadSchema);

@@ -22,7 +22,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { getLeads, updateLeadStage } from '@/lib/api/leads'
+import { getLeads, updateLeadStage, getLeadStageCounts } from '@/lib/api/leads'
 import type { Lead, LeadStage } from '@/types/admin'
 import { LEAD_STAGES, LEAD_STAGE_META } from '@/lib/constants/leadStages'
 import StageDropdown from '@/components/leads/StageDropdown'
@@ -198,6 +198,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
   const [typeFilter,    setTypeFilter]    = useState('All Exams')
   const [showQuickAdd,  setShowQuickAdd]  = useState(false)
   const [savingStageId, setSavingStageId] = useState<string | null>(null)
+  const [stageCounts,   setStageCounts]   = useState<Record<LeadStage, number> | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
@@ -224,6 +225,24 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
       }
     }
     load()
+    return () => { active = false }
+  }, [refreshTick, currentUserId])
+
+  // The card fetch above is capped at 500 for rendering performance, so it can't be used to
+  // derive true column totals once a BDM has more leads than that (e.g. after a bulk
+  // reassignment). Fetch the real per-stage totals in one aggregated request so column headers
+  // stay accurate regardless of the card cap.
+  useEffect(() => {
+    let active = true
+    const loadCounts = async () => {
+      try {
+        const counts = await getLeadStageCounts(currentUserId || undefined)
+        if (active) setStageCounts(counts)
+      } catch {
+        if (active) setStageCounts(null)
+      }
+    }
+    loadCounts()
     return () => { active = false }
   }, [refreshTick, currentUserId])
 
@@ -262,7 +281,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
   const filtered = useMemo(() => {
     return leads.filter(l => {
       const matchSearch = !q || (
-        l.fullName.toLowerCase().includes(q) ||
+        (l.fullName || '').toLowerCase().includes(q) ||
         l.email?.toLowerCase().includes(q) ||
         l.phone.replace(/\D/g, '').includes(q.replace(/\D/g, '')) ||
         l.phone.includes(q)
@@ -360,8 +379,14 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
             {LEAD_STAGES.map(stage => {
               const colLeads = loading ? [] : (grouped[stage] || [])
               const meta = LEAD_STAGE_META[stage]
+              const trueCount = stageCounts?.[stage] ?? colLeads.length
+              // stageCounts is unfiltered, so it can only be meaningfully compared against
+              // colLeads.length when no client-side search/type filter is narrowing the view —
+              // otherwise a filtered column reads as "truncated" even when nothing is hidden.
+              const hasActiveFilter = q.length > 0 || typeFilter !== 'All Exams'
+              const isTruncated = !loading && !hasActiveFilter && trueCount > colLeads.length
               return (
-                <Column key={stage} stage={stage} count={colLeads.length} loading={loading}>
+                <Column key={stage} stage={stage} count={trueCount} loading={loading}>
                   {loading ? (
                     [...Array(2)].map((_, i) => (
                       <div key={i} className="h-[90px] bg-gray-50 rounded-xl animate-pulse" />
@@ -380,6 +405,12 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
                         savingStageId={savingStageId}
                       />
                     ))
+                  )}
+
+                  {isTruncated && (
+                    <p className="text-[11px] font-medium text-gray-400 text-center py-1">
+                      Showing {colLeads.length.toLocaleString()} of {trueCount.toLocaleString()} — search or filter to narrow down
+                    </p>
                   )}
 
                   {/* Add Lead inline button at bottom of first column */}

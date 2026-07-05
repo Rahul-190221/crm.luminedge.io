@@ -1,4 +1,4 @@
-import type { Lead, BDM } from '@/types/admin';
+import type { Lead, BDM, LeadStage } from '@/types/admin';
 
 export interface PhoneLookupSuggestion {
   _id: string;
@@ -51,6 +51,7 @@ export const getLeads = async (filters?: {
   stage?: string;
   source?: string;
   assignedTo?: string;
+  bdmName?: string;
   search?: string;
   unassigned?: boolean;
   page?: number;
@@ -60,6 +61,7 @@ export const getLeads = async (filters?: {
   if (filters?.stage) params.append('stage', filters.stage);
   if (filters?.source) params.append('source', filters.source);
   if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo);
+  if (filters?.bdmName) params.append('bdmName', filters.bdmName);
   if (filters?.search) params.append('search', filters.search);
   if (filters?.unassigned) params.append('unassigned', 'true');
   if (filters?.page) params.append('page', String(filters.page));
@@ -167,6 +169,34 @@ export const getBDMsForAssignment = async (): Promise<BDM[]> => {
     headers: getAuthHeader()
   });
   if (!response.ok) throw new Error('Failed to fetch BDMs');
+  return response.json();
+};
+
+export interface LeadBdmNameCounts {
+  names: Array<{ name: string; count: number }>;
+  unassignedCount: number;
+  bdmUsers: Array<{ _id: string; name: string; count: number }>;
+}
+
+// Distinct original BDM names from bulk-imported leads (e.g. "Aroni", "Bristi"), each with its
+// lead count, plus a count of genuinely unassigned leads — powers the "filter by BDM" dropdown.
+export const getLeadBdmNames = async (): Promise<LeadBdmNameCounts> => {
+  const response = await fetch(`${API_BASE_URL}/leads/bdm-names`, {
+    headers: getAuthHeader()
+  });
+  if (!response.ok) throw new Error('Failed to fetch lead BDM names');
+  return response.json();
+};
+
+// True per-stage lead counts (optionally scoped to one BDM), in one request instead of one
+// per stage — powers BDMPipeline's column headers.
+export const getLeadStageCounts = async (assignedTo?: string): Promise<Record<LeadStage, number>> => {
+  const params = new URLSearchParams();
+  if (assignedTo) params.append('assignedTo', assignedTo);
+  const response = await fetch(`${API_BASE_URL}/leads/stage-counts?${params.toString()}`, {
+    headers: getAuthHeader()
+  });
+  if (!response.ok) throw new Error('Failed to fetch lead stage counts');
   return response.json();
 };
 

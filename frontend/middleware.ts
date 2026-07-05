@@ -39,6 +39,17 @@ function redirectNoStore(url: URL): NextResponse {
 }
 
 export function middleware(request: NextRequest) {
+  // Any unexpected throw here (malformed URL/headers, platform edge case) must
+  // not crash the edge function and take the whole site down — fall back to
+  // letting the request through un-redirected; page-level/API auth still applies.
+  try {
+    return routeRequest(request)
+  } catch {
+    return NextResponse.next()
+  }
+}
+
+function routeRequest(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl
 
   // Staff use accessToken; students use studentToken

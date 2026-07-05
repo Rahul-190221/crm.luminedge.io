@@ -180,14 +180,15 @@ export interface FollowUp {
 
 export interface Lead {
   _id: string;
-  fullName: string;
-  email: string;
+  fullName?: string;
+  email?: string;
   phone: string;
   countryCode?: string;
   whom?: 'Personal' | 'Parents' | 'Cousin' | 'Uncle' | 'Sibling' | 'Spouse';
   source: LeadSource;
   serviceInterest: ServiceInterest[];
   assignedTo?: string | { _id: string; name: string; email: string };
+  bdmName?: string;
   notes?: string;
   followUps: FollowUp[];
   lifecycleStage: LeadStage;

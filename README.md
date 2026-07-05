@@ -1,213 +1,129 @@
-# CRM for Luminedge
+# Luminedge CRM
 
-A full-stack Customer Relationship Management (CRM) system built with **MERN Stack** (MongoDB, Express, React/Next.js, Node.js).
+A full-stack CRM built for Luminedge, a test-prep and study-abroad consultancy (IELTS, GRE, TOEFL, PTE). It runs the sales lead pipeline for the BDM (Business Development Manager) team and a student portal for enrolled students, on a **Next.js + Express/MongoDB** stack.
 
 ## Project Structure
 
 ```text
 CRM/
-|-- frontend/          # Next.js frontend application
-|   |-- app/           # Next.js App Router pages
-|   |-- components/    # React components
-|   `-- package.json
-|-- backend/           # Express.js backend API
+|-- frontend/                    # Next.js (App Router) frontend
+|   |-- app/                     # Routes: admin/, bdm/, student/, login/, register/, ...
+|   |-- components/
+|   |   |-- admin/                # Admin dashboard & user management
+|   |   |-- bdm/                  # BDM dashboard
+|   |   |-- leads/                # Lead Center, Lead Detail, lifecycle stages
+|   |   |-- student/              # Student portal
+|   |   |-- courses/, bookings/, schedules/, results/
+|   |   `-- shared/
+|   `-- middleware.ts             # Route-level auth redirects (UX layer only)
+|-- backend/                     # Express + TypeScript API
 |   |-- src/
-|   |   |-- config/    # Database configuration
-|   |   |-- models/    # Mongoose models
-|   |   |-- controllers/ # Route controllers
-|   |   |-- routes/    # API routes
-|   |   |-- app.ts     # Express app setup
-|   |   `-- server.ts  # Server entry point
-|   `-- package.json
-`-- package.json       # Root package.json for managing both projects
+|   |   |-- controllers/          # leads, dashboard, auth, chat, documents, ...
+|   |   |-- models/               # Mongoose schemas (Lead, User, Task, ...)
+|   |   |-- routes/
+|   |   |-- middleware/           # JWT auth, role authorization
+|   |   |-- services/             # Notifications, email, socket bridge
+|   |   `-- scripts/               # One-off maintenance scripts (CSV import, backfills)
+|   `-- Dockerfile
+`-- .github/workflows/           # Keep-alive ping for free-tier hosting
 ```
 
 ## Features
 
-- **Dashboard**: Overview of key metrics and recent activities
-- **Contacts**: Manage customer contacts with full CRUD operations
-- **Deals**: Track sales pipeline and deal stages
-- **Tasks**: Organize tasks with kanban-style board
-- **Companies**: Manage company accounts and relationships
-- **RESTful API**: Backend API with MongoDB integration
+- **Lead Center & BDM Pipeline** — kanban-style lead lifecycle (`New Inquiry` → `Contacted` → `Trial Class` → `Enrolled` / `Lost`), drag-and-drop stage updates, duplicate-phone detection, BDM assignment/filtering, bulk CSV import.
+- **Admin & BDM dashboards** — conversion trends, source/course distribution, top-performer rankings, recent activity feed.
+- **Student portal** — course/package enrollment, appointment scheduling, document uploads with staff review, milestones, mock test results.
+- **Real-time chat & notifications** — Socket.IO messaging and live notifications between staff and students.
+- **Role-based auth** — `admin` / `bdm` / `student` roles, JWT sessions plus Google OAuth login.
+- **News & announcements**, exam/mock-test scheduling and packages.
 
 ## Prerequisites
 
-- Node.js 18+ installed
-- MongoDB installed and running (or MongoDB Atlas account)
-- npm or yarn package manager
+- Node.js 18+
+- MongoDB (local instance or MongoDB Atlas)
 
 ## Installation
 
-1. **Install all dependencies** (root, frontend, and backend):
+```bash
+cd backend && npm install
+cd frontend && npm install
+```
 
-   ```bash
-   npm run install:all
-   ```
+There is no root-level install/dev script — `frontend` and `backend` are independent npm projects, installed and run separately.
 
-   Or install manually:
+## Environment Variables
 
-   ```bash
-   npm install
-   cd frontend && npm install
-   cd ../backend && npm install
-   ```
+Create `backend/.env`:
 
-2. **Set up environment variables**:
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/crm_luminedge
+JWT_SECRET=your-secret-key-change-this-in-production
+ALLOWED_ORIGINS=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
 
-   Create `backend/.env` file:
+# Google OAuth login
+GOOGLE_CLIENT_ID=your-google-client-id
 
-   ```env
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/crm_luminedge
-   JWT_SECRET=your-secret-key-change-this-in-production
-   NODE_ENV=development
-   # Optional when the API and socket server are split across hosts
-   SOCKET_SERVER_URL=https://your-socket-host.example.com
-   SOCKET_SERVER_SECRET=your-shared-bridge-secret
-   ```
+# Document uploads (Vercel Blob storage)
+BLOB_READ_WRITE_TOKEN=your-vercel-blob-token
 
-   Create `frontend/.env.local` file:
+# Password-reset / notification emails (optional)
+SMTP_HOST=
+SMTP_PORT=
+SMTP_SECURE=
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
 
-   ```env
-   NEXT_PUBLIC_API_URL=https://crm-eta-blush.vercel.app/api
-   NEXT_PUBLIC_SOCKET_URL=https://your-socket-host.example.com
-   ```
+# Only needed if Socket.IO is split onto its own always-on host (see below)
+SOCKET_SERVER_URL=
+SOCKET_SERVER_SECRET=
+```
 
-3. **Start MongoDB** (if running locally):
+Create `frontend/.env.local`:
 
-   ```bash
-   # On Windows (if installed as service, it should auto-start)
-   # On macOS/Linux:
-   mongod
-   ```
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+```
 
 ## Running the Application
 
-### Option 1: Run both frontend and backend together
+**Terminal 1 — Backend:**
 
 ```bash
+cd backend
 npm run dev
 ```
 
-### Option 2: Run separately
-
-**Terminal 1 - Backend:**
+**Terminal 2 — Frontend:**
 
 ```bash
-npm run dev:backend
-# or
-cd backend && npm run dev
+cd frontend
+npm run dev
 ```
 
-**Terminal 2 - Frontend:**
-
-```bash
-npm run dev:frontend
-# or
-cd frontend && npm run dev
-```
-
-- Frontend will run on: <http://localhost:3000>
-- Backend API will run on: <https://crm-eta-blush.vercel.app>
+- Frontend: <http://localhost:3000>
+- Backend API: <http://localhost:5000/api>
 
 ## Realtime Notifications
 
-Socket.IO works only on an always-on Node server. If you keep the API on Vercel or another serverless host and want live push notifications, deploy a separate socket host and set:
-
-```env
-SOCKET_SERVER_URL=https://your-socket-host.example.com
-SOCKET_SERVER_SECRET=shared-secret
-NEXT_PUBLIC_SOCKET_URL=https://your-socket-host.example.com
-```
-
-The backend will save notifications to MongoDB as usual, then forward them to the socket host through an internal bridge endpoint. The socket host will emit the `new-notification` event to the correct user room.
-
-## API Endpoints
-
-### Contacts
-
-- `GET /api/contacts` - Get all contacts
-- `GET /api/contacts/:id` - Get a contact
-- `POST /api/contacts` - Create a contact
-- `PATCH /api/contacts/:id` - Update a contact
-- `DELETE /api/contacts/:id` - Delete a contact
-
-### Deals
-
-- `GET /api/deals` - Get all deals
-- `GET /api/deals/:id` - Get a deal
-- `POST /api/deals` - Create a deal
-- `PATCH /api/deals/:id` - Update a deal
-- `DELETE /api/deals/:id` - Delete a deal
-
-### Tasks
-
-- `GET /api/tasks` - Get all tasks
-- `GET /api/tasks/:id` - Get a task
-- `POST /api/tasks` - Create a task
-- `PATCH /api/tasks/:id` - Update a task
-- `DELETE /api/tasks/:id` - Delete a task
-
-### Companies
-
-- `GET /api/companies` - Get all companies
-- `GET /api/companies/:id` - Get a company
-- `POST /api/companies` - Create a company
-- `PATCH /api/companies/:id` - Update a company
-- `DELETE /api/companies/:id` - Delete a company
+Socket.IO needs an always-on Node process. If the backend is deployed to a serverless/sleeping host, deploy a separate always-on socket host and set `SOCKET_SERVER_URL` / `SOCKET_SERVER_SECRET` (backend) and `NEXT_PUBLIC_SOCKET_URL` (frontend) so notifications are saved to MongoDB and then forwarded to the socket host, which emits `new-notification` to the right user room.
 
 ## Tech Stack
 
-### Frontend
+**Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Socket.IO client, `@dnd-kit` (drag-and-drop), Google OAuth.
 
-- **Next.js 14**: React framework with App Router
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
-- **Lucide React**: Beautiful icon library
-- **Axios**: HTTP client for API calls
+**Backend:** Node.js, Express, TypeScript, MongoDB/Mongoose, JWT auth, Socket.IO, Nodemailer, Vercel Blob (document storage), `csv-parse` (bulk lead import).
 
-### Backend
+## Deployment
 
-- **Node.js**: JavaScript runtime
-- **Express**: Web framework
-- **MongoDB**: NoSQL database
-- **Mongoose**: MongoDB object modeling
-- **TypeScript**: Type-safe development
-
-## Development
-
-The application uses:
-
-- **Frontend**: Client-side state management with API integration
-- **Backend**: RESTful API with MongoDB for data persistence
-
-## Realtime Push Setup
-
-To keep live push notifications working, deploy the backend to an always-on Node host. Vercel and Netlify are fine for the frontend and API calls, but Socket.IO needs a process that stays alive.
-
-The backend now includes a Dockerfile at `backend/Dockerfile`, so you can deploy it as a Docker web service.
-
-Recommended setup:
-
-1. Deploy `backend/` as a web service on your Node host.
-2. Set backend env vars:
-
-   - `MONGODB_URI`
-   - `JWT_SECRET`
-   - `GOOGLE_CLIENT_ID`
-   - `ALLOWED_ORIGINS=https://crmluminedge.netlify.app`
-   - `FRONTEND_URL=https://crmluminedge.netlify.app`
-   - SMTP vars if you use password reset emails
-
-3. Set frontend env vars on Netlify:
-
-   - `NEXT_PUBLIC_API_URL=https://your-backend-host/api`
-   - `NEXT_PUBLIC_SOCKET_URL=https://your-backend-host`
-
-4. Redeploy the frontend.
-
-If you keep the API and socket server on the same always-on host, you do not need `SOCKET_SERVER_URL` or `SOCKET_SERVER_SECRET`. Those are only for a split API/socket deployment.
+- **Backend** — deployed as an always-on Node web service (see `render.yaml` / `backend/Dockerfile`); requires `MONGODB_URI`, `JWT_SECRET`, `ALLOWED_ORIGINS`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `BLOB_READ_WRITE_TOKEN`, and SMTP vars if email is used.
+- **Frontend** — deployed on Netlify/Vercel with `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOCKET_URL` pointed at the backend host.
+- A scheduled GitHub Action (`.github/workflows/keep-alive.yml`) pings the backend's health check during business hours to reduce free-tier cold starts.
 
 ## License
 

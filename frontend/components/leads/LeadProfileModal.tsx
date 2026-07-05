@@ -32,7 +32,7 @@ interface Props {
 
 const LeadProfileModal: React.FC<Props> = ({ lead, onClose }) => {
     const stageClass = stageColors[lead.lifecycleStage] ?? 'bg-gray-100 text-gray-700 border-gray-200';
-    const avatarClass = getAvatarColor(lead.fullName);
+    const avatarClass = getAvatarColor(lead.fullName || '?');
 
     return (
         <div
@@ -58,10 +58,10 @@ const LeadProfileModal: React.FC<Props> = ({ lead, onClose }) => {
 
                     <div className="flex items-center gap-4">
                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm ${avatarClass}`}>
-                            {lead.fullName.charAt(0).toUpperCase()}
+                            {(lead.fullName || '?').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">{lead.fullName}</h2>
+                            <h2 className="text-xl font-bold text-gray-900">{lead.fullName || 'Unnamed lead'}</h2>
                             <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 Added on {new Date(lead.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/')}
@@ -78,7 +78,7 @@ const LeadProfileModal: React.FC<Props> = ({ lead, onClose }) => {
 
                     {/* Contact Info */}
                     <Section icon={<User className="w-4 h-4" />} title="Contact Information">
-                        <InfoRow icon={<Mail className="w-3.5 h-3.5 text-gray-400" />} label="Email" value={lead.email} />
+                        <InfoRow icon={<Mail className="w-3.5 h-3.5 text-gray-400" />} label="Email" value={lead.email || 'No email'} />
                         <InfoRow icon={<Phone className="w-3.5 h-3.5 text-gray-400" />} label="Phone" value={lead.phone} />
                     </Section>
 

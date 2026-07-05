@@ -125,8 +125,8 @@ const LeadStage: React.FC = () => {
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             result = result.filter(lead =>
-                lead.fullName.toLowerCase().includes(term) ||
-                lead.email.toLowerCase().includes(term) ||
+                (lead.fullName || '').toLowerCase().includes(term) ||
+                (lead.email || '').toLowerCase().includes(term) ||
                 lead.phone.includes(term)
             );
         }
