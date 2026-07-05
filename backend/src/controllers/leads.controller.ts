@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Lead from '../models/Lead';
 import User from '../models/User';
 import { createAndEmitNotification, createAndEmitToAdmins, createAndEmitToRoles } from '../services/notification.service';
@@ -630,7 +631,9 @@ export const getLeadStageCounts = async (req: Request, res: Response): Promise<v
   try {
     const { assignedTo } = req.query;
     const match: Record<string, any> = {};
-    if (assignedTo) match.assignedTo = String(assignedTo);
+    // $match bypasses Mongoose's automatic query casting (unlike Model.find()), so an ObjectId-typed
+    // field must be cast explicitly here or a string value will never match any document.
+    if (assignedTo) match.assignedTo = new mongoose.Types.ObjectId(String(assignedTo));
 
     const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
     const rows = await Lead.aggregate([
