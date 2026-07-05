@@ -411,6 +411,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
               </span>
               <span className="flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-gray-400" /> {lead.phone}
+                {lead.whom && <span className="text-gray-400 font-bold uppercase text-[11px]">({lead.whom})</span>}
               </span>
             </div>
           </div>
@@ -598,7 +599,12 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
                       </div>
                     ) : (
                       <div key={i} className="flex items-center gap-2.5 bg-[#f8fafc] border border-gray-100 rounded-xl px-3 py-2.5 group hover:border-gray-200 transition-all">
-                        <p className="text-[13.5px] font-semibold text-gray-800 flex-1">{p.trim()}</p>
+                        <p className="text-[13.5px] font-semibold text-gray-800 flex-1">
+                          {p.trim()}
+                          {lead.whom && (
+                            <span className="ml-2 text-[10px] font-bold text-gray-400 uppercase tracking-wide align-middle">({lead.whom})</span>
+                          )}
+                        </p>
                         <button
                           type="button"
                           onClick={() => copyToClipboard(p.trim(), `phone-${i}`)}

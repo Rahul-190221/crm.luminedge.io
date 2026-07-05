@@ -453,6 +453,9 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                 <div className="flex items-center gap-1.5 min-w-0">
                                                     <Phone className="w-3 h-3 text-slate-300 flex-shrink-0" />
                                                     <span className="text-[11.5px] font-semibold text-slate-700 truncate min-w-0 leading-none">{lead.phone}</span>
+                                                    {lead.whom && (
+                                                        <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wide flex-shrink-0">({lead.whom})</span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
