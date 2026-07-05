@@ -16,7 +16,14 @@ export interface ILead extends Document {
   /** Original BDM name from a bulk CSV import, for leads with no matching User account yet. */
   bdmName?: string;
   source: 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
-  serviceInterest: ('IELTS Premium' | 'IELTS Crash' | 'IELTS Intense' | 'IELTS Elementary' | 'IELTS Mock Test' | 'Basic English' | 'GRE Premium' | 'TOEFL Premium' | 'PTE Premium' | 'Study Abroad' | 'Visa Processing')[];
+  serviceInterest: (
+    'IELTS Reg' | 'PTE Reg' | 'TOEFL Reg' | 'GRE Reg' | 'Duolingo Reg' |
+    'IELTS Premium' | 'IELTS Crash' | 'IELTS Intense' | 'IELTS 1 Module' | 'IELTS 1-on-1' | 'IELTS Mock Tests' |
+    'PTE Premium' | 'PTE Crash' | 'PTE Intense' | 'PTE 1 Module' | 'PTE 1-on-1' | 'PTE Mock Tests' |
+    'TOEFL Premium' | 'TOEFL Crash' | 'TOEFL 1 Module' | 'TOEFL 1-on-1' | 'TOEFL Mock Tests' |
+    'GRE Premium' | 'GRE Quant' | 'GRE Verbal' | 'GRE 1-on-1' | 'GRE Mock Tests' | 'GRE Portal' |
+    'Basic English' | 'Spoken' | 'Service Charge' | 'SSC English'
+  )[];
   assignedTo?: mongoose.Types.ObjectId;
   notes?: string;
   followUps: IFollowUp[];
@@ -65,11 +72,12 @@ const LeadSchema = new Schema<ILead>(
     serviceInterest: [{
       type: String,
       enum: [
-        'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test',
-        'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium',
-        'Study Abroad', 'Visa Processing',
-        // legacy broad values
-        'IELTS', 'PTE', 'GRE', 'TOEFL',
+        'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
+        'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
+        'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
+        'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
+        'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
+        'Basic English', 'Spoken', 'Service Charge', 'SSC English',
       ]
     }],
     assignedTo: {

@@ -45,12 +45,11 @@ function storeStudentToken(token: string, expiryDays = 7) {
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [step, setStep] = useState<"email" | "password">("email");
   const [isGoogleOnly, setIsGoogleOnly] = useState(false);
   const [userNotFound, setUserNotFound] = useState(false);
   const [setupPasswordEmail, setSetupPasswordEmail] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors }, trigger, getValues } =
+  const { register, handleSubmit, formState: { errors } } =
     useForm<FormValues>();
   const router = useRouter();
 
@@ -105,13 +104,7 @@ export default function LoginPage() {
     onError: () => toast.error("Google sign in failed"),
   });
 
-  // ── Step 1: Continue with email ───────────────────────────────────────────
-  const handleContinue = async () => {
-    const valid = await trigger("email");
-    if (valid) setStep("password");
-  };
-
-  // ── Step 2: Submit password ───────────────────────────────────────────────
+  // ── Submit email + password ────────────────────────────────────────────────
   async function onSubmit(data: FormValues) {
     setIsLoading(true);
     try {
@@ -203,32 +196,56 @@ export default function LoginPage() {
             </div>
 
             <div className="p-10">
-              {/* ── Step 1: Email ───────────────────────────── */}
-              {step === "email" && (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    type="button"
-                    onClick={() => handleGoogleLogin()}
-                    disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-bold text-[#00000F] transition mb-8 hover:border-[#FACE39]/60 hover:shadow-[0_4px_16px_rgba(250,206,57,0.25)] disabled:opacity-60"
-                  >
-                    <FaGoogle className="text-red-400 text-base" />
-                    Continue with Google
-                  </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                type="button"
+                onClick={() => handleGoogleLogin()}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm font-bold text-[#00000F] transition mb-8 hover:border-[#FACE39]/60 hover:shadow-[0_4px_16px_rgba(250,206,57,0.25)] disabled:opacity-60"
+              >
+                <FaGoogle className="text-red-400 text-base" />
+                Continue with Google
+              </motion.button>
 
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <span className="text-[13px] font-bold text-[#00000F]/55 uppercase tracking-widest">or with email</span>
-                    <div className="flex-1 h-px bg-gray-200" />
-                  </div>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-[13px] font-bold text-[#00000F]/55 uppercase tracking-widest">or with email</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+                  {/* Email */}
+                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                    <label className="block text-[13px] font-extrabold mb-2 text-[#00000F]/80 uppercase tracking-widest">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      {...register("email", {
+                        required: "Email is required",
+                        pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email" },
+                      })}
+                      placeholder="you@example.com"
+                      autoComplete="username"
+                      autoFocus
+                      onChange={() => { if (userNotFound) setUserNotFound(false); }}
+                      className={`w-full px-4 py-3 rounded-2xl border text-sm text-[#00000F] placeholder-gray-400 bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#FACE39]/40 transition ${errors.email ? "border-red-400" : "border-gray-200 focus:border-[#FACE39]/60"}`}
+                    />
+                    <AnimatePresence>
+                      {errors.email && (
+                        <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-xs text-red-500 mt-1">
+                          {errors.email.message}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
 
                   <AnimatePresence>
                     {userNotFound && (
                       <motion.div
                         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                        className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex flex-col gap-2 mb-5"
+                        className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex flex-col gap-2"
                       >
                         <p className="text-xs font-bold text-red-700">User not found. Please create an account first.</p>
                         <motion.button
@@ -241,66 +258,6 @@ export default function LoginPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  <div className="space-y-5">
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                      <label className="block text-[13px] font-extrabold mb-2 text-[#00000F]/80 uppercase tracking-widest">
-                        Email address
-                      </label>
-                      <input
-                        type="email"
-                        {...register("email", {
-                          required: "Email is required",
-                          pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email" },
-                        })}
-                        placeholder="you@example.com"
-                        onChange={() => { if (userNotFound) setUserNotFound(false); }}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleContinue(); } }}
-                        className={`w-full px-4 py-3 rounded-2xl border text-sm text-[#00000F] placeholder-gray-400 bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#FACE39]/40 transition ${errors.email ? "border-red-400" : "border-gray-200 focus:border-[#FACE39]/60"}`}
-                      />
-                      <AnimatePresence>
-                        {errors.email && (
-                          <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-xs text-red-500 mt-1">
-                            {errors.email.message}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      type="button"
-                      onClick={handleContinue}
-                      disabled={isLoading}
-                      className="auth-submit-btn relative w-full py-3.5 rounded-2xl font-bold text-sm text-[#00000F] overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      <span className="relative flex items-center justify-center gap-2">
-                        {isLoading ? (
-                          <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Checking…</>
-                        ) : "Continue →"}
-                      </span>
-                    </motion.button>
-                  </div>
-                </>
-              )}
-
-              {/* ── Step 2: Password ────────────────────────── */}
-              {step === "password" && (
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-                  <input type="hidden" {...register("email")} />
-
-                  {/* Email chip */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-[#FAFAFA] rounded-2xl border border-gray-200">
-                    <span className="text-sm font-medium text-[#00000F]/75 truncate">{getValues("email")}</span>
-                    <button
-                      type="button"
-                      onClick={() => { setStep("email"); setIsGoogleOnly(false); setUserNotFound(false); }}
-                      className="text-[12px] font-bold text-[#FACE39] hover:text-[#E8B010] ml-3 shrink-0 transition"
-                    >
-                      Change
-                    </button>
-                  </div>
 
                   {/* Password */}
                   <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -318,7 +275,7 @@ export default function LoginPage() {
                           minLength: { value: 6, message: "Minimum 6 characters" },
                         })}
                         placeholder="••••••••"
-                        autoFocus
+                        autoComplete="current-password"
                         className={`w-full px-4 py-3 pr-11 rounded-2xl border text-sm text-[#00000F] placeholder-gray-400 bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#FACE39]/40 transition ${errors.password ? "border-red-400" : "border-gray-200 focus:border-[#FACE39]/60"}`}
                       />
                       <button
@@ -421,7 +378,6 @@ export default function LoginPage() {
                     </span>
                   </motion.button>
                 </form>
-              )}
             </div>
 
             {/* Footer */}

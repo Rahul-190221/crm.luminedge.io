@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Plus, RefreshCw, Users, Mail, Phone, Eye, ChevronDown, ChevronLeft, ChevronRight, Check, Upload, Download, AlertCircle, CheckCircle2, Clock, CheckCheck, XCircle, FileEdit } from 'lucide-react';
-import { getLeads, updateLeadStage, importLeadsFromFile, assignLeads, getBDMsForAssignment, getLeadBdmNames } from '@/lib/api/leads';
+import { Search, Plus, RefreshCw, Users, Mail, Phone, Eye, ChevronDown, ChevronLeft, ChevronRight, Check, Upload, Download, AlertCircle, CheckCircle2, Clock, CheckCheck, XCircle, FileEdit, Trash2 } from 'lucide-react';
+import { getLeads, updateLeadStage, importLeadsFromFile, assignLeads, getBDMsForAssignment, getLeadBdmNames, deleteLead } from '@/lib/api/leads';
 import type { Lead, LeadStage as LeadStageType, BDM } from '@/types/admin';
 import { getLeadEditRequests } from '@/lib/api/leadEditRequests';
 import type { LeadEditRequestItem } from '@/lib/api/leadEditRequests';
@@ -18,6 +18,10 @@ const stages: LeadStageType[] = LEAD_STAGES;
 
 // ---
 
+// BDM column shows the full name (which are now short nicknames in DB).
+// the assignment dropdown / lead detail view.
+const firstName = (name: string) => name;
+
 const BDMDropdown: React.FC<{
     lead: Lead; bdms: BDM[]; onAssign: (leadId: string, bdmId: string) => void; disabled?: boolean;
 }> = ({ lead, bdms, onAssign, disabled }) => {
@@ -29,8 +33,8 @@ const BDMDropdown: React.FC<{
         ? (typeof lead.assignedTo === 'object' ? lead.assignedTo : bdms.find(b => b._id === lead.assignedTo))
         : null;
     const displayName = currentBDM
-        ? (typeof currentBDM === 'object' ? currentBDM.name : String(currentBDM))
-        : 'Not Assigned';
+        ? firstName(typeof currentBDM === 'object' ? currentBDM.name : String(currentBDM))
+        : (lead.bdmName ? firstName(lead.bdmName) : 'Not Assigned');
 
     const handleOpen = () => {
         if (disabled) return;
@@ -47,7 +51,7 @@ const BDMDropdown: React.FC<{
                 ref={btnRef}
                 onClick={handleOpen}
                 disabled={disabled}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border transition-all duration-200 max-w-[130px] ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border transition-all duration-200 max-w-[150px] ${
                     disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-sm cursor-pointer'
                 } ${currentBDM
                     ? 'bg-blue-50 text-blue-700 border-blue-200'
@@ -249,28 +253,37 @@ const downloadTemplate = async () => {
     });
     headerRow.height = 22;
     ws.views = [{ state: 'frozen', ySplit: 1 }];
+    const serviceOptions = [
+        'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
+        'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
+        'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
+        'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
+        'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
+        'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+    ];
     const rows: any[][] = [
-        ['John Doe',    'john@example.com',  '01700000000', 'Social Media', 'IELTS',         'Interested in IELTS preparation course', 'New Inquiry', new Date('2026-05-14'), new Date('2026-05-21')],
-        ['Jane Smith',  'jane@example.com',  '01800000000', 'Referral',     'PTE',           'Wants PTE coaching and mock tests',      'Contacted',   new Date('2026-05-10'), new Date('2026-05-17')],
-        ['Alice Rahman','alice@example.com', '01900000000', 'Walk-in',      'Study Abroad',  'Needs study abroad guidance',            'New Inquiry', null,                   null],
+        ['John Doe',    'john@example.com',  '01700000000', 'Social Media', 'IELTS Reg',     'Interested in IELTS preparation course', 'New Inquiry', new Date('2026-05-14'), new Date('2026-05-21')],
+        ['Jane Smith',  'jane@example.com',  '01800000000', 'Referral',     'PTE Reg',       'Wants PTE coaching and mock tests',      'Contacted',   new Date('2026-05-10'), new Date('2026-05-17')],
+        ['Alice Rahman','alice@example.com', '01900000000', 'Walk-in',      'IELTS Premium', 'Needs an IELTS premium batch',           'New Inquiry', null,                   null],
     ];
     rows.forEach(r => { const row = ws.addRow(r); row.eachCell(cell => { cell.alignment = { vertical: 'middle' } }); row.height = 18; });
     for (let i = 2; i <= 500; i++) {
         ws.getCell(`D${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Website,Referral,Social Media,Email Campaign,Walk-in,Phone,Other"'], showErrorMessage: true, errorTitle: 'Invalid Source', error: 'Must be one of: Website, Referral, Social Media, Email Campaign, Walk-in, Phone, Other' };
-        ws.getCell(`E${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"IELTS,PTE,GRE,TOEFL,Study Abroad,Visa Processing"'], showErrorMessage: true, errorTitle: 'Invalid Service', error: 'Must be one of: IELTS, PTE, GRE, TOEFL, Study Abroad, Visa Processing' };
+        ws.getCell(`E${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [`'Valid Options'!$B$2:$B$${serviceOptions.length + 1}`], showErrorMessage: true, errorTitle: 'Invalid Service', error: 'Please pick a value from the Service Interest list on the "Valid Options" sheet.' };
         ws.getCell(`G${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"New Inquiry,Contacted,Trial Class,Enrolled,Lost"'], showErrorMessage: true, errorTitle: 'Invalid Stage', error: 'Must be: New Inquiry, Contacted, Trial Class, Enrolled, or Lost.' };
     }
     const ref = wb.addWorksheet('Valid Options');
     const refHeaders = ['Lead Source Options', 'Service Interest Options', 'Stage Options', 'Date Format'];
-    const refData = [
-        ['Website',        'IELTS',           'New Inquiry', 'YYYY-MM-DD'],
-        ['Referral',       'PTE',             'Contacted',   '(e.g. 2026-05-21)'],
-        ['Social Media',   'GRE',             'Trial Class', ''],
-        ['Email Campaign', 'TOEFL',           'Enrolled',    ''],
-        ['Walk-in',        'Study Abroad',    'Lost',        ''],
-        ['Phone',          'Visa Processing', '',            ''],
-        ['Other',          '',                '',            ''],
-    ];
+    const sourceOptions = ['Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
+    const stageOptions = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
+    const dateFormatNotes = ['YYYY-MM-DD', '(e.g. 2026-05-21)'];
+    const refRowCount = Math.max(sourceOptions.length, serviceOptions.length, stageOptions.length, dateFormatNotes.length);
+    const refData = Array.from({ length: refRowCount }, (_, i) => [
+        sourceOptions[i] ?? '',
+        serviceOptions[i] ?? '',
+        stageOptions[i] ?? '',
+        dateFormatNotes[i] ?? '',
+    ]);
     ref.columns = [{ width: 22 }, { width: 22 }, { width: 14 }, { width: 22 }];
     const refHead = ref.addRow(refHeaders);
     refHead.eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFACE39' } }; cell.font = { bold: true, size: 11 }; cell.alignment = { horizontal: 'center' }; });
@@ -422,6 +435,16 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
         finally { setUpdatingStageId(null); }
     };
 
+    const handleDeleteLead = async (id: string) => {
+        if (!window.confirm('Are you sure you want to permanently delete this lead?')) return;
+        try {
+            await deleteLead(id);
+            setLeads(prev => prev.filter(l => l._id !== id));
+        } catch (err: any) {
+            alert(err.message || 'Failed to delete lead');
+        }
+    };
+
     const handleImportCSV = () => {
         const input = document.createElement('input');
         input.type = 'file'; input.accept = '.csv,.xlsx,.xls';
@@ -533,13 +556,13 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                     <table className="w-full text-left border-collapse min-w-[1060px] table-fixed">
                         <thead>
                             <tr className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b-2 border-slate-200/70">
-                                <th className="w-[20%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Lead Info</th>
-                                <th className="w-[20%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Contact</th>
-                                <th className="w-[18%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden sm:table-cell">Service Interested</th>
-                                <th className="w-[12%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Stage</th>
-                                <th className="w-[11%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden md:table-cell">BDM</th>
-                                <th className="w-[12%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Edit Request</th>
-                                <th className="w-[7%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] text-right">Actions</th>
+                                <th className="w-[18%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Lead Info</th>
+                                <th className="w-[17%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Contact</th>
+                                <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden sm:table-cell">Service Interested</th>
+                                <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Stage</th>
+                                <th className="w-[13%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden md:table-cell">BDM</th>
+                                <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Edit Request</th>
+                                <th className="w-[10%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -586,18 +609,9 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                             </div>
                                         </td>
                                         <td className="px-5 py-3.5 align-middle">
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center gap-1.5 min-w-0">
-                                                    <Mail className="w-3 h-3 text-slate-300 flex-shrink-0" />
-                                                    <span className="text-[11.5px] text-slate-500 truncate min-w-0 leading-none">{lead.email || <span className="italic text-slate-300">-</span>}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 min-w-0">
-                                                    <Phone className="w-3 h-3 text-slate-300 flex-shrink-0" />
-                                                    <span className="text-[11.5px] font-semibold text-slate-700 truncate min-w-0 leading-none">{lead.phone}</span>
-                                                    {lead.whom && (
-                                                        <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wide flex-shrink-0">({lead.whom})</span>
-                                                    )}
-                                                </div>
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                <Phone className="w-3 h-3 text-slate-300 flex-shrink-0" />
+                                                <span className="text-[11.5px] font-semibold text-slate-700 truncate min-w-0 leading-none">{lead.phone}</span>
                                             </div>
                                         </td>
                                         <td className="px-5 py-3.5 hidden sm:table-cell align-middle">
@@ -625,16 +639,22 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                     disabled={updatingBDMId === lead._id}
                                                 />
                                             ) : lead.assignedTo ? (
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 flex-shrink-0">
-                                                        {(typeof lead.assignedTo === 'object' ? lead.assignedTo.name : String(lead.assignedTo)).charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <span className="text-[12px] font-semibold text-slate-700 truncate min-w-0">
-                                                        {typeof lead.assignedTo === 'object' ? lead.assignedTo.name : lead.assignedTo}
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-blue-50 text-blue-700 border-blue-200 max-w-[150px]">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 flex-shrink-0" />
+                                                    <span className="truncate">
+                                                        {firstName(typeof lead.assignedTo === 'object' ? lead.assignedTo.name : String(lead.assignedTo))}
                                                     </span>
                                                 </div>
+                                            ) : lead.bdmName ? (
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-gray-50 text-gray-500 border-gray-200 max-w-[150px]">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                                                    <span className="truncate">{firstName(lead.bdmName)}</span>
+                                                </div>
                                             ) : (
-                                                <span className="text-[11.5px] text-slate-300 italic font-medium">Not Assigned</span>
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-gray-50 text-gray-400 border-gray-200 max-w-[150px]">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                                                    <span className="truncate">Not Assigned</span>
+                                                </div>
                                             )}
                                         </td>
                                         <td className="px-5 py-3.5 align-middle">
@@ -685,13 +705,24 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                             })()}
                                         </td>
                                         <td className="px-5 py-3.5 text-right align-middle" onClick={e => e.stopPropagation()}>
-                                            <button
-                                                onClick={() => onViewLead?.(lead._id)}
-                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white rounded-lg text-[11px] font-semibold transition-all shadow-sm shadow-blue-900/20 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] hover:-translate-y-px active:scale-95 whitespace-nowrap ml-auto"
-                                            >
-                                                <Eye className="w-3 h-3" />
-                                                <span className="hidden sm:inline">View</span>
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => onViewLead?.(lead._id)}
+                                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-w-[84px] bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white rounded-lg text-[11px] font-semibold transition-all shadow-sm shadow-blue-900/20 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] hover:-translate-y-px active:scale-95 whitespace-nowrap ml-auto"
+                                                >
+                                                    <Eye className="w-3 h-3" />
+                                                    <span>View</span>
+                                                </button>
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead._id); }}
+                                                        title="Delete Lead"
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 transition-colors border border-red-100 flex-shrink-0"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

@@ -159,17 +159,48 @@ export const statusBadgeColors: Record<string, string> = {
 export type LeadSource = 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
 export type LeadStage = 'New Inquiry' | 'Contacted' | 'Trial Class' | 'Enrolled' | 'Lost';
 export type ServiceInterest =
+  | 'IELTS Reg'
+  | 'PTE Reg'
+  | 'TOEFL Reg'
+  | 'GRE Reg'
+  | 'Duolingo Reg'
   | 'IELTS Premium'
   | 'IELTS Crash'
   | 'IELTS Intense'
-  | 'IELTS Elementary'
-  | 'IELTS Mock Test'
-  | 'Basic English'
-  | 'GRE Premium'
-  | 'TOEFL Premium'
+  | 'IELTS 1 Module'
+  | 'IELTS 1-on-1'
+  | 'IELTS Mock Tests'
   | 'PTE Premium'
-  | 'Study Abroad'
-  | 'Visa Processing';
+  | 'PTE Crash'
+  | 'PTE Intense'
+  | 'PTE 1 Module'
+  | 'PTE 1-on-1'
+  | 'PTE Mock Tests'
+  | 'TOEFL Premium'
+  | 'TOEFL Crash'
+  | 'TOEFL 1 Module'
+  | 'TOEFL 1-on-1'
+  | 'TOEFL Mock Tests'
+  | 'GRE Premium'
+  | 'GRE Quant'
+  | 'GRE Verbal'
+  | 'GRE 1-on-1'
+  | 'GRE Mock Tests'
+  | 'GRE Portal'
+  | 'Basic English'
+  | 'Spoken'
+  | 'Service Charge'
+  | 'SSC English';
+
+// Full list, in canonical display order — use for dropdowns/selects
+export const SERVICE_INTEREST_OPTIONS: ServiceInterest[] = [
+  'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
+  'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
+  'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
+  'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
+  'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
+  'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+];
 
 export interface FollowUp {
   date: string;

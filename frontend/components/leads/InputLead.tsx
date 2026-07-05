@@ -9,6 +9,7 @@ import { createLead, getBDMsForAssignment as getBDMs, getLeads as fetchLeads, im
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import { getProfile } from '@/lib/api/auth'
 import type { LeadSource, ServiceInterest, BDM } from '@/types/admin'
+import { SERVICE_INTEREST_OPTIONS } from '@/types/admin'
 import {
   PHONE_COUNTRIES,
   buildInternationalPhone,
@@ -28,11 +29,7 @@ const countryCodes = PHONE_COUNTRIES
 const leadSources: LeadSource[] = ['Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other']
 const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse'] as const
 type WhomOption = (typeof whomOptions)[number]
-const serviceInterests: ServiceInterest[] = [
-  'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test',
-  'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium',
-  'Study Abroad', 'Visa Processing',
-]
+const serviceInterests: ServiceInterest[] = SERVICE_INTEREST_OPTIONS
 
 interface InputLeadProps { onSuccess?: () => void; onCancel?: () => void }
 

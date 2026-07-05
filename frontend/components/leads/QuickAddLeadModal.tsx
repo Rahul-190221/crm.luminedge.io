@@ -5,6 +5,7 @@ import { X, Check, AlertCircle, User, Phone, Mail, BookOpen, Target, Globe, Cale
 import { createLead, getBDMsForAssignment as getBDMs, getLeads as fetchLeads } from '@/lib/api/leads'
 import { getProfile } from '@/lib/api/auth'
 import type { BDM, LeadSource, ServiceInterest } from '@/types/admin'
+import { SERVICE_INTEREST_OPTIONS } from '@/types/admin'
 import {
   PHONE_COUNTRIES,
   buildInternationalPhone,
@@ -23,11 +24,7 @@ const leadSources: LeadSource[] = [
   'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'
 ]
 
-const serviceInterests: ServiceInterest[] = [
-  'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test',
-  'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium',
-  'Study Abroad', 'Visa Processing',
-]
+const serviceInterests: ServiceInterest[] = SERVICE_INTEREST_OPTIONS
 
 interface Props {
   onClose: () => void

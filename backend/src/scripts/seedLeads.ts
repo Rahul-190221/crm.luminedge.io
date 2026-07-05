@@ -14,7 +14,7 @@ const leadsData = [
         email: 'john.smith@email.com',
         phone: '+1 234 567 8900',
         source: 'Website',
-        serviceInterest: 'IELTS',
+        serviceInterest: 'IELTS Premium',
         lifecycleStage: 'New Inquiry',
         notes: 'Interested in evening batch',
         assignToEmail: 'john.bdm@luminedge.com'
@@ -24,7 +24,7 @@ const leadsData = [
         email: 'sarah.j@email.com',
         phone: '+1 234 567 8901',
         source: 'Referral',
-        serviceInterest: 'Study Abroad',
+        serviceInterest: 'GRE Portal',
         lifecycleStage: 'Contacted',
         notes: 'Looking for UK universities',
         assignToEmail: 'jane.bdm@luminedge.com'
@@ -34,7 +34,7 @@ const leadsData = [
         email: 'michael.b@email.com',
         phone: '+1 234 567 8902',
         source: 'Social Media',
-        serviceInterest: 'PTE',
+        serviceInterest: 'PTE Reg',
         lifecycleStage: 'Trial Class',
         notes: 'Urgent - exam in 2 months',
         assignToEmail: 'robert.bdm@luminedge.com'
@@ -44,7 +44,7 @@ const leadsData = [
         email: 'emily.davis@email.com',
         phone: '+1 234 567 8903',
         source: 'Walk-in',
-        serviceInterest: 'Visa Processing',
+        serviceInterest: 'TOEFL Premium',
         lifecycleStage: 'Enrolled',
         notes: 'Student visa for Canada',
         assignToEmail: 'jane.bdm@luminedge.com'
@@ -54,7 +54,7 @@ const leadsData = [
         email: 'david.w@email.com',
         phone: '+1 234 567 8904',
         source: 'Email Campaign',
-        serviceInterest: 'GRE',
+        serviceInterest: 'GRE Reg',
         lifecycleStage: 'New Inquiry',
         notes: 'Prefers weekend classes',
         assignToEmail: 'john.bdm@luminedge.com'
@@ -64,7 +64,7 @@ const leadsData = [
         email: 'jessica.m@email.com',
         phone: '+1 234 567 8905',
         source: 'Phone',
-        serviceInterest: 'TOEFL',
+        serviceInterest: 'TOEFL Reg',
         lifecycleStage: 'Lost',
         notes: 'Not interested anymore',
         assignToEmail: 'robert.bdm@luminedge.com'
@@ -74,7 +74,7 @@ const leadsData = [
         email: 'robert.t@email.com',
         phone: '+1 234 567 8906',
         source: 'Website',
-        serviceInterest: 'Study Abroad',
+        serviceInterest: 'Duolingo Reg',
         lifecycleStage: 'Contacted',
         notes: 'Interested in USA universities',
         assignToEmail: 'john.bdm@luminedge.com'
@@ -84,7 +84,7 @@ const leadsData = [
         email: 'amanda.w@email.com',
         phone: '+1 234 567 8907',
         source: 'Referral',
-        serviceInterest: 'IELTS',
+        serviceInterest: 'IELTS Reg',
         lifecycleStage: 'Trial Class',
         notes: 'Ready to enroll',
         assignToEmail: 'jane.bdm@luminedge.com'

@@ -47,22 +47,18 @@ function mapSource(raw: string): { source: string; fellBackToOther: boolean } {
 }
 
 const SERVICE_MAP: Record<string, string> = {
-  ielts: 'IELTS',
-  'exams reg-ielts': 'IELTS',
-  'ielts mock test': 'IELTS Mock Test',
-  pte: 'PTE',
-  'exams reg-pte': 'PTE',
-  gre: 'GRE',
-  'exams reg-gre': 'GRE',
-  toefl: 'TOEFL',
-  'exams reg-toefl': 'TOEFL',
+  ielts: 'IELTS Reg',
+  'exams reg-ielts': 'IELTS Reg',
+  'ielts mock test': 'IELTS Mock Tests',
+  pte: 'PTE Reg',
+  'exams reg-pte': 'PTE Reg',
+  gre: 'GRE Reg',
+  'exams reg-gre': 'GRE Reg',
+  toefl: 'TOEFL Reg',
+  'exams reg-toefl': 'TOEFL Reg',
+  duolingo: 'Duolingo Reg',
   ge: 'Basic English',
-  'edu-aus': 'Study Abroad',
-  'edu-uk': 'Study Abroad',
-  'edu-usa': 'Study Abroad',
-  'edu-canada': 'Study Abroad',
-  'immi-aus': 'Visa Processing',
-  'immi-canada': 'Visa Processing',
+  // no equivalent service in the current list — left unmapped so these rows are flagged
 };
 
 function mapService(raw: string): { serviceInterest: string[]; unmapped?: string } {

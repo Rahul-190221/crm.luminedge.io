@@ -523,8 +523,22 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
     // All supported source values in Lead model (including social channels)
     const sources = ['Facebook', 'Instagram', 'WhatsApp', 'Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
     const sourceColors = ['#3B82F6', '#F59E0B', '#22C55E', '#A855F7', '#EC4899', '#6366F1', '#94A3B8', '#10B981', '#F43F5E', '#8B5CF6'];
-    const courseLabels = ['IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test', 'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium'];
-    const courseColors = ['#EF4444', '#F87171', '#DC2626', '#FCA5A5', '#FF6B6B', '#F97316', '#22C55E', '#3B82F6', '#A855F7'];
+    const courseLabels = [
+      'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
+      'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
+      'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
+      'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
+      'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
+      'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+    ];
+    const courseColors = [
+      '#64748B', '#64748B', '#64748B', '#64748B', '#64748B',
+      '#EF4444', '#F87171', '#DC2626', '#FCA5A5', '#FF6B6B', '#B91C1C',
+      '#A855F7', '#C084FC', '#9333EA', '#D8B4FE', '#7E22CE', '#6B21A8',
+      '#3B82F6', '#60A5FA', '#2563EB', '#93C5FD', '#1D4ED8',
+      '#22C55E', '#4ADE80', '#16A34A', '#86EFAC', '#15803D', '#166534',
+      '#F97316', '#FB923C', '#94A3B8', '#FDBA74',
+    ];
 
     const monthKeys = Array.from({ length: 6 }, (_, idx) => {
       const date = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1);
@@ -820,8 +834,22 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
 
       // --- Course Performance (This Month) ---
       (async () => {
-        const courseLabels = ['IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test', 'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium'];
-        const courseColors = ['#EF4444', '#F87171', '#DC2626', '#FCA5A5', '#FF6B6B', '#F97316', '#22C55E', '#3B82F6', '#A855F7'];
+        const courseLabels = [
+          'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
+          'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
+          'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
+          'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
+          'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
+          'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+        ];
+        const courseColors = [
+          '#64748B', '#64748B', '#64748B', '#64748B', '#64748B',
+          '#EF4444', '#F87171', '#DC2626', '#FCA5A5', '#FF6B6B', '#B91C1C',
+          '#A855F7', '#C084FC', '#9333EA', '#D8B4FE', '#7E22CE', '#6B21A8',
+          '#3B82F6', '#60A5FA', '#2563EB', '#93C5FD', '#1D4ED8',
+          '#22C55E', '#4ADE80', '#16A34A', '#86EFAC', '#15803D', '#166534',
+          '#F97316', '#FB923C', '#94A3B8', '#FDBA74',
+        ];
         const courseAgg = await Lead.aggregate([
           { $match: { createdAt: { $gte: startOfMonth }, serviceInterest: { $in: courseLabels } } },
           { $unwind: '$serviceInterest' },

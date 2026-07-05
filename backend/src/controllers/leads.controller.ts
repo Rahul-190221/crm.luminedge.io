@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import Lead from '../models/Lead';
 import User from '../models/User';
 import { createAndEmitNotification, createAndEmitToAdmins, createAndEmitToRoles } from '../services/notification.service';
-import { canonicalizePhoneValue, extractPhoneDigits, escapeRegex, buildPhoneEntryFilter } from '../utils/phone.util';
+import { canonicalizePhoneValue, extractPhoneDigits, escapeRegex, buildPhoneEntryFilter, phoneSearchDigits } from '../utils/phone.util';
 
 const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with another number.';
 
@@ -15,7 +15,7 @@ const normalizePhoneDigits = extractPhoneDigits;
 // "add another phone" feature) and a full substring scan is the only way to surface those in
 // suggestions.
 const getPhoneCandidates = async (query: string, limit = 8, excludeId?: string) => {
-  const normalizedQuery = normalizePhoneDigits(query);
+  const normalizedQuery = phoneSearchDigits(query);
   if (!normalizedQuery) return { suggestions: [], exactMatch: false };
 
   const safeQuery = escapeRegex(normalizedQuery);
@@ -122,7 +122,9 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
       if (isPhoneLike) {
         // Digit-only queries are almost always a phone number — anchored so it can use the
         // phone index as a prefix scan instead of an unindexed substring collection scan.
-        const safeDigits = escapeRegex(normalizePhoneDigits(rawSearch));
+        // Canonicalized so a bare national number (e.g. "01736461877") matches leads stored
+        // in international form (e.g. "+8801736461877").
+        const safeDigits = escapeRegex(phoneSearchDigits(rawSearch));
         filter.phone = { $regex: `^\\+?${safeDigits}|,\\s*\\+?${safeDigits}`, $options: 'i' };
       } else {
         // Name/email search uses the text index instead of an unindexed regex scan.

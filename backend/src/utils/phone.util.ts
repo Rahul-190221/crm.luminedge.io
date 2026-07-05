@@ -116,6 +116,17 @@ export const canonicalizePhoneValue = (raw: unknown, countryCode?: string): stri
 export const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
+ * Digits to search `phone` by, for a raw (possibly partial) query typed into a search box.
+ * Canonicalizes first so a bare national number (e.g. "01736461877") and its international
+ * form (e.g. "+8801736461877") match the same stored leads — falls back to the query's raw
+ * digits when canonicalization yields nothing (e.g. a short in-progress prefix while typing).
+ */
+export const phoneSearchDigits = (raw: string): string => {
+  const canonicalDigits = extractPhoneDigits(canonicalizePhoneEntry(raw));
+  return canonicalDigits || extractPhoneDigits(raw);
+};
+
+/**
  * Builds a Mongo filter that matches a lead whose `phone` field contains `canonicalPhone`
  * as one of its comma-separated entries (not just an exact whole-field match) — a `phone`
  * value can hold multiple numbers (see LeadDetail.tsx's "add another phone" feature), and

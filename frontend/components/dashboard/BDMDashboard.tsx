@@ -100,17 +100,38 @@ function getGreeting(): string {
 }
 
 const SERVICE_BADGE: Record<string, string> = {
-  'IELTS Premium':    'bg-[#ebf0ff] text-[#1a56db]',
-  'IELTS Crash':      'bg-[#ebf0ff] text-[#1a56db]',
-  'IELTS Intense':    'bg-[#ebf0ff] text-[#1a56db]',
-  'IELTS Elementary': 'bg-[#ebf0ff] text-[#1a56db]',
-  'IELTS Mock Test':  'bg-[#ebf0ff] text-[#1a56db]',
-  'PTE Premium':      'bg-[#edebfe] text-[#7e3af2]',
-  'TOEFL Premium':    'bg-[#def7ec] text-[#0e9f6e]',
-  'GRE Premium':      'bg-[#fdf6b2] text-[#92400e]',
-  'Basic English':    'bg-gray-100 text-gray-600',
-  'Study Abroad':     'bg-gray-100 text-gray-600',
-  'Visa Processing':  'bg-gray-100 text-gray-600',
+  'IELTS Reg':         'bg-slate-100 text-slate-600',
+  'PTE Reg':           'bg-slate-100 text-slate-600',
+  'TOEFL Reg':         'bg-slate-100 text-slate-600',
+  'GRE Reg':           'bg-slate-100 text-slate-600',
+  'Duolingo Reg':      'bg-slate-100 text-slate-600',
+  'IELTS Premium':     'bg-[#ebf0ff] text-[#1a56db]',
+  'IELTS Crash':       'bg-[#ebf0ff] text-[#1a56db]',
+  'IELTS Intense':     'bg-[#ebf0ff] text-[#1a56db]',
+  'IELTS 1 Module':    'bg-[#ebf0ff] text-[#1a56db]',
+  'IELTS 1-on-1':      'bg-[#ebf0ff] text-[#1a56db]',
+  'IELTS Mock Tests':  'bg-[#ebf0ff] text-[#1a56db]',
+  'PTE Premium':       'bg-[#edebfe] text-[#7e3af2]',
+  'PTE Crash':         'bg-[#edebfe] text-[#7e3af2]',
+  'PTE Intense':       'bg-[#edebfe] text-[#7e3af2]',
+  'PTE 1 Module':      'bg-[#edebfe] text-[#7e3af2]',
+  'PTE 1-on-1':        'bg-[#edebfe] text-[#7e3af2]',
+  'PTE Mock Tests':    'bg-[#edebfe] text-[#7e3af2]',
+  'TOEFL Premium':     'bg-[#def7ec] text-[#0e9f6e]',
+  'TOEFL Crash':       'bg-[#def7ec] text-[#0e9f6e]',
+  'TOEFL 1 Module':    'bg-[#def7ec] text-[#0e9f6e]',
+  'TOEFL 1-on-1':      'bg-[#def7ec] text-[#0e9f6e]',
+  'TOEFL Mock Tests':  'bg-[#def7ec] text-[#0e9f6e]',
+  'GRE Premium':       'bg-[#fdf6b2] text-[#92400e]',
+  'GRE Quant':         'bg-[#fdf6b2] text-[#92400e]',
+  'GRE Verbal':        'bg-[#fdf6b2] text-[#92400e]',
+  'GRE 1-on-1':        'bg-[#fdf6b2] text-[#92400e]',
+  'GRE Mock Tests':    'bg-[#fdf6b2] text-[#92400e]',
+  'GRE Portal':        'bg-[#fdf6b2] text-[#92400e]',
+  'Basic English':     'bg-gray-100 text-gray-600',
+  'Spoken':            'bg-gray-100 text-gray-600',
+  'Service Charge':    'bg-gray-100 text-gray-600',
+  'SSC English':       'bg-gray-100 text-gray-600',
 }
 
 const EXAM_BADGE: Record<string, string> = {
@@ -315,7 +336,7 @@ export default function BDMDashboard({
     return () => { isActive = false }
   }, [fetchTick])
 
-  const firstName = (userName || '').split(' ')[0] || 'there'
+  const firstName = userName || 'there'
   const useTasksForFollowUps = upcomingTasks.length > 0
 
   const toggleCheck = (id: string) => {

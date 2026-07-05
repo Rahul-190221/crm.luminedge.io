@@ -12,6 +12,7 @@ import { submitLeadEditRequest } from '@/lib/api/leadEditRequests';
 import LeadEditRequestHistory from '@/components/leads/LeadEditRequestHistory';
 import toast from 'react-hot-toast';
 import type { Lead, LeadStage as LeadStageType } from '@/types/admin';
+import { SERVICE_INTEREST_OPTIONS } from '@/types/admin';
 import StageDropdown from '@/components/leads/StageDropdown';
 import {
   PHONE_COUNTRIES,
@@ -34,7 +35,7 @@ const countryCodes = PHONE_COUNTRIES;
 const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse'] as const;
 type WhomOption = (typeof whomOptions)[number];
 const leadSources = ['Website', 'Referral', 'Social Media', 'Facebook', 'Instagram', 'WhatsApp', 'Email Campaign', 'Walk-in', 'Phone', 'Other'] as const;
-const serviceInterests = ['IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS Elementary', 'IELTS Mock Test', 'Basic English', 'GRE Premium', 'TOEFL Premium', 'PTE Premium', 'Study Abroad', 'Visa Processing'] as const;
+const serviceInterests = SERVICE_INTEREST_OPTIONS;
 
 interface PhoneLookupSuggestion { _id: string; fullName: string; phone: string; whom?: string }
 
@@ -93,6 +94,9 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
   const [phoneEditCountryCode, setPhoneEditCountryCode] = useState<PhoneCountryCode>(DEFAULT_PHONE_COUNTRY_CODE);
   const [phoneEditError, setPhoneEditError] = useState<string | null>(null);
   const [contactEditRequestSaving, setContactEditRequestSaving] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
   const phoneLookupTimerRef = useRef<number | null>(null);
 
   const copyToClipboard = (text: string, key: string) => {
@@ -161,6 +165,21 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
     catch (e: unknown) { setStageError(e instanceof Error ? e.message : 'Could not update stage'); }
     finally { setStageSaving(false); }
   };
+  const handleSaveName = async () => {
+    if (!lead || !editNameValue.trim()) return;
+    setNameSaving(true);
+    try {
+      const updated = await updateLead(lead._id, { fullName: editNameValue.trim() });
+      setLead(updated);
+      setEditingName(false);
+      toast.success('Name updated');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Could not update name');
+    } finally {
+      setNameSaving(false);
+    }
+  };
+
   const checkPhoneDuplicate = async (phoneValue = editPhone) => {
     if (!phoneValue.trim()) return false;
 
@@ -401,7 +420,44 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-3 mb-1.5">
-              <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">{lead.fullName || 'Unnamed lead'}</h1>
+              {editingName ? (
+                <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                  <input
+                    autoFocus
+                    value={editNameValue}
+                    onChange={e => setEditNameValue(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+                    className="h-9 px-3 border border-[#1a56db] rounded-xl text-[15px] font-bold text-gray-900 bg-white outline-none focus:ring-2 focus:ring-[#1a56db]/20 min-w-[200px]"
+                    placeholder="Lead name"
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    disabled={nameSaving || !editNameValue.trim()}
+                    className="h-9 px-3 rounded-xl bg-[#1a56db] text-white text-[12px] font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    {nameSaving ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => setEditingName(false)}
+                    className="h-9 px-3 rounded-xl border border-gray-200 text-gray-500 text-[12px] font-bold hover:bg-gray-50 transition-colors flex items-center gap-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group/name">
+                  <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">{lead.fullName || 'Unnamed lead'}</h1>
+                  <button
+                    onClick={e => { e.stopPropagation(); setEditNameValue(lead.fullName || ''); setEditingName(true); }}
+                    title="Edit name"
+                    className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#1a56db]"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
               <StageDropdown value={lead.lifecycleStage as LeadStageType} onChange={handleStageChange} saving={stageSaving} />
             </div>
             {stageError && <p className="text-[12px] text-red-500 font-medium mt-1 mb-1.5">{stageError}</p>}
