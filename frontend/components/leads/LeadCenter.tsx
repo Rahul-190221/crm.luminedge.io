@@ -176,7 +176,7 @@ const BdmFilterDropdown: React.FC<{
                         </button>
 
                         {bdmUsers.length > 0 && (
-                            <p className="px-3.5 py-1.5 mt-1 text-[9.5px] font-bold text-gray-400 uppercase tracking-[0.14em] border-t border-gray-100">Registered BDMs (current)</p>
+                            <div className="my-1 border-t border-gray-100" />
                         )}
                         {bdmUsers.map(({ _id, name, count }) => {
                             const optionValue = `user:${_id}`;
@@ -198,27 +198,7 @@ const BdmFilterDropdown: React.FC<{
                             );
                         })}
 
-                        {bdmNames.length > 0 && (
-                            <p className="px-3.5 py-1.5 mt-1 text-[9.5px] font-bold text-gray-400 uppercase tracking-[0.14em] border-t border-gray-100">By original CSV name</p>
-                        )}
-                        {bdmNames.map(({ name, count }) => {
-                            const isSelected = value === name;
-                            return (
-                                <button
-                                    key={name}
-                                    onClick={() => select(name)}
-                                    className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 text-[12px] font-semibold transition-colors ${
-                                        isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    <span className="truncate">{name}</span>
-                                    <span className="flex items-center gap-1.5 flex-shrink-0">
-                                        <span className="text-[10.5px] text-gray-400 font-medium">{count.toLocaleString()}</span>
-                                        {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0 text-blue-600" />}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                        {/* Removed 'By original CSV name' section as per user request */}
                     </div>
                 </>
             )}
