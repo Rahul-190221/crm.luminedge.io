@@ -1,58 +1,29 @@
 const cron = require('node-cron') as {
-  schedule: (expression: string, callback: () => void) => void;
+  schedule: (expression: string, callback: () => void, options?: { timezone?: string }) => void;
 };
 
-import Lead from '../models/Lead';
 import { createAndEmitNotification, createAndEmitToAdmins } from './notification.service';
+import { findFollowUpLeads } from './followUp.service';
 
 export function initScheduler(): void {
-  cron.schedule('0 10 * * *', async () => {
-    console.log('[Scheduler] Running follow-up due date check...');
-    try {
-      await checkFollowUpsDueToday();
-    } catch (err) {
-      console.error('[Scheduler] Error in follow-up job:', err);
-    }
-  });
+  cron.schedule(
+    '0 9,13,17 * * *',
+    async () => {
+      console.log('[Scheduler] Running follow-up due date check...');
+      try {
+        await checkFollowUpsDueToday();
+      } catch (err) {
+        console.error('[Scheduler] Error in follow-up job:', err);
+      }
+    },
+    { timezone: 'Asia/Dhaka' }
+  );
 
-  console.log('[Scheduler] Daily follow-up cron registered (09:00 server time).');
+  console.log('[Scheduler] Follow-up cron registered (09:00, 13:00, 17:00 Asia/Dhaka).');
 }
 
 async function checkFollowUpsDueToday(): Promise<void> {
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-
-  // Check the LAST followUp element's nextFollowUpDate via aggregation
-  // (plain find with dot-notation matches ANY element, not just the last one)
-  const leads = await Lead.aggregate([
-    {
-      $match: {
-        'followUps.0': { $exists: true },
-        assignedTo: { $exists: true, $ne: null },
-        'followUps.nextFollowUpDate': { $gte: todayStart, $lte: todayEnd },
-      },
-    },
-    {
-      $addFields: { lastFollowUp: { $last: '$followUps' } },
-    },
-    {
-      $match: {
-        'lastFollowUp.nextFollowUpDate': { $gte: todayStart, $lte: todayEnd },
-      },
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'assignedTo',
-        foreignField: '_id',
-        as: 'assignedUser',
-      },
-    },
-    { $unwind: '$assignedUser' },
-  ]);
+  const leads = (await findFollowUpLeads({})).filter((lead) => lead.dueStatus === 'today' && lead.assignedTo);
 
   console.log(`[Scheduler] Found ${leads.length} lead(s) with follow-up due today.`);
 

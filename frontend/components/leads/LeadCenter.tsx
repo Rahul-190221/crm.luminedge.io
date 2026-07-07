@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Plus, RefreshCw, Users, Mail, Phone, Eye, ChevronDown, ChevronLeft, ChevronRight, Check, Upload, Download, AlertCircle, CheckCircle2, Clock, CheckCheck, XCircle, FileEdit, Trash2 } from 'lucide-react';
-import { getLeads, updateLeadStage, importLeadsFromFile, assignLeads, getBDMsForAssignment, getLeadBdmNames, deleteLead } from '@/lib/api/leads';
+import { Search, Plus, RefreshCw, Users, Mail, Phone, Eye, ChevronDown, ChevronLeft, ChevronRight, Check, X, Clock, CheckCheck, XCircle, FileEdit, Trash2 } from 'lucide-react';
+import { getLeads, updateLeadStage, assignLeads, getBDMsForAssignment, getLeadBdmNames, deleteLead, getLeadStageCounts } from '@/lib/api/leads';
 import type { Lead, LeadStage as LeadStageType, BDM } from '@/types/admin';
 import { getLeadEditRequests } from '@/lib/api/leadEditRequests';
 import type { LeadEditRequestItem } from '@/lib/api/leadEditRequests';
@@ -11,6 +11,7 @@ import LeadDetail from './LeadDetail';
 import StageDropdown from './StageDropdown';
 import { getUserIdFromToken } from '@/lib/helpers/jwt';
 import { LEAD_STAGES } from '@/lib/constants/leadStages';
+import { COURSE_GROUPS } from '@/lib/constants/courseGroups';
 
 // ---
 
@@ -132,16 +133,26 @@ const BdmFilterDropdown: React.FC<{
     const select = (next: string) => { onChange(next); setOpen(false); };
 
     return (
-        <div className="relative mr-2">
+        <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className={`flex items-center gap-1.5 h-8 px-3 border rounded-lg text-[12px] font-semibold transition-all bg-white max-w-[160px] ${
+                className={`flex items-center justify-between gap-2 h-8 px-3 min-w-[140px] border rounded-lg text-[12.5px] font-medium transition-all bg-white max-w-[160px] ${
                     value ? 'border-blue-200 text-blue-700 bg-blue-50' : 'border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
                 }`}
             >
-                <Users className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{selectedLabel}</span>
-                <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+                {value ? (
+                    <span
+                        role="button"
+                        tabIndex={-1}
+                        onClick={(e) => { e.stopPropagation(); onChange(''); }}
+                        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-blue-400 hover:bg-blue-200/70 hover:text-blue-700 transition-colors"
+                    >
+                        <X className="w-3 h-3" />
+                    </span>
+                ) : (
+                    <ChevronDown className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
+                )}
             </button>
 
             {open && (
@@ -208,72 +219,95 @@ const BdmFilterDropdown: React.FC<{
 
 // ---
 
-const downloadTemplate = async () => {
-    const ExcelJS = (await import('exceljs')).default;
-    const wb = new ExcelJS.Workbook();
-    wb.creator = 'Luminedge CRM';
-    const ws = wb.addWorksheet('Leads Import');
-    const dateFmt = 'yyyy-mm-dd';
-    ws.columns = [
-        { header: 'Full Name',        key: 'name',         width: 24 },
-        { header: 'Email',            key: 'email',        width: 30 },
-        { header: 'Phone Number',     key: 'phone',        width: 18 },
-        { header: 'Lead Source',      key: 'source',       width: 18 },
-        { header: 'Service Interest', key: 'service',      width: 20 },
-        { header: 'Notes',            key: 'notes',        width: 38 },
-        { header: 'Stage',            key: 'stage',        width: 14 },
-        { header: 'Last Follow Up',   key: 'lastFollowUp', width: 18, style: { numFmt: dateFmt } },
-    ];
-    const headerRow = ws.getRow(1);
-    headerRow.eachCell(cell => {
-        cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFACE39' } };
-        cell.font   = { bold: true, color: { argb: 'FF000000' }, size: 11 };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = { bottom: { style: 'medium', color: { argb: 'FF000000' } } };
-    });
-    headerRow.height = 22;
-    ws.views = [{ state: 'frozen', ySplit: 1 }];
-    const serviceOptions = [
-        'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
-        'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
-        'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
-        'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
-        'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
-        'Basic English', 'Spoken', 'Service Charge', 'SSC English',
-    ];
-    const rows: any[][] = [
-        ['John Doe',    'john@example.com',  '01700000000', 'Social Media', 'IELTS Reg',     'Interested in IELTS preparation course', 'New Inquiry', new Date('2026-05-14'), new Date('2026-05-21')],
-        ['Jane Smith',  'jane@example.com',  '01800000000', 'Referral',     'PTE Reg',       'Wants PTE coaching and mock tests',      'Contacted',   new Date('2026-05-10'), new Date('2026-05-17')],
-        ['Alice Rahman','alice@example.com', '01900000000', 'Walk-in',      'IELTS Premium', 'Needs an IELTS premium batch',           'New Inquiry', null,                   null],
-    ];
-    rows.forEach(r => { const row = ws.addRow(r); row.eachCell(cell => { cell.alignment = { vertical: 'middle' } }); row.height = 18; });
-    for (let i = 2; i <= 500; i++) {
-        ws.getCell(`D${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Website,Referral,Social Media,Email Campaign,Walk-in,Phone,Other"'], showErrorMessage: true, errorTitle: 'Invalid Source', error: 'Must be one of: Website, Referral, Social Media, Email Campaign, Walk-in, Phone, Other' };
-        ws.getCell(`E${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [`'Valid Options'!$B$2:$B$${serviceOptions.length + 1}`], showErrorMessage: true, errorTitle: 'Invalid Service', error: 'Please pick a value from the Service Interest list on the "Valid Options" sheet.' };
-        ws.getCell(`G${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"New Inquiry,Contacted,Trial Class,Enrolled,Lost"'], showErrorMessage: true, errorTitle: 'Invalid Stage', error: 'Must be: New Inquiry, Contacted, Trial Class, Enrolled, or Lost.' };
-    }
-    const ref = wb.addWorksheet('Valid Options');
-    const refHeaders = ['Lead Source Options', 'Service Interest Options', 'Stage Options', 'Date Format'];
-    const sourceOptions = ['Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
-    const stageOptions = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
-    const dateFormatNotes = ['YYYY-MM-DD', '(e.g. 2026-05-21)'];
-    const refRowCount = Math.max(sourceOptions.length, serviceOptions.length, stageOptions.length, dateFormatNotes.length);
-    const refData = Array.from({ length: refRowCount }, (_, i) => [
-        sourceOptions[i] ?? '',
-        serviceOptions[i] ?? '',
-        stageOptions[i] ?? '',
-        dateFormatNotes[i] ?? '',
-    ]);
-    ref.columns = [{ width: 22 }, { width: 22 }, { width: 14 }, { width: 22 }];
-    const refHead = ref.addRow(refHeaders);
-    refHead.eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFACE39' } }; cell.font = { bold: true, size: 11 }; cell.alignment = { horizontal: 'center' }; });
-    refData.forEach(r => ref.addRow(r));
-    const buffer = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'luminedge_leads_import_template.xlsx'; a.click();
-    URL.revokeObjectURL(url);
+// Flat, icon-less filter chip used for "All Courses" / "All Status" — a plain option list or,
+// for courses, one grouped by category (Registration, IELTS Courses, etc).
+interface FlatOption { value: string; label: string }
+interface FlatGroup { label?: string; options: FlatOption[] }
+
+const FlatDropdown: React.FC<{
+    value: string; // '' = default/all
+    defaultLabel: string;
+    groups: FlatGroup[];
+    onChange: (value: string) => void;
+}> = ({ value, defaultLabel, groups, onChange }) => {
+    const [open, setOpen] = useState(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent) => { if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    const selectedLabel = value ? (groups.flatMap(g => g.options).find(o => o.value === value)?.label ?? value) : defaultLabel;
+
+    return (
+        <div className="relative" ref={rootRef}>
+            <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                className={`flex items-center justify-between gap-2 h-8 px-3 min-w-[140px] rounded-lg border text-[12.5px] font-medium transition-colors ${
+                    value ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+            >
+                <span className="truncate">{selectedLabel}</span>
+                {value ? (
+                    <span
+                        role="button"
+                        tabIndex={-1}
+                        onClick={(e) => { e.stopPropagation(); onChange(''); }}
+                        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-blue-400 hover:bg-blue-200/70 hover:text-blue-700 transition-colors"
+                    >
+                        <X className="w-3 h-3" />
+                    </span>
+                ) : (
+                    <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''} text-gray-400`} />
+                )}
+            </button>
+
+            {open && (
+                <>
+                    <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+                    <div className="absolute top-full left-0 mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 min-w-[200px] max-w-[260px] max-h-[360px] overflow-y-auto">
+                        <button
+                            onClick={() => { onChange(''); setOpen(false); }}
+                            className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 text-[12px] font-semibold transition-colors ${
+                                !value ? 'bg-gray-50 text-gray-800' : 'text-gray-500 hover:bg-gray-50'
+                            }`}
+                        >
+                            <span>{defaultLabel}</span>
+                            {!value && <Check className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />}
+                        </button>
+                        {groups.map((group, gi) => (
+                            <div key={gi} className={group.label ? 'mt-1 pt-1 border-t border-gray-100' : ''}>
+                                {group.label && (
+                                    <div className="px-3.5 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                                        {group.label}
+                                    </div>
+                                )}
+                                {group.options.map(opt => {
+                                    const selected = opt.value === value;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => { onChange(opt.value); setOpen(false); }}
+                                            className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 text-[12px] font-semibold transition-colors ${
+                                                selected ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <span className="truncate">{opt.label}</span>
+                                            {selected && <Check className="w-3.5 h-3.5 flex-shrink-0 text-blue-600" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
 };
 
 // ---
@@ -290,26 +324,30 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
     const [bdmUsers, setBdmUsers] = useState<Array<{ _id: string; name: string; count: number }>>([]);
     const [unassignedCount, setUnassignedCount] = useState(0);
     const [bdmFilterValue, setBdmFilterValue] = useState('');
+    const [courseFilter, setCourseFilter] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [updatingStageId, setUpdatingStageId] = useState<string | null>(null);
     const [updatingBDMId, setUpdatingBDMId] = useState<string | null>(null);
-    const [isImporting, setIsImporting] = useState(false);
-    const [importToast, setImportToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [stageFilter, setStageFilter] = useState<'all' | LeadStageType>('all');
     const [editRequestMap, setEditRequestMap] = useState<Record<string, LeadEditRequestItem>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [apiTotal, setApiTotal] = useState(0);
+    const [stageCounts, setStageCounts] = useState<Record<LeadStageType, number> | null>(null);
 
+    // stageCounts (from a dedicated aggregation, see loadStageCounts below) reflects the true
+    // total per stage under the current search/BDM/course filters — unlike `leads`, which is
+    // just the current page — so the stat cards stay in sync with the active filters instead
+    // of only describing whatever happens to be on the visible page.
     const stats = useMemo(() => ({
-        total:      apiTotal,
-        newInquiry: leads.filter(l => l.lifecycleStage === 'New Inquiry').length,
-        contacted:  leads.filter(l => l.lifecycleStage === 'Contacted').length,
-        trialClass: leads.filter(l => l.lifecycleStage === 'Trial Class').length,
-        enrolled:   leads.filter(l => l.lifecycleStage === 'Enrolled').length,
-        lost:       leads.filter(l => l.lifecycleStage === 'Lost').length,
-    }), [leads, apiTotal]);
+        total:      stageCounts ? Object.values(stageCounts).reduce((a, b) => a + b, 0) : apiTotal,
+        newInquiry: stageCounts?.['New Inquiry'] ?? 0,
+        contacted:  stageCounts?.['Contacted'] ?? 0,
+        trialClass: stageCounts?.['Trial Class'] ?? 0,
+        enrolled:   stageCounts?.['Enrolled'] ?? 0,
+        lost:       stageCounts?.['Lost'] ?? 0,
+    }), [stageCounts, apiTotal]);
 
     const filterCards = [
         { key: 'all' as const,          label: 'Total Leads',  count: stats.total,
@@ -332,10 +370,10 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
           idle:   'bg-gradient-to-b from-white to-blue-50/30 border-blue-100 shadow-sm shadow-blue-900/5 hover:border-red-300 hover:shadow-md hover:shadow-blue-900/10' },
     ];
 
-    const displayedLeads = useMemo(() =>
-        stageFilter === 'all' ? leads : leads.filter(l => l.lifecycleStage === stageFilter),
-        [leads, stageFilter]
-    );
+    // Stage filtering now happens server-side (see `stage` below) so the table, pagination,
+    // and stat cards all describe the same filtered set — `leads` already only contains
+    // matching-stage leads for the current page.
+    const displayedLeads = leads;
 
     const fetchLeads = async () => {
         setIsLoading(true);
@@ -343,6 +381,8 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
             const data = await getLeads({
                 search: searchTerm,
                 page: currentPage,
+                ...(stageFilter !== 'all' ? { stage: stageFilter } : {}),
+                ...(courseFilter ? { serviceInterest: courseFilter } : {}),
                 ...(bdmFilterValue === 'unassigned' ? { unassigned: true } : {}),
                 ...(bdmFilterValue.startsWith('user:') ? { assignedTo: bdmFilterValue.slice('user:'.length) } : {}),
                 ...(bdmFilterValue && bdmFilterValue !== 'unassigned' && !bdmFilterValue.startsWith('user:') ? { bdmName: bdmFilterValue } : {}),
@@ -354,6 +394,24 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
             console.error('Failed to fetch leads:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // True per-stage totals under the current search/BDM/course filters (excluding stage
+    // itself), so the stat cards and the "All Status" dropdown stay accurate even though
+    // `leads` above is paginated.
+    const loadStageCounts = async () => {
+        try {
+            const counts = await getLeadStageCounts({
+                search: searchTerm,
+                ...(courseFilter ? { serviceInterest: courseFilter } : {}),
+                ...(bdmFilterValue === 'unassigned' ? { unassigned: true } : {}),
+                ...(bdmFilterValue.startsWith('user:') ? { assignedTo: bdmFilterValue.slice('user:'.length) } : {}),
+                ...(bdmFilterValue && bdmFilterValue !== 'unassigned' && !bdmFilterValue.startsWith('user:') ? { bdmName: bdmFilterValue } : {}),
+            });
+            setStageCounts(counts);
+        } catch {
+            setStageCounts(null);
         }
     };
 
@@ -372,7 +430,8 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
         } catch { /* silent */ }
     };
 
-    useEffect(() => { fetchLeads(); fetchEditRequests(); }, [searchTerm, refreshKey, currentPage, bdmFilterValue]);
+    useEffect(() => { fetchLeads(); fetchEditRequests(); }, [searchTerm, refreshKey, currentPage, bdmFilterValue, courseFilter, stageFilter]);
+    useEffect(() => { loadStageCounts(); }, [searchTerm, refreshKey, bdmFilterValue, courseFilter]);
     useEffect(() => { if (!isAdmin) return; getBDMsForAssignment().then(data => setBdms(data)).catch(() => {}); }, [isAdmin]);
     useEffect(() => {
         getLeadBdmNames()
@@ -425,87 +484,86 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
         }
     };
 
-    const handleImportCSV = () => {
-        const input = document.createElement('input');
-        input.type = 'file'; input.accept = '.csv,.xlsx,.xls';
-        input.onchange = async (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) return;
-            setIsImporting(true); setImportToast(null);
-            try {
-                const result = await importLeadsFromFile(file);
-                const skippedMsg = result.failed > 0 ? ` ${result.failed} skipped (duplicates).` : '';
-                setImportToast({ type: result.imported > 0 ? 'success' : 'error', message: `Imported ${result.imported} lead${result.imported !== 1 ? 's' : ''}.${skippedMsg}` });
-                fetchLeads();
-            } catch (err: any) {
-                setImportToast({ type: 'error', message: err.message || 'Import failed. Check the file format.' });
-            } finally {
-                setIsImporting(false);
-                setTimeout(() => setImportToast(null), 5000);
-            }
-        };
-        input.click();
-    };
-
     return (
         <div className="space-y-4 pb-6">
 
             {/* Sticky Header */}
-            <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Lead Center</h1>
-                        <button
-                            onClick={() => setView('form')}
-                            className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-bold text-[12px] rounded-lg hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 transition-all duration-200"
-                        >
-                            <Plus className="w-3 h-3" strokeWidth={2.5} />
-                            Add Lead
-                        </button>
+            <div className="-mx-6 -mt-6 mb-4 px-6 py-4 flex flex-wrap items-center gap-[8rem] border-b border-gray-200/70 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
+                {/* Left: icon + title + count + Add Lead */}
+                <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4c6ef5] to-[#3b5bdb] flex items-center justify-center shadow-md shadow-blue-500/25 flex-shrink-0">
+                        <Users className="w-[18px] h-[18px] text-white" strokeWidth={2.25} />
                     </div>
-                    <p className="text-xs text-gray-500 font-medium mt-0.5">Manage and track all your leads in one place</p>
+                    <div className="flex items-center gap-2.5">
+                        <h1 className="text-[18px] font-extrabold text-[#1a1d24] tracking-tight">Lead Center</h1>
+                        <span className="flex items-center gap-1.5 text-[11.5px] font-bold text-blue-700 bg-blue-50 border border-blue-100/80 rounded-full pl-2 pr-2.5 py-[3px] whitespace-nowrap">
+                            <span className="relative flex h-1.5 w-1.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
+                            </span>
+                            {stats.total.toLocaleString()} <span className="font-medium text-blue-400">leads</span>
+                        </span>
+                    </div>
+                    <button
+                        onClick={() => setView('form')}
+                        className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1"
+                    >
+                        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        Add Lead
+                    </button>
                 </div>
-                <div className="flex items-center gap-2">
-                    <BdmFilterDropdown
-                        bdmNames={bdmNames}
-                        bdmUsers={bdmUsers}
-                        unassignedCount={unassignedCount}
-                        value={bdmFilterValue}
-                        onChange={(next) => { setBdmFilterValue(next); setCurrentPage(1); }}
-                    />
-                    <div className="relative w-64 mr-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search leads..."
-                            value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-8 pl-8 pr-3 bg-gray-50 border border-gray-200 rounded-lg text-[12.5px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+
+                {/* Right: filter toolbar */}
+                <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-5 p-4 rounded-2xl bg-slate-100/70 ring-1 ring-slate-200/80 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]">
+                        <div className="relative w-60">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search name, phone or email..."
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="w-full h-8 pl-8 pr-3 bg-white border border-gray-200/70 rounded-lg text-[12.5px] font-medium text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                            />
+                        </div>
+                        <BdmFilterDropdown
+                            bdmNames={bdmNames}
+                            bdmUsers={bdmUsers}
+                            unassignedCount={unassignedCount}
+                            value={bdmFilterValue}
+                            onChange={(next) => { setBdmFilterValue(next); setCurrentPage(1); }}
+                        />
+                        <FlatDropdown
+                            value={courseFilter}
+                            defaultLabel="All Courses"
+                            groups={COURSE_GROUPS.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o, label: o })) }))}
+                            onChange={(next) => { setCourseFilter(next); setCurrentPage(1); }}
+                        />
+                        <FlatDropdown
+                            value={stageFilter === 'all' ? '' : stageFilter}
+                            defaultLabel="All Status"
+                            groups={[{ options: stages.map(s => ({ value: s, label: s })) }]}
+                            onChange={(next) => { setStageFilter((next || 'all') as 'all' | LeadStageType); setCurrentPage(1); }}
                         />
                     </div>
-                    <button
-                        onClick={fetchLeads}
-                        title="Refresh"
-                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all duration-200 bg-white"
-                    >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
-                    <button
-                        onClick={downloadTemplate}
-                        title="Download Template"
-                        className="flex items-center gap-1.5 h-8 px-3 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50 transition-all bg-white"
-                    >
-                        <Download className="w-3 h-3" />
-                        <span className="hidden sm:inline">Template</span>
-                    </button>
-                    <button
-                        onClick={handleImportCSV}
-                        disabled={isImporting}
-                        className="flex items-center gap-1.5 h-8 px-3 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50 transition-all bg-white disabled:opacity-50"
-                    >
-                        <Upload className="w-3 h-3" />
-                        {isImporting ? 'Importing...' : 'Import'}
-                    </button>
+
+                    {(searchTerm || bdmFilterValue || courseFilter || stageFilter !== 'all') ? (
+                        <button
+                            onClick={() => { setSearchTerm(''); setBdmFilterValue(''); setCourseFilter(''); setStageFilter('all'); setCurrentPage(1); }}
+                            className="flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12.5px] font-semibold text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                            <X className="w-3 h-3" />
+                            Reset
+                        </button>
+                    ) : (
+                        <button
+                            onClick={fetchLeads}
+                            title="Refresh"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all duration-200 bg-white"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -518,7 +576,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                     return (
                         <button
                             key={card.key}
-                            onClick={() => setStageFilter(card.key)}
+                            onClick={() => { setStageFilter(card.key); setCurrentPage(1); }}
                             className={`flex flex-col justify-between text-left rounded-2xl border px-6 py-5 transition-all duration-300 hover:-translate-y-1 ${
                                 isActive ? card.active + ' scale-[1.02]' : card.idle
                             }`}
@@ -755,20 +813,6 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
             >
                 <Plus className="w-6 h-6" strokeWidth={2.5} />
             </button>
-
-            {/* --- */}
-            {importToast && (
-                <div className="fixed bottom-8 right-8 z-50 max-w-sm">
-                    <div className={`flex items-start gap-3 px-5 py-4 rounded-2xl shadow-xl border ${
-                        importToast.type === 'success' ? 'bg-white border-green-200' : 'bg-white border-red-200'
-                    }`}>
-                        {importToast.type === 'success'
-                            ? <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-500" />
-                            : <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />}
-                        <p className="text-[13px] font-semibold text-gray-700">{importToast.message}</p>
-                    </div>
-                </div>
-            )}
 
             {view === 'form' && (
                 <QuickAddLeadModal

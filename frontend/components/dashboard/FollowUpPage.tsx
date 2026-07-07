@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import {
   Phone,
   MessageSquare,
@@ -13,65 +13,28 @@ import {
   AlertCircle,
   RefreshCw,
 } from 'lucide-react'
-import { getLeads, addFollowUp } from '@/lib/api/leads'
+import { addFollowUp } from '@/lib/api/leads'
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
-import { useSocket } from '@/components/providers/SocketProvider'
-import type { Lead } from '@/types/admin'
+import { useFollowUpLeads, type FollowUpRow } from '@/lib/hooks/useFollowUpLeads'
 import { formatTimeAgo, formatShortDate } from '@/lib/helpers/format'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type FollowUpType = 'Call' | 'WhatsApp' | 'Trial Reminder' | 'Payment' | 'Other'
 
-type DisplayRow = {
-  id:             string
-  name:           string
-  phone:          string
-  type:           FollowUpType
-  courseInterest: string
-  dueDate:        string
-  dueStatus:      'overdue' | 'today' | 'upcoming'
-  note:           string
-}
+type DisplayRow = FollowUpRow & { type: FollowUpType }
 
 type Filter = 'All' | 'Overdue' | 'Today' | 'Upcoming'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function dueStatus(date: string): 'overdue' | 'today' | 'upcoming' {
-  const now = new Date()
-  const d   = new Date(date)
-  if (Number.isNaN(d.getTime())) return 'upcoming'
-  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
-  const todayEnd   = new Date(now); todayEnd.setHours(23, 59, 59, 999)
-  if (d < todayStart) return 'overdue'
-  if (d <= todayEnd)  return 'today'
-  return 'upcoming'
-}
-
-function leadsToRows(leads: Lead[]): DisplayRow[] {
-  const rows: DisplayRow[] = []
-  for (const lead of leads) {
-    const lastFU  = lead.followUps?.at(-1)
-    const nextDate = lastFU?.nextFollowUpDate
-    if (!nextDate) continue
-    const ds = dueStatus(nextDate)
-    const svc = Array.isArray(lead.serviceInterest) ? lead.serviceInterest[0] : (lead.serviceInterest as string) || 'Unknown'
-    rows.push({
-      id:             lead._id,
-      name:           lead.fullName || 'Unnamed lead',
-      phone:          lead.phone,
-      type:           'Call',
-      courseInterest: svc,
-      dueDate:        nextDate,
-      dueStatus:      ds,
-      note:           lastFU?.note || '',
+function toDisplayRows(rows: FollowUpRow[]): DisplayRow[] {
+  return [...rows]
+    .map(r => ({ ...r, type: 'Call' as FollowUpType }))
+    .sort((a, b) => {
+      const order = { overdue: 0, today: 1, upcoming: 2 } as const
+      return order[a.dueStatus] - order[b.dueStatus]
     })
-  }
-  return rows.sort((a, b) => {
-    const order = { overdue: 0, today: 1, upcoming: 2 } as const
-    return order[a.dueStatus] - order[b.dueStatus]
-  })
 }
 
 const TYPE_META: Record<string, { icon: React.ReactNode; cls: string }> = {
@@ -129,13 +92,7 @@ const labelCls = 'block text-[10.5px] font-bold text-gray-400 uppercase tracking
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function FollowUpPage() {
-  const socket = useSocket()
-
   const [filter,      setFilter]      = useState<Filter>('All')
-  const [rows,        setRows]        = useState<DisplayRow[]>([])
-  const [loading,     setLoading]     = useState(true)
-  const [error,       setError]       = useState<string | null>(null)
-  const [refreshTick, setRefreshTick] = useState(0)
   const [doneIds,     setDoneIds]     = useState<Set<string>>(new Set())
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData,    setFormData]    = useState({ followUpDate: '', nextFollowUpDate: '', note: '' })
@@ -147,35 +104,8 @@ export default function FollowUpPage() {
     return decoded?.id || decoded?.userId || null
   }, [])
 
-  // Socket.IO: real-time refresh on any new notification/lead activity
-  useEffect(() => {
-    const rawSocket = socket?.socket
-    if (!rawSocket) return
-    const handler = () => setRefreshTick(t => t + 1)
-    rawSocket.on('new-notification', handler)
-    return () => { rawSocket.off('new-notification', handler) }
-  }, [socket])
-
-  // Fetch leads
-  useEffect(() => {
-    let active = true
-    const load = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const data = await getLeads(currentUserId ? { assignedTo: currentUserId, limit: 500 } : { limit: 500 })
-        if (!active) return
-        setRows(leadsToRows(Array.isArray(data.leads) ? data.leads : []))
-      } catch (err: any) {
-        if (!active) return
-        setError(err?.message || 'Could not load follow-ups.')
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-    load()
-    return () => { active = false }
-  }, [refreshTick, currentUserId])
+  const { rows: followUpRows, loading, error, refetch } = useFollowUpLeads(currentUserId)
+  const rows = toDisplayRows(followUpRows)
 
   const markDone = useCallback(async (row: DisplayRow) => {
     setDoneIds(prev => new Set(prev).add(row.id))
@@ -200,7 +130,7 @@ export default function FollowUpPage() {
       setSaving(false)
       setFormData({ followUpDate: '', nextFollowUpDate: '', note: '' })
       setIsModalOpen(false)
-      setRefreshTick(t => t + 1)
+      refetch()
     }
   }
 
@@ -233,7 +163,7 @@ export default function FollowUpPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setRefreshTick(t => t + 1)}
+            onClick={() => refetch()}
             className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-gray-600 transition-all"
             title="Refresh"
           >
@@ -260,7 +190,7 @@ export default function FollowUpPage() {
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm">
           <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
           <p className="flex-1 font-medium text-red-700">{error}</p>
-          <button onClick={() => setRefreshTick(t => t + 1)} className="px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">
+          <button onClick={() => refetch()} className="px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">
             Retry
           </button>
         </div>

@@ -50,6 +50,7 @@ export interface LeadsPage {
 export const getLeads = async (filters?: {
   stage?: string;
   source?: string;
+  serviceInterest?: string;
   assignedTo?: string;
   bdmName?: string;
   search?: string;
@@ -60,6 +61,7 @@ export const getLeads = async (filters?: {
   const params = new URLSearchParams();
   if (filters?.stage) params.append('stage', filters.stage);
   if (filters?.source) params.append('source', filters.source);
+  if (filters?.serviceInterest) params.append('serviceInterest', filters.serviceInterest);
   if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo);
   if (filters?.bdmName) params.append('bdmName', filters.bdmName);
   if (filters?.search) params.append('search', filters.search);
@@ -190,13 +192,47 @@ export const getLeadBdmNames = async (): Promise<LeadBdmNameCounts> => {
 
 // True per-stage lead counts (optionally scoped to one BDM), in one request instead of one
 // per stage — powers BDMPipeline's column headers.
-export const getLeadStageCounts = async (assignedTo?: string): Promise<Record<LeadStage, number>> => {
+export const getLeadStageCounts = async (filters?: {
+  assignedTo?: string;
+  bdmName?: string;
+  unassigned?: boolean;
+  serviceInterest?: string;
+  search?: string;
+}): Promise<Record<LeadStage, number>> => {
   const params = new URLSearchParams();
-  if (assignedTo) params.append('assignedTo', assignedTo);
+  if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo);
+  if (filters?.bdmName) params.append('bdmName', filters.bdmName);
+  if (filters?.unassigned) params.append('unassigned', 'true');
+  if (filters?.serviceInterest) params.append('serviceInterest', filters.serviceInterest);
+  if (filters?.search) params.append('search', filters.search);
   const response = await fetch(`${API_BASE_URL}/leads/stage-counts?${params.toString()}`, {
     headers: getAuthHeader()
   });
   if (!response.ok) throw new Error('Failed to fetch lead stage counts');
+  return response.json();
+};
+
+export interface FollowUpLead {
+  _id: string;
+  fullName?: string;
+  phone: string;
+  serviceInterest?: string[];
+  assignedTo?: string;
+  lastFollowUp?: { date?: string; note?: string; nextFollowUpDate?: string; createdAt?: string };
+  dueStatus: 'overdue' | 'today' | 'upcoming';
+}
+
+// Leads with a pending next-follow-up date, tagged with dueStatus computed server-side
+// (Asia/Dhaka). Single shared source for the Follow-up Reminders page, the dashboard's
+// "Today's Follow-ups" widget, and the sidebar badge count.
+export const getFollowUpLeads = async (filters?: { assignedTo?: string }): Promise<{ leads: FollowUpLead[] }> => {
+  const params = new URLSearchParams();
+  if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo);
+  const queryString = params.toString();
+  const response = await fetch(`${API_BASE_URL}/leads/follow-ups${queryString ? `?${queryString}` : ''}`, {
+    headers: getAuthHeader()
+  });
+  if (!response.ok) throw new Error('Failed to fetch follow-up leads');
   return response.json();
 };
 

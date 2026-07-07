@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Bell,
   ClipboardCheck,
@@ -18,7 +18,9 @@ import { getAvailableSchedulesFromLuminedge, getMockTestSchedules } from '@/lib/
 import type { LeadSource, LeadStage, LuminedgeSchedule, MockTestSchedule } from '@/types/admin'
 import QuickAddLeadModal from '@/components/leads/QuickAddLeadModal'
 import type { Page } from '@/types/navigation'
-import { formatTimeAgo, formatHeaderDate, formatExamDate } from '@/lib/helpers/format'
+import { formatTimeAgo, formatHeaderDate, formatExamDate, formatShortDate } from '@/lib/helpers/format'
+import { getUserIdFromToken } from '@/lib/helpers/jwt'
+import { useFollowUpLeads } from '@/lib/hooks/useFollowUpLeads'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -40,18 +42,6 @@ type RecentLead = {
   stage: LeadStage | string
 }
 
-type UpcomingTask = {
-  id: string
-  title: string
-  dueDate: string
-  priority: 'low' | 'medium' | 'high'
-  entityType: string
-  leadId?: string
-  leadName?: string
-  serviceInterest?: string
-  leadPhone?: string
-}
-
 type StageDistributionItem = { stage: LeadStage; count: number }
 type StageTrendItem       = { month: string; Enrolled: number; 'Trial Class': number; 'New Inquiry': number; Contacted: number; Lost: number }
 type SourceDistributionItem = { source: LeadSource | string; count: number; percentage: number; color?: string }
@@ -64,7 +54,6 @@ type BDMDashboardAllResponse = {
   data?: {
     stats?: Partial<DashboardStats>
     recentLeads?: RecentLead[]
-    upcomingTasks?: UpcomingTask[]
     stageDistribution?: StageDistributionItem[]
     stageTrend?: StageTrendItem[]
     sourceDistribution?: SourceDistributionItem[]
@@ -194,34 +183,9 @@ const ACTIVITY_DOT: Record<string, string> = {
   Lost:          'bg-gray-300',
 }
 
-function followUpTitle(lead: RecentLead): string {
-  switch (lead.stage) {
-    case 'Trial Class': return `Follow-up call — ${lead.name}`
-    case 'Contacted':   return `Follow up — ${lead.name}`
-    case 'New Inquiry': return `Call ${lead.name}`
-    case 'Enrolled':    return `Confirm enrollment — ${lead.name}`
-    default:             return `Follow-up — ${lead.name}`
-  }
-}
-
-function followUpStatus(lead: RecentLead): { label: string; cls: string } {
-  const days = Math.floor((Date.now() - new Date(lead.createdAt).getTime()) / 86400000)
-  if (lead.stage === 'Trial Class' || days > 3)
-    return { label: 'Overdue', cls: 'bg-[#fde8e8] text-[#e02424] border border-[#e02424]/20' }
-  return { label: 'Today', cls: 'bg-[#def7ec] text-[#0e9f6e] border border-[#0e9f6e]/20' }
-}
-
-function taskStatus(task: UpcomingTask): { label: string; cls: string } {
-  const now      = new Date()
-  const due      = new Date(task.dueDate)
-  const diffDays = Math.floor((due.getTime() - now.getTime()) / 86400000)
-  if (diffDays < 0)
-    return { label: 'Overdue', cls: 'bg-[#fde8e8] text-[#e02424] border border-[#e02424]/20' }
-  if (diffDays === 0) {
-    const h = due.getHours()
-    const label = `Today ${h % 12 || 12}${h >= 12 ? 'PM' : 'AM'}`
-    return { label, cls: 'bg-[#def7ec] text-[#0e9f6e] border border-[#0e9f6e]/20' }
-  }
+function followUpDueBadge(status: 'overdue' | 'today' | 'upcoming'): { label: string; cls: string } {
+  if (status === 'overdue') return { label: 'Overdue', cls: 'bg-[#fde8e8] text-[#e02424] border border-[#e02424]/20' }
+  if (status === 'today')   return { label: 'Today',   cls: 'bg-[#def7ec] text-[#0e9f6e] border border-[#0e9f6e]/20' }
   return { label: 'Upcoming', cls: 'bg-[#ebf0ff] text-[#1a56db] border border-[#1a56db]/20' }
 }
 
@@ -267,7 +231,6 @@ export default function BDMDashboard({
 
   const [stats,           setStats]           = useState<DashboardStats>(DEFAULT_STATS)
   const [recentLeads,     setRecentLeads]     = useState<RecentLead[]>([])
-  const [upcomingTasks,   setUpcomingTasks]   = useState<UpcomingTask[]>([])
   const [upcomingSchedules, setUpcomingSchedules] = useState<MockTestSchedule[]>([])
   const [bookedSlots,       setBookedSlots]       = useState(0)
   const [loading,         setLoading]         = useState(true)
@@ -275,6 +238,15 @@ export default function BDMDashboard({
   const [fetchTick,       setFetchTick]       = useState(0)
   const [showQuickAdd,    setShowQuickAdd]    = useState(false)
   const [checkedIds,      setCheckedIds]      = useState<Set<string>>(new Set())
+
+  // Get the logged-in BDM's userId from JWT, so only their own leads' follow-ups show —
+  // same shared query/hook used by the Follow-up Reminders page and the sidebar badge.
+  const currentUserId = useMemo(() => {
+    const decoded = getUserIdFromToken()
+    return decoded?.id || decoded?.userId || null
+  }, [])
+  const { rows: followUpRows } = useFollowUpLeads(currentUserId)
+  const todayFollowUps = followUpRows.filter(r => r.dueStatus !== 'upcoming').slice(0, 5)
 
   useEffect(() => {
     let isActive = true
@@ -295,8 +267,7 @@ export default function BDMDashboard({
           if (res?.success) {
             const d = res.data ?? {}
             setStats(mergeStats(d.stats))
-            setRecentLeads(Array.isArray(d.recentLeads)     ? d.recentLeads     : [])
-            setUpcomingTasks(Array.isArray(d.upcomingTasks) ? d.upcomingTasks   : [])
+            setRecentLeads(Array.isArray(d.recentLeads) ? d.recentLeads : [])
           } else {
             setFetchError('Dashboard data unavailable. Try refreshing.')
           }
@@ -337,7 +308,6 @@ export default function BDMDashboard({
   }, [fetchTick])
 
   const firstName = userName || 'there'
-  const useTasksForFollowUps = upcomingTasks.length > 0
 
   const toggleCheck = (id: string) => {
     setCheckedIds(prev => {
@@ -519,7 +489,7 @@ export default function BDMDashboard({
               </div>
               <h2 className="text-[13.5px] font-bold text-gray-900">Today&apos;s Follow-ups</h2>
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                {(useTasksForFollowUps ? upcomingTasks : recentLeads).length}
+                {todayFollowUps.length}
               </span>
             </div>
             <button
@@ -532,7 +502,7 @@ export default function BDMDashboard({
           </div>
 
           <div className="divide-y divide-gray-100 flex-1">
-            {(useTasksForFollowUps ? upcomingTasks : recentLeads).length === 0 ? (
+            {todayFollowUps.length === 0 ? (
               <div className="flex flex-col items-center py-14 text-center">
                 <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-3">
                   <CheckSquare className="w-5 h-5 text-gray-300" />
@@ -540,90 +510,29 @@ export default function BDMDashboard({
                 <p className="text-[13px] font-semibold text-gray-400">No follow-ups today</p>
                 <p className="text-[11px] text-gray-300 mt-1">Tasks appear here as leads come in.</p>
               </div>
-            ) : useTasksForFollowUps ? (
-              upcomingTasks.map(task => {
-                const status = taskStatus(task)
-                const services = (task.serviceInterest || '').split(',').map((s: string) => s.trim()).filter(Boolean)
-                const done   = checkedIds.has(task.id)
-                return (
-                  <div key={task.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors group">
-                    <div
-                      onClick={() => toggleCheck(task.id)}
-                      className={`w-4.5 h-4.5 border-2 rounded-[5px] flex-shrink-0 cursor-pointer transition-all ${
-                        done ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 hover:border-blue-500'
-                      }`}
-                    />
-                    <div
-                      className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => task.leadId && onViewLead?.(task.leadId)}
-                    >
-                      <p className={`text-[13.5px] font-semibold leading-tight truncate ${done ? 'line-through text-gray-400' : 'text-gray-800 group-hover:text-blue-600 transition-colors'}`}>
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        {services.slice(0, 2).map(s => (
-                          <span key={s} className={`text-[10.5px] font-bold px-2 py-0.5 rounded ${SERVICE_BADGE[s] || 'bg-gray-100 text-gray-600'}`}>{s}</span>
-                        ))}
-                        <span className="text-[11px] text-gray-400 font-medium">· {formatTimeAgo(task.dueDate)}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-md border whitespace-nowrap ${status.cls}`}>
-                        {status.label}
-                      </span>
-                      <div className="flex items-center gap-1 border-l border-gray-100 pl-2">
-                        <a
-                          href={task.leadPhone ? `https://wa.me/${task.leadPhone.replace(/\D/g, '')}` : undefined}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={e => { if (!task.leadPhone) e.preventDefault() }}
-                          title="WhatsApp call"
-                          className={`w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center transition-colors ${task.leadPhone ? 'hover:bg-emerald-100' : 'opacity-40 cursor-not-allowed'}`}
-                        >
-                          <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                        </a>
-                        <a
-                          href={task.leadPhone ? `https://wa.me/${task.leadPhone.replace(/\D/g, '')}` : undefined}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={e => { if (!task.leadPhone) e.preventDefault() }}
-                          title="WhatsApp chat"
-                          className={`w-7 h-7 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center transition-colors text-gray-500 ${task.leadPhone ? 'hover:bg-gray-100' : 'opacity-40 cursor-not-allowed'}`}
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
             ) : (
-              recentLeads.map(lead => {
-                const status = followUpStatus(lead)
-                const services = Array.isArray(lead.service)
-                  ? lead.service
-                  : String(lead.service || '').split(',').map((s: string) => s.trim()).filter(Boolean)
-                const done   = checkedIds.has(lead.id)
+              todayFollowUps.map(row => {
+                const status = followUpDueBadge(row.dueStatus)
+                const done   = checkedIds.has(row.id)
                 return (
-                  <div key={lead.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors group">
+                  <div key={row.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors group">
                     <div
-                      onClick={() => toggleCheck(lead.id)}
+                      onClick={() => toggleCheck(row.id)}
                       className={`w-4.5 h-4.5 border-2 rounded-[5px] flex-shrink-0 cursor-pointer transition-all ${
                         done ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 hover:border-blue-500'
                       }`}
                     />
                     <div
                       className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => onViewLead?.(lead.id)}
+                      onClick={() => onViewLead?.(row.id)}
                     >
                       <p className={`text-[13.5px] font-semibold leading-tight truncate ${done ? 'line-through text-gray-400' : 'text-gray-800 group-hover:text-blue-600 transition-colors'}`}>
-                        {followUpTitle(lead)}
+                        {row.name}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        {services.slice(0, 2).map(s => (
-                          <span key={s} className={`text-[10.5px] font-bold px-2 py-0.5 rounded ${SERVICE_BADGE[s] || 'bg-gray-100 text-gray-600'}`}>{s}</span>
-                        ))}
-                        <span className="text-[11px] text-gray-400 font-medium">· {formatTimeAgo(lead.createdAt)}</span>
+                        <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded ${SERVICE_BADGE[row.courseInterest] || 'bg-gray-100 text-gray-600'}`}>{row.courseInterest}</span>
+                        <span className="text-[11px] text-gray-400 font-medium">· {row.dueDate ? formatShortDate(row.dueDate) : ''}</span>
+                        {row.note && <span className="text-[11px] text-gray-400 font-medium truncate">· {row.note}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -632,22 +541,22 @@ export default function BDMDashboard({
                       </span>
                       <div className="flex items-center gap-1 border-l border-gray-100 pl-2">
                         <a
-                          href={lead.phone ? `https://wa.me/${lead.phone.replace(/\D/g, '')}` : undefined}
+                          href={row.phone ? `https://wa.me/${row.phone.replace(/\D/g, '')}` : undefined}
                           target="_blank"
                           rel="noreferrer"
-                          onClick={e => { if (!lead.phone) e.preventDefault() }}
+                          onClick={e => { if (!row.phone) e.preventDefault() }}
                           title="WhatsApp call"
-                          className={`w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center transition-colors ${lead.phone ? 'hover:bg-emerald-100' : 'opacity-40 cursor-not-allowed'}`}
+                          className={`w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center transition-colors ${row.phone ? 'hover:bg-emerald-100' : 'opacity-40 cursor-not-allowed'}`}
                         >
                           <Phone className="w-3.5 h-3.5 text-emerald-600" />
                         </a>
                         <a
-                          href={lead.phone ? `https://wa.me/${lead.phone.replace(/\D/g, '')}` : undefined}
+                          href={row.phone ? `https://wa.me/${row.phone.replace(/\D/g, '')}` : undefined}
                           target="_blank"
                           rel="noreferrer"
-                          onClick={e => { if (!lead.phone) e.preventDefault() }}
+                          onClick={e => { if (!row.phone) e.preventDefault() }}
                           title="WhatsApp chat"
-                          className={`w-7 h-7 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center transition-colors text-gray-500 ${lead.phone ? 'hover:bg-gray-100' : 'opacity-40 cursor-not-allowed'}`}
+                          className={`w-7 h-7 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center transition-colors text-gray-500 ${row.phone ? 'hover:bg-gray-100' : 'opacity-40 cursor-not-allowed'}`}
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                         </a>

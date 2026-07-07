@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import {
   Phone,
   MessageSquare,
@@ -11,6 +11,12 @@ import {
   CheckCircle2,
   X,
   BookOpen,
+  Calendar,
+  Tag,
+  ChevronDown,
+  Check,
+  RotateCcw,
+  Kanban,
 } from 'lucide-react'
 import {
   DndContext,
@@ -31,8 +37,133 @@ import { formatTimeAgo, extractTargetScore } from '@/lib/helpers/format'
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import type { Page } from '@/types/navigation'
 import toast from 'react-hot-toast'
+import { COURSE_GROUPS } from '@/lib/constants/courseGroups'
 
-const EXAMS = ['All Exams', 'IELTS', 'PTE', 'TOEFL', 'GRE', 'SAT', 'GMAT']
+const DATE_FILTERS = ['Today', 'This Week', 'This Month', 'All Time']
+
+function startOfDateFilter(filter: string): Date | null {
+  const now = new Date()
+  if (filter === 'Today') {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  }
+  if (filter === 'This Week') {
+    const day = now.getDay() // 0 = Sunday
+    const diffToMonday = (day + 6) % 7
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday)
+    return monday
+  }
+  if (filter === 'This Month') {
+    return new Date(now.getFullYear(), now.getMonth(), 1)
+  }
+  return null // 'All Time'
+}
+
+// ─── Filter Dropdown ────────────────────────────────────────────────────────────────
+
+interface FilterOption { value: string; label: string }
+interface FilterGroup { label?: string; options: FilterOption[] }
+
+function FilterDropdown({
+  icon: Icon,
+  value,
+  defaultValue,
+  groups,
+  onChange,
+  onClear,
+  menuWidth = 'w-48',
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  value: string
+  defaultValue: string
+  groups: FilterGroup[]
+  onChange: (value: string) => void
+  onClear?: () => void
+  menuWidth?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const isActive = value !== defaultValue
+
+  useEffect(() => {
+    if (!open) return
+    const handleClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [open])
+
+  const selectedLabel = useMemo(
+    () => groups.flatMap(g => g.options).find(o => o.value === value)?.label ?? value,
+    [groups, value]
+  )
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className={`group flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg border text-[13px] font-medium transition-all duration-150 ${
+          isActive
+            ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm hover:bg-blue-100 hover:border-blue-300'
+            : 'border-gray-200/70 bg-white text-gray-600 shadow-sm hover:border-gray-300 hover:bg-gray-50'
+        } ${open ? 'ring-2 ring-blue-500/20 border-blue-300' : ''}`}
+      >
+        <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+        <span className="truncate max-w-[120px]">{selectedLabel}</span>
+        {isActive && onClear ? (
+          <span
+            role="button"
+            tabIndex={-1}
+            onClick={(e) => { e.stopPropagation(); onClear() }}
+            className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-blue-400 hover:bg-blue-200/70 hover:text-blue-700 transition-colors"
+          >
+            <X className="w-3 h-3" />
+          </span>
+        ) : (
+          <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''} text-gray-400`} />
+        )}
+      </button>
+
+      {open && (
+        <div
+          className={`absolute left-0 top-[calc(100%+8px)] ${menuWidth} max-h-80 overflow-y-auto bg-white rounded-xl border border-gray-200/80 shadow-xl shadow-gray-900/10 z-30 py-1.5`}
+        >
+          {groups.map((group, gi) => (
+            <div key={gi} className={gi > 0 ? 'mt-1 pt-1 border-t border-gray-100' : ''}>
+              {group.label && (
+                <div className="px-3 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  {group.label}
+                </div>
+              )}
+              {group.options.map(opt => {
+                const selected = opt.value === value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { onChange(opt.value); setOpen(false) }}
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[13px] text-left transition-colors ${
+                      selected ? 'text-blue-600 font-semibold bg-blue-50/70' : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    {selected && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── Lead Card ──────────────────────────────────────────────────────────────────────
 
@@ -195,12 +326,34 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
   const [error,         setError]         = useState<string | null>(null)
   const [refreshTick,   setRefreshTick]   = useState(0)
   const [search,        setSearch]        = useState('')
-  const [typeFilter,    setTypeFilter]    = useState('All Exams')
+  const [typeFilter,    setTypeFilter]    = useState('All Courses')
+  const [dateFilter,    setDateFilter]    = useState('Today')
+  const [sourceFilter,  setSourceFilter]  = useState('All Sources')
   const [showQuickAdd,  setShowQuickAdd]  = useState(false)
   const [savingStageId, setSavingStageId] = useState<string | null>(null)
   const [stageCounts,   setStageCounts]   = useState<Record<LeadStage, number> | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const sourceOptions = useMemo(() => {
+    const distinct = Array.from(new Set(leads.map(l => l.source).filter(Boolean))) as string[]
+    distinct.sort((a, b) => a.localeCompare(b))
+    return ['All Sources', ...distinct]
+  }, [leads])
+
+  // "/" focuses search, like Linear/GitHub — skipped while already typing in a field
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   // Get the logged-in BDM's userId from JWT
   const currentUserId = useMemo(() => {
@@ -236,7 +389,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
     let active = true
     const loadCounts = async () => {
       try {
-        const counts = await getLeadStageCounts(currentUserId || undefined)
+        const counts = await getLeadStageCounts(currentUserId ? { assignedTo: currentUserId } : undefined)
         if (active) setStageCounts(counts)
       } catch {
         if (active) setStageCounts(null)
@@ -280,20 +433,38 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
 
   const filtered = useMemo(() => {
     return leads.filter(l => {
+      const qDigits = q.replace(/\D/g, '')
       const matchSearch = !q || (
         (l.fullName || '').toLowerCase().includes(q) ||
         l.email?.toLowerCase().includes(q) ||
-        l.phone.replace(/\D/g, '').includes(q.replace(/\D/g, '')) ||
-        l.phone.includes(q)
+        (qDigits.length > 0 && l.phone.replace(/\D/g, '').includes(qDigits)) ||
+        l.phone.toLowerCase().includes(q)
       )
 
-      // Exam type filter
-      const svc = (Array.isArray(l.serviceInterest) ? l.serviceInterest.join(',') : l.serviceInterest || '').toLowerCase()
-      const matchType = typeFilter === 'All Exams' || svc.includes(typeFilter.toLowerCase())
+      // Course filter — exact match against the selected service-interest option
+      const services = Array.isArray(l.serviceInterest) ? l.serviceInterest : [l.serviceInterest].filter(Boolean)
+      const matchType = typeFilter === 'All Courses' || services.includes(typeFilter as any)
 
-      return matchSearch && matchType
+      // Source filter
+      const matchSource = sourceFilter === 'All Sources' || l.source === sourceFilter
+
+      // Date filter
+      const cutoff = startOfDateFilter(dateFilter)
+      const matchDate = !cutoff || new Date(l.createdAt) >= cutoff
+
+      return matchSearch && matchType && matchSource && matchDate
     })
-  }, [leads, q, typeFilter])
+  }, [leads, q, typeFilter, sourceFilter, dateFilter])
+
+  const hasActiveFilter = q.length > 0 || typeFilter !== 'All Courses' || sourceFilter !== 'All Sources' || dateFilter !== 'All Time'
+
+  // leads is capped at 500 for rendering performance (see fetch above), so it can't be used as
+  // the "total" once a BDM has more leads than that — stageCounts holds the true per-stage
+  // totals from the server, so sum those instead when available.
+  const trueTotal = useMemo(
+    () => stageCounts ? Object.values(stageCounts).reduce((a, b) => a + b, 0) : leads.length,
+    [stageCounts, leads.length]
+  )
 
   const grouped = useMemo(() => {
     const map = {} as Record<LeadStage, Lead[]>
@@ -309,51 +480,104 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
     <div className="flex flex-col h-full bg-white -m-6 min-h-[calc(100vh-64px)]">
 
       {/* Page header */}
-      <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 bg-white sticky top-0 z-20">
-        <div className="flex items-center gap-4">
-          <h1 className="text-[17px] font-bold text-[#343a40]">Lead Pipeline</h1>
+      <div className="px-6 py-4 flex flex-wrap items-center gap-[8rem] border-b border-gray-200/70 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
+        {/* Left: icon + title + count + Add Lead */}
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4c6ef5] to-[#3b5bdb] flex items-center justify-center shadow-md shadow-blue-500/25 flex-shrink-0">
+            <Kanban className="w-[18px] h-[18px] text-white" strokeWidth={2.25} />
+          </div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-[18px] font-extrabold text-[#1a1d24] tracking-tight">Lead Pipeline</h1>
+            <span className="flex items-center gap-1.5 text-[11.5px] font-bold text-blue-700 bg-blue-50 border border-blue-100/80 rounded-full pl-2 pr-2.5 py-[3px] whitespace-nowrap">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
+              </span>
+              {(hasActiveFilter ? filtered.length : trueTotal).toLocaleString()} <span className="font-medium text-blue-400">of</span> {trueTotal.toLocaleString()}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => setShowQuickAdd(true)}
-            className="flex items-center gap-1.5 h-8 px-4 bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium text-[13px] rounded-md transition-colors shadow-sm"
+            className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
             Add Lead
           </button>
         </div>
 
+        {/* Right: filter toolbar */}
         <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search leads..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="h-8 pl-8 pr-8 border border-gray-200 rounded-md text-[13px] text-gray-700 bg-white outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-56 transition-all"
+          <div className="flex flex-wrap items-center gap-5 p-2 rounded-2xl bg-slate-100/70 ring-1 ring-slate-200/80 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]">
+            {/* Search */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search name, phone or email..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') { setSearch(''); (e.target as HTMLInputElement).blur() } }}
+                className="h-8 pl-8 pr-8 bg-white border border-gray-200/70 rounded-xl text-[13px] font-medium text-gray-700 placeholder:text-gray-400 placeholder:font-normal outline-none shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 w-60 transition-all duration-150"
+              />
+              {search ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5 pointer-events-none">
+                  /
+                </kbd>
+              )}
+            </div>
+
+            <FilterDropdown
+              icon={Calendar}
+              value={dateFilter}
+              defaultValue="All Time"
+              onChange={setDateFilter}
+              onClear={() => setDateFilter('All Time')}
+              groups={[{ options: DATE_FILTERS.map(f => ({ value: f, label: f })) }]}
             />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+
+            <FilterDropdown
+              icon={BookOpen}
+              value={typeFilter}
+              defaultValue="All Courses"
+              onChange={setTypeFilter}
+              onClear={() => setTypeFilter('All Courses')}
+              menuWidth="w-56"
+              groups={[
+                { options: [{ value: 'All Courses', label: 'All Courses' }] },
+                ...COURSE_GROUPS.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o, label: o })) })),
+              ]}
+            />
+
+            <FilterDropdown
+              icon={Tag}
+              value={sourceFilter}
+              defaultValue="All Sources"
+              onChange={setSourceFilter}
+              onClear={() => setSourceFilter('All Sources')}
+              groups={[{ options: sourceOptions.map(s => ({ value: s, label: s })) }]}
+            />
           </div>
 
-          {/* Exam Filter Dropdown */}
-          <select
-            value={typeFilter}
-            onChange={e => setTypeFilter(e.target.value)}
-            className="h-8 pl-3 pr-8 border border-gray-200 rounded-md text-[13px] text-gray-700 bg-white outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.2rem_center] bg-no-repeat"
-          >
-            {EXAMS.map(exam => (
-              <option key={exam} value={exam}>{exam}</option>
-            ))}
-          </select>
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={() => { setSearch(''); setDateFilter('All Time'); setTypeFilter('All Courses'); setSourceFilter('All Sources') }}
+              className="flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12.5px] font-semibold text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset
+            </button>
+          )}
         </div>
       </div>
 
@@ -383,7 +607,6 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
               // stageCounts is unfiltered, so it can only be meaningfully compared against
               // colLeads.length when no client-side search/type filter is narrowing the view —
               // otherwise a filtered column reads as "truncated" even when nothing is hidden.
-              const hasActiveFilter = q.length > 0 || typeFilter !== 'All Exams'
               const isTruncated = !loading && !hasActiveFilter && trueCount > colLeads.length
               return (
                 <Column key={stage} stage={stage} count={trueCount} loading={loading}>

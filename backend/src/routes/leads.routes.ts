@@ -13,7 +13,8 @@ import {
   getLeadStageCounts,
   importLeads,
   getLeadStats,
-  assignLeads
+  assignLeads,
+  getFollowUpLeads
 } from '../controllers/leads.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth.middleware';
 
@@ -26,6 +27,7 @@ router.get('/phone-lookup', authenticateToken, authorizeRoles('admin', 'bdm'), l
 router.get('/bdms', authenticateToken, authorizeRoles('admin', 'bdm'), getBDMs);
 router.get('/bdm-names', authenticateToken, authorizeRoles('admin', 'bdm'), getLeadBdmNames);
 router.get('/stage-counts', authenticateToken, authorizeRoles('admin', 'bdm'), getLeadStageCounts);
+router.get('/follow-ups', authenticateToken, authorizeRoles('admin', 'bdm'), getFollowUpLeads);
 router.get('/:id', authenticateToken, authorizeRoles('admin', 'bdm'), getLead);
 router.post('/', authenticateToken, authorizeRoles('admin', 'bdm'), createLead);
 router.post('/import', authenticateToken, authorizeRoles('admin'), importLeads);

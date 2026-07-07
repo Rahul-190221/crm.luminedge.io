@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
 import BDMSidebar from '@/components/layout/BDMSidebar'
@@ -24,9 +24,8 @@ import FollowUpPage from '@/components/dashboard/FollowUpPage'
 import ProfilePage from '@/components/shared/ProfilePage'
 import { getUserIdFromToken, getToken } from '@/lib/helpers/jwt'
 import { getProfile } from '@/lib/api/auth'
-import { getLeads } from '@/lib/api/leads'
 import { API_URL } from '@/lib/api/base'
-import { useSocket } from '@/components/providers/SocketProvider'
+import { useFollowUpLeads } from '@/lib/hooks/useFollowUpLeads'
 import type { Page } from '@/types/navigation'
 
 function formatRoleLabel(role: string): string {
@@ -47,34 +46,14 @@ function BDMDashboardContent() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const socket = useSocket()
-  const [followUpCount, setFollowUpCount] = useState(0)
-
-  const fetchFollowUpCount = useCallback(async () => {
-    try {
-      const decoded = getUserIdFromToken()
-      const currentUserId = decoded?.id || decoded?.userId || null
-      const data = await getLeads(currentUserId ? { assignedTo: currentUserId, limit: 500 } : { limit: 500 })
-      const arr = Array.isArray(data.leads) ? data.leads : []
-      const count = arr.filter((lead: any) => {
-        const lastFU = lead.followUps?.at(-1)
-        return !!lastFU?.nextFollowUpDate
-      }).length
-      setFollowUpCount(count)
-    } catch {
-      /* best effort */
-    }
+  // Same shared query/hook as the Follow-up Reminders page and the dashboard widget, so the
+  // sidebar badge always agrees with what those two surfaces show (Today + Overdue count).
+  const currentUserId = useMemo(() => {
+    const decoded = getUserIdFromToken()
+    return decoded?.id || decoded?.userId || null
   }, [])
-
-  useEffect(() => { fetchFollowUpCount() }, [fetchFollowUpCount])
-
-  useEffect(() => {
-    const rawSocket = socket?.socket
-    if (!rawSocket) return
-    const handler = () => fetchFollowUpCount()
-    rawSocket.on('new-notification', handler)
-    return () => { rawSocket.off('new-notification', handler) }
-  }, [socket, fetchFollowUpCount])
+  const { rows: followUpRows } = useFollowUpLeads(currentUserId)
+  const followUpCount = followUpRows.filter(r => r.dueStatus !== 'upcoming').length
 
   const clearAuthAndRedirect = async () => {
     const token = getToken()

@@ -4,6 +4,7 @@ import Lead from '../models/Lead';
 import User from '../models/User';
 import { createAndEmitNotification, createAndEmitToAdmins, createAndEmitToRoles } from '../services/notification.service';
 import { canonicalizePhoneValue, extractPhoneDigits, escapeRegex, buildPhoneEntryFilter, phoneSearchDigits } from '../utils/phone.util';
+import { findFollowUpLeads } from '../services/followUp.service';
 
 const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with another number.';
 
@@ -76,61 +77,77 @@ const assertPhoneIsUnique = async (phone: string, excludeId?: string) => {
   const existing = await Lead.exists(filter);
   return Boolean(existing);
 };
+// Builds the shared Lead query filter from the same set of query params used by both
+// getLeads (paginated list) and getLeadStageCounts (per-stage totals), so the two stay in
+// sync — e.g. a search/BDM/course filter narrows both the table and the stat-card counts.
+const buildLeadFilter = (query: Request['query']): Record<string, any> => {
+  const { stage, source, serviceInterest, assignedTo, bdmName, search, unassigned } = query;
+  const filter: Record<string, any> = {};
+
+  if (unassigned === 'true') {
+    // Genuinely unassigned: no real BDM AND no imported BDM name either (distinct from a
+    // lead that has a bdmName like "Tanha" but no matching User account yet).
+    filter.$and = [
+      { $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }] },
+      { $or: [{ bdmName: { $exists: false } }, { bdmName: null }, { bdmName: '' }] },
+    ];
+  }
+
+  if (stage && stage !== 'All') {
+    filter.lifecycleStage = String(stage);
+  }
+
+  if (source && source !== 'All') {
+    filter.source = String(source);
+  }
+
+  if (serviceInterest && serviceInterest !== 'All Courses') {
+    // serviceInterest is stored as an array on Lead; equality against a scalar matches
+    // documents where the array contains that value.
+    filter.serviceInterest = String(serviceInterest);
+  }
+
+  if (assignedTo && unassigned !== 'true') {
+    filter.assignedTo = String(assignedTo);
+  }
+
+  // Filters leads by the original CSV-imported BDM name, for leads with no matching
+  // User account (see backfillBdmName.ts) — a separate filter from assignedTo since it's
+  // a plain string, not a User reference.
+  if (bdmName) {
+    filter.bdmName = String(bdmName);
+  }
+
+  if (search) {
+    const rawSearch = String(search).slice(0, 200);
+    const isPhoneLike = /^[\d+\-\s()]+$/.test(rawSearch) && normalizePhoneDigits(rawSearch).length >= 3;
+
+    if (isPhoneLike) {
+      // Digit-only queries are almost always a phone number — anchored so it can use the
+      // phone index as a prefix scan instead of an unindexed substring collection scan.
+      // Canonicalized so a bare national number (e.g. "01736461877") matches leads stored
+      // in international form (e.g. "+8801736461877").
+      const safeDigits = escapeRegex(phoneSearchDigits(rawSearch));
+      filter.phone = { $regex: `^\\+?${safeDigits}|,\\s*\\+?${safeDigits}`, $options: 'i' };
+    } else {
+      // Name/email search uses the text index instead of an unindexed regex scan.
+      filter.$text = { $search: rawSearch };
+    }
+  }
+
+  return filter;
+};
+
 // Get all leads
 export const getLeads = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { stage, source, assignedTo, bdmName, search, unassigned, page: pageParam, limit: limitParam } = req.query;
+    const { page: pageParam, limit: limitParam } = req.query;
 
     const page = Math.max(1, parseInt(String(pageParam || '1'), 10) || 1);
     const limit = Math.min(500, Math.max(1, parseInt(String(limitParam || '50'), 10) || 50));
     const skip = (page - 1) * limit;
 
-    const filter: any = {};
-
-    if (unassigned === 'true') {
-      // Genuinely unassigned: no real BDM AND no imported BDM name either (distinct from a
-      // lead that has a bdmName like "Tanha" but no matching User account yet).
-      filter.$and = [
-        { $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }] },
-        { $or: [{ bdmName: { $exists: false } }, { bdmName: null }, { bdmName: '' }] },
-      ];
-    }
-
-    if (stage && stage !== 'All') {
-      filter.lifecycleStage = String(stage);
-    }
-
-    if (source && source !== 'All') {
-      filter.source = String(source);
-    }
-
-    if (assignedTo && unassigned !== 'true') {
-      filter.assignedTo = String(assignedTo);
-    }
-
-    // Filters leads by the original CSV-imported BDM name, for leads with no matching
-    // User account (see backfillBdmName.ts) — a separate filter from assignedTo since it's
-    // a plain string, not a User reference.
-    if (bdmName) {
-      filter.bdmName = String(bdmName);
-    }
-
-    if (search) {
-      const rawSearch = String(search).slice(0, 200);
-      const isPhoneLike = /^[\d+\-\s()]+$/.test(rawSearch) && normalizePhoneDigits(rawSearch).length >= 3;
-
-      if (isPhoneLike) {
-        // Digit-only queries are almost always a phone number — anchored so it can use the
-        // phone index as a prefix scan instead of an unindexed substring collection scan.
-        // Canonicalized so a bare national number (e.g. "01736461877") matches leads stored
-        // in international form (e.g. "+8801736461877").
-        const safeDigits = escapeRegex(phoneSearchDigits(rawSearch));
-        filter.phone = { $regex: `^\\+?${safeDigits}|,\\s*\\+?${safeDigits}`, $options: 'i' };
-      } else {
-        // Name/email search uses the text index instead of an unindexed regex scan.
-        filter.$text = { $search: rawSearch };
-      }
-    }
+    const filter = buildLeadFilter(req.query);
 
     const [leads, total] = await Promise.all([
       Lead.find(filter)
@@ -151,6 +168,20 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Error fetching leads:', error);
     res.status(500).json({ error: 'Failed to fetch leads' });
+  }
+};
+
+// Leads with a pending next-follow-up date, tagged with dueStatus ('overdue' | 'today' |
+// 'upcoming') computed in Asia/Dhaka. Single shared source for the Follow-up Reminders page,
+// the dashboard's "Today's Follow-ups" widget, and the sidebar badge count.
+export const getFollowUpLeads = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const assignedTo = req.query.assignedTo ? String(req.query.assignedTo) : undefined;
+    const leads = await findFollowUpLeads({ assignedTo });
+    res.json({ leads });
+  } catch (error) {
+    console.error('Error fetching follow-up leads:', error);
+    res.status(500).json({ error: 'Failed to fetch follow-up leads' });
   }
 };
 
@@ -626,16 +657,18 @@ export const getLeadStats = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// Per-stage lead counts (optionally scoped to one BDM via `assignedTo`), computed with a
-// single aggregation instead of one countDocuments call per stage — powers BDMPipeline's
-// column headers, which need the true total per stage even beyond the card-rendering cap.
+// Per-stage lead counts, computed with a single aggregation instead of one countDocuments
+// call per stage — powers BDMPipeline's column headers and Lead Center's stat cards, which
+// both need the true total per stage even beyond the card/table-rendering cap. Accepts the
+// same filters as getLeads (minus `stage` itself) so the counts stay in sync with whatever
+// search/BDM/course filter is currently narrowing the list.
 export const getLeadStageCounts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { assignedTo } = req.query;
-    const match: Record<string, any> = {};
+    const { stage, ...rest } = req.query;
+    const match = buildLeadFilter(rest);
     // $match bypasses Mongoose's automatic query casting (unlike Model.find()), so an ObjectId-typed
     // field must be cast explicitly here or a string value will never match any document.
-    if (assignedTo) match.assignedTo = new mongoose.Types.ObjectId(String(assignedTo));
+    if (match.assignedTo) match.assignedTo = new mongoose.Types.ObjectId(String(match.assignedTo));
 
     const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
     const rows = await Lead.aggregate([
