@@ -163,7 +163,7 @@ export default function BDMExamSlots() {
 
   return (
     <div className="space-y-5">
-      <div className="-mx-6 -mt-6 sticky top-0 z-20 border-b border-blue-100 bg-white/95 px-6 py-5 backdrop-blur-sm shadow-[0_1px_8px_rgba(37,99,235,0.04)]">
+      <div className="-mx-6 -mt-6 sticky top-0 z-20 border-b border-blue-100 bg-white/95 px-4 py-3 md:px-6 md:py-5 backdrop-blur-sm shadow-[0_1px_8px_rgba(37,99,235,0.04)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-[22px] font-extrabold tracking-tight text-[#0f172a]">Exam Slots</h1>

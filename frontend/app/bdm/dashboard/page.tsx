@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
 import BDMSidebar from '@/components/layout/BDMSidebar'
+import BDMMobileBar from '@/components/layout/BDMMobileBar'
 import BDMDashboard from '@/components/dashboard/BDMDashboard'
 import BDMPipeline from '@/components/dashboard/BDMPipeline'
 import BDMExamSlots from '@/components/dashboard/BDMExamSlots'
@@ -214,9 +215,12 @@ function BDMDashboardContent() {
         onClose={() => setSidebarOpen(false)}
         unreadCount={followUpCount}
       />
-      <main className="flex-1 min-w-0 overflow-y-auto bg-[#f9fafb] pt-6 pr-6 pb-12 pl-4 scrollbar-hide">
-        {renderContent()}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <BDMMobileBar onMenuToggle={() => setSidebarOpen(prev => !prev)} />
+        <main className="flex-1 min-w-0 overflow-y-auto bg-[#f9fafb] pt-3 lg:pt-6 pr-6 pb-12 pl-4 scrollbar-hide">
+          {renderContent()}
+        </main>
+      </div>
     </div>
   )
 }

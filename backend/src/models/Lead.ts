@@ -22,7 +22,7 @@ export interface ILead extends Document {
     'PTE Premium' | 'PTE Crash' | 'PTE Intense' | 'PTE 1 Module' | 'PTE 1-on-1' | 'PTE Mock Tests' |
     'TOEFL Premium' | 'TOEFL Crash' | 'TOEFL 1 Module' | 'TOEFL 1-on-1' | 'TOEFL Mock Tests' |
     'GRE Premium' | 'GRE Quant' | 'GRE Verbal' | 'GRE 1-on-1' | 'GRE Mock Tests' | 'GRE Portal' |
-    'Basic English' | 'Spoken' | 'Service Charge' | 'SSC English'
+    'Basic English' | 'Spoken' | 'Service Charge' | 'SSC English' | 'Study Abroad' | 'Others'
   )[];
   assignedTo?: mongoose.Types.ObjectId;
   notes?: string;
@@ -77,7 +77,7 @@ const LeadSchema = new Schema<ILead>(
         'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
         'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
         'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
-        'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+        'Basic English', 'Spoken', 'Service Charge', 'SSC English', 'Study Abroad', 'Others',
       ]
     }],
     assignedTo: {

@@ -169,7 +169,7 @@ const CourseDetails: React.FC = () => {
     <div className="space-y-4 pb-6">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4 shadow-sm">
+      <div className="-mx-6 -mt-6 mb-4 p-4 md:p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4 shadow-sm">
         <div>
           <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">Active Batches</h1>
         </div>
@@ -226,7 +226,7 @@ const CourseDetails: React.FC = () => {
       {isAdmin && (
         <button
           onClick={() => { setSelectedCourse(null); setIsAddModalOpen(true) }}
-          className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 flex items-center justify-center hover:-translate-y-1 active:scale-95 transition-all z-50"
+          className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 items-center justify-center hover:-translate-y-1 active:scale-95 transition-all z-30"
           title="New Batch"
         >
           <Plus className="w-6 h-6" strokeWidth={2.5} />

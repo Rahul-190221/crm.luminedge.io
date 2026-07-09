@@ -480,7 +480,7 @@ export default function LeadDetail({ id, onBack, requireApproval = false }: Lead
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-4 md:p-4.5 flex flex-col justify-between min-h-[98px]">
           <div className="flex items-start gap-2.5 mb-3">
             <div className="w-8 h-8 rounded-lg bg-[#ebf0ff] border border-[#1a56db]/10 flex items-center justify-center text-[#1a56db] flex-shrink-0">

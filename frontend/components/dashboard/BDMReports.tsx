@@ -39,7 +39,7 @@ function StatCard({
     <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between h-full">
       <div>
         <p className="text-[12px] text-gray-500 font-medium mb-3">{label}</p>
-        <p className="text-[28px] font-extrabold text-gray-800 leading-none tabular-nums">{value}</p>
+        <p className="text-[22px] md:text-[28px] font-extrabold text-gray-800 leading-none tabular-nums">{value}</p>
       </div>
       {change && (
         <p className="text-[12px] mt-3 font-semibold text-[#0e9f6e]">
@@ -142,7 +142,7 @@ export default function BDMReports() {
           <div className="h-7 w-48 bg-gray-200 rounded-lg" />
           <div className="h-9 w-28 bg-gray-200 rounded-lg" />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="h-[110px] bg-gray-100 rounded-xl" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -156,7 +156,7 @@ export default function BDMReports() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="-mx-6 -mt-6 mb-8 p-6 sticky top-0 z-20 bg-white border-b border-gray-200 flex items-center justify-between gap-3 shadow-sm">
+      <div className="-mx-6 -mt-6 mb-8 p-4 md:p-6 sticky top-0 z-20 bg-white border-b border-gray-200 flex items-center justify-between gap-3 shadow-sm">
         <div>
           <h1 className="text-[17px] font-bold text-gray-800">Reports & Analytics</h1>
         </div>
@@ -193,7 +193,7 @@ export default function BDMReports() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="Total Leads"
           value={totalLeads || 47}

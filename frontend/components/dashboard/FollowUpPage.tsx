@@ -84,6 +84,8 @@ const COURSE_BADGE: Record<string, string> = {
   'Spoken':            'bg-gray-100 text-gray-600',
   'Service Charge':    'bg-gray-100 text-gray-600',
   'SSC English':       'bg-gray-100 text-gray-600',
+  'Study Abroad':      'bg-gray-100 text-gray-600',
+  'Others':            'bg-gray-100 text-gray-600',
 }
 
 const inputCls = 'w-full h-10 px-3 bg-white border border-gray-200 rounded-xl text-[13px] font-medium text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:ring-[#1a56db]/30 focus:border-[#1a56db] transition-all'
@@ -147,7 +149,7 @@ export default function FollowUpPage() {
     <div className="space-y-4 relative min-h-[calc(100vh-100px)]">
 
       {/* Header */}
-      <div className="-mx-6 -mt-6 mb-8 p-6 sticky top-0 z-20 bg-white border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+      <div className="-mx-6 -mt-6 mb-8 p-4 md:p-6 sticky top-0 z-20 bg-white border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div>
             <h1 className="text-[17px] font-bold text-gray-800 tracking-tight">Follow-up Reminders</h1>
@@ -155,9 +157,9 @@ export default function FollowUpPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 h-9 px-3.5 bg-[#1a56db] text-white font-bold text-[13px] rounded-xl hover:bg-[#1341a8] transition-colors shadow-sm"
+            className="flex items-center gap-1.5 h-9 px-3.5 bg-[#1a56db] text-white font-bold text-[13px] rounded-xl hover:bg-[#1341a8] transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
             Add Follow-up
           </button>
         </div>
@@ -198,15 +200,20 @@ export default function FollowUpPage() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ring-1 ring-gray-200/60">
+        {!loading && displayed.length === 0 ? (
+          <div className="px-5 py-12 text-center text-[12.5px] text-gray-400 font-medium">
+            {filter === 'All' ? 'No follow-ups scheduled yet.' : `No ${filter.toLowerCase()} follow-ups.`}
+          </div>
+        ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
+          <table className="w-full text-left border-collapse min-w-[380px] sm:min-w-[520px] md:min-w-[700px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Student / Lead</th>
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Type</th>
-                <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Course Interest</th>
+                <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left hidden sm:table-cell">Course Interest</th>
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Due</th>
-                <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Note</th>
+                <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left hidden md:table-cell">Note</th>
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Actions</th>
               </tr>
             </thead>
@@ -219,12 +226,6 @@ export default function FollowUpPage() {
                     ))}
                   </tr>
                 ))
-              ) : displayed.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-[12.5px] text-gray-400 font-medium">
-                    {filter === 'All' ? 'No follow-ups scheduled yet.' : `No ${filter.toLowerCase()} follow-ups.`}
-                  </td>
-                </tr>
               ) : displayed.map(item => {
                 const badge   = TYPE_META[item.type] ?? TYPE_META.Other
                 const courseCls = COURSE_BADGE[item.courseInterest] || 'bg-gray-100 text-gray-600'
@@ -249,7 +250,7 @@ export default function FollowUpPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11.5px] font-bold ${courseCls}`}>
                         {item.courseInterest}
                       </span>
@@ -259,7 +260,7 @@ export default function FollowUpPage() {
                         {formatShortDate(item.dueDate)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 max-w-[180px]">
+                    <td className="px-4 py-3 max-w-[180px] hidden md:table-cell">
                       <span className="text-[12px] text-gray-500 leading-snug line-clamp-2">{item.note || '—'}</span>
                     </td>
                     <td className="px-4 py-3">
@@ -295,6 +296,7 @@ export default function FollowUpPage() {
             </tbody>
           </table>
         </div>
+        )}
         {!loading && displayed.length > 0 && (
           <div className="px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
             <p className="text-[11.5px] text-gray-400 font-medium">
@@ -307,7 +309,7 @@ export default function FollowUpPage() {
       {/* FAB */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-[#1a56db] text-white shadow-[0_6px_24px_rgba(26,86,219,0.45)] flex items-center justify-center hover:shadow-[0_10px_32px_rgba(26,86,219,0.55)] hover:scale-105 active:scale-95 transition-all z-40"
+        className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 rounded-full bg-[#1a56db] text-white shadow-[0_6px_24px_rgba(26,86,219,0.45)] items-center justify-center hover:shadow-[0_10px_32px_rgba(26,86,219,0.55)] hover:scale-105 active:scale-95 transition-all z-30"
       >
         <Plus className="w-5 h-5" strokeWidth={2.5} />
       </button>
@@ -315,7 +317,7 @@ export default function FollowUpPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,15,0.18)] border border-gray-200">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_24px_64px_rgba(0,0,15,0.18)] border border-gray-200">
             <div className="h-[3px] bg-[#1a56db]" />
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h2 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">New Follow-up Entry</h2>

@@ -121,6 +121,8 @@ const SERVICE_BADGE: Record<string, string> = {
   'Spoken':            'bg-gray-100 text-gray-600',
   'Service Charge':    'bg-gray-100 text-gray-600',
   'SSC English':       'bg-gray-100 text-gray-600',
+  'Study Abroad':      'bg-gray-100 text-gray-600',
+  'Others':            'bg-gray-100 text-gray-600',
 }
 
 const EXAM_BADGE: Record<string, string> = {
@@ -330,7 +332,7 @@ export default function BDMDashboard({
           </div>
           <div className="h-9 w-28 bg-gray-200 rounded-lg" />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="h-[110px] bg-gray-100 rounded-xl" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -365,7 +367,7 @@ export default function BDMDashboard({
       )}
 
       {/* ── Page Header ──────────────────────────────────────────────────────────── */}
-      <div className="-mx-6 -mt-6 mb-6 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+      <div className="-mx-6 -mt-6 mb-6 p-4 md:p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <div>
             <div className="flex items-center gap-3">
@@ -375,9 +377,9 @@ export default function BDMDashboard({
               <button
                 type="button"
                 onClick={() => setShowQuickAdd(true)}
-                className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-semibold text-[13px] rounded-xl transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95"
+                className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-semibold text-[13px] rounded-xl transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 whitespace-nowrap flex-shrink-0"
               >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
                 Add Lead
               </button>
             </div>
@@ -397,7 +399,7 @@ export default function BDMDashboard({
       </div>
 
       {/* ── KPI Stat Cards ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3">
 
         <div
           onClick={() => { onNewLeadsToday?.(); setActivePage?.('bdm-pipeline') }}
@@ -410,7 +412,7 @@ export default function BDMDashboard({
             </div>
           </div>
           <div>
-            <p className="text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{stats.todaysLead.value}</p>
+            <p className="text-[24px] md:text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{stats.todaysLead.value}</p>
             <p className={`text-[12px] mt-2 font-semibold flex items-center gap-1 ${stats.todaysLead.change >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
               <span>{stats.todaysLead.change >= 0 ? '↑' : '↓'}</span>
               <span>{Math.abs(stats.todaysLead.change)} vs yesterday</span>
@@ -429,7 +431,7 @@ export default function BDMDashboard({
             </div>
           </div>
           <div>
-            <p className="text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{stats.followupPending.value}</p>
+            <p className="text-[24px] md:text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{stats.followupPending.value}</p>
             <p className={`text-[12px] mt-2 font-semibold flex items-center gap-1 ${stats.followupPending.change > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
               <span>{stats.followupPending.change > 0 ? '↑' : '✓'}</span>
               <span>{stats.followupPending.change > 0 ? `${stats.followupPending.change} overdue` : 'All on track'}</span>
@@ -448,7 +450,7 @@ export default function BDMDashboard({
             </div>
           </div>
           <div>
-            <p className="text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{stats.converted.value}</p>
+            <p className="text-[24px] md:text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{stats.converted.value}</p>
             <p className={`text-[12px] mt-2 font-semibold flex items-center gap-1 ${stats.converted.change >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
               <span>{stats.converted.change >= 0 ? '↑' : '↓'}</span>
               <span>{Math.abs(stats.converted.change)} vs last month</span>
@@ -467,7 +469,7 @@ export default function BDMDashboard({
             </div>
           </div>
           <div>
-            <p className="text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{bookedSlots}</p>
+            <p className="text-[24px] md:text-[32px] font-semibold text-gray-800 leading-none tabular-nums tracking-tight">{bookedSlots}</p>
             <p className={`text-[12px] mt-2 font-semibold flex items-center gap-1 ${upcomingSchedules.length > 0 ? 'text-emerald-600' : 'text-gray-500'}`}>
               <span>{upcomingSchedules.length > 0 ? '↑' : '—'}</span>
               <span>{upcomingSchedules.length > 0 ? `${upcomingSchedules.length} upcoming` : 'No upcoming sessions'}</span>
@@ -666,7 +668,7 @@ export default function BDMDashboard({
         type="button"
         onClick={() => setShowQuickAdd(true)}
         title="Add new lead"
-        className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center z-40 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
+        className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full items-center justify-center z-30 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
       >
         <Plus className="w-6 h-6" strokeWidth={2.5} />
       </button>

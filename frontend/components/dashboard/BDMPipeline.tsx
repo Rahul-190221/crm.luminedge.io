@@ -132,7 +132,7 @@ function FilterDropdown({
 
       {open && (
         <div
-          className={`absolute left-0 top-[calc(100%+8px)] ${menuWidth} max-h-80 overflow-y-auto bg-white rounded-xl border border-gray-200/80 shadow-xl shadow-gray-900/10 z-30 py-1.5`}
+          className={`absolute left-0 top-[calc(100%+8px)] ${menuWidth} max-w-[calc(100vw-2rem)] max-h-80 overflow-y-auto bg-white rounded-xl border border-gray-200/80 shadow-xl shadow-gray-900/10 z-30 py-1.5`}
         >
           {groups.map((group, gi) => (
             <div key={gi} className={gi > 0 ? 'mt-1 pt-1 border-t border-gray-100' : ''}>
@@ -480,9 +480,9 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
     <div className="flex flex-col h-full bg-white -m-6 min-h-[calc(100vh-64px)]">
 
       {/* Page header */}
-      <div className="px-6 py-4 flex flex-wrap items-center gap-[8rem] border-b border-gray-200/70 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
+      <div className="px-4 py-3 md:px-6 md:py-4 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200/70 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
         {/* Left: icon + title + count + Add Lead */}
-        <div className="flex items-center gap-3.5">
+        <div className="flex flex-wrap items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4c6ef5] to-[#3b5bdb] flex items-center justify-center shadow-md shadow-blue-500/25 flex-shrink-0">
             <Kanban className="w-[18px] h-[18px] text-white" strokeWidth={2.25} />
           </div>
@@ -499,9 +499,9 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
           <button
             type="button"
             onClick={() => setShowQuickAdd(true)}
-            className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1"
+            className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1 whitespace-nowrap flex-shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
             Add Lead
           </button>
         </div>
@@ -599,7 +599,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
       {/* Kanban Board Area */}
       <div className="flex-1 p-6 pt-8 bg-white min-h-0">
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-5 gap-4">
+          <div className="flex lg:grid lg:grid-cols-5 gap-4 overflow-x-auto lg:overflow-visible snap-x snap-mandatory scrollbar-hide -mx-6 px-6 lg:mx-0 lg:px-0 pb-2 lg:pb-0 [mask-image:linear-gradient(to_right,black_0%,black_92%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_0%,black_92%,transparent_100%)] lg:[mask-image:none] lg:[-webkit-mask-image:none]">
             {LEAD_STAGES.map(stage => {
               const colLeads = loading ? [] : (grouped[stage] || [])
               const meta = LEAD_STAGE_META[stage]
@@ -609,7 +609,8 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
               // otherwise a filtered column reads as "truncated" even when nothing is hidden.
               const isTruncated = !loading && !hasActiveFilter && trueCount > colLeads.length
               return (
-                <Column key={stage} stage={stage} count={trueCount} loading={loading}>
+                <div key={stage} className="w-[78%] min-w-[240px] max-w-[300px] flex-shrink-0 snap-start lg:w-auto lg:min-w-0 lg:max-w-none lg:flex-shrink lg:snap-align-none">
+                <Column stage={stage} count={trueCount} loading={loading}>
                   {loading ? (
                     [...Array(2)].map((_, i) => (
                       <div key={i} className="h-[90px] bg-gray-50 rounded-xl animate-pulse" />
@@ -648,6 +649,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
                     </button>
                   )}
                 </Column>
+                </div>
               )
             })}
           </div>
@@ -658,7 +660,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
       <button
         type="button"
         onClick={() => setShowQuickAdd(true)}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-[#3b5bdb] text-white rounded-full flex items-center justify-center z-40 hover:bg-[#364fc7] transition-all hover:scale-105 active:scale-95 shadow-[0_4px_14px_rgba(59,91,219,0.4)]"
+        className="hidden lg:flex fixed bottom-8 right-8 w-12 h-12 bg-[#3b5bdb] text-white rounded-full items-center justify-center z-30 hover:bg-[#364fc7] transition-all hover:scale-105 active:scale-95 shadow-[0_4px_14px_rgba(59,91,219,0.4)]"
       >
         <Plus className="w-5 h-5" strokeWidth={2.5} />
       </button>

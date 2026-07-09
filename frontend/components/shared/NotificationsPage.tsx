@@ -109,7 +109,7 @@ export default function NotificationsPage({ onNavigate }: NotificationsPageProps
         <div className="max-w-2xl mx-auto space-y-4 pb-6">
 
             {/* Page header */}
-            <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
+            <div className="-mx-6 -mt-6 mb-4 p-4 md:p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div>
                         <div className="flex items-center gap-2">

@@ -100,6 +100,8 @@ export default function AdminDashboard() {
             { label: 'Spoken',           count: 0, color: '#FB923C' },
             { label: 'Service Charge',   count: 0, color: '#94A3B8' },
             { label: 'SSC English',      count: 0, color: '#FDBA74' },
+            { label: 'Study Abroad',     count: 0, color: '#0D9488' },
+            { label: 'Others',           count: 0, color: '#78716C' },
           ])
         }
       } catch (err: any) {

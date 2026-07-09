@@ -119,7 +119,7 @@ export default function ProfilePage() {
         <div className="max-w-5xl mx-auto space-y-4 pb-6">
 
             {/* Page header */}
-            <div className="-mx-6 -mt-6 mb-4 p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center gap-4">
+            <div className="-mx-6 -mt-6 mb-4 p-4 md:p-6 sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center gap-4">
                 <div>
                     <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">My Profile</h1>
                     <p className="text-xs text-gray-500 font-medium mt-0.5">Manage your personal information and settings</p>

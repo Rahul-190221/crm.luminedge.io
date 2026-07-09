@@ -27,7 +27,7 @@ export default function StageDropdown({ value, onChange, disabled, saving, size 
       const dropH = LEAD_STAGES.length * 40 + 48;
       setPos({
         top: window.innerHeight - r.bottom > dropH ? r.bottom + 6 : r.top - dropH - 6,
-        left: size === 'compact' ? Math.min(r.left, window.innerWidth - 190) : r.left,
+        left: Math.max(8, Math.min(r.left, window.innerWidth - 190)),
       });
     }
     setOpen(v => !v);
@@ -52,15 +52,15 @@ export default function StageDropdown({ value, onChange, disabled, saving, size 
           ref={btnRef}
           onClick={(e) => { e.stopPropagation(); toggle(); }}
           disabled={isDisabled}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[12px] font-bold border transition-all duration-200 ${
+          className={`inline-flex items-center gap-1 sm:gap-1.5 px-1.5 py-1.5 sm:px-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-[12px] font-bold border transition-all duration-200 ${
             isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-sm cursor-pointer'
           } ${meta.bg} ${meta.text} ${meta.border}`}
         >
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${meta.dot}`} />
           <span className="whitespace-nowrap tracking-wide">{value}</span>
           {saving
-            ? <RefreshCw className="w-3 h-3 animate-spin" />
-            : !isDisabled && <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />}
+            ? <RefreshCw className="w-3 h-3 animate-spin flex-shrink-0" />
+            : !isDisabled && <ChevronDown className={`hidden sm:block w-3 h-3 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />}
         </button>
       )}
 

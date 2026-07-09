@@ -26,12 +26,12 @@ export default function MockTestScheduleTable({ schedules, totalCount, showFoote
   return (
     <div className="bg-white overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px]">
+        <table className="w-full min-w-[420px] sm:min-w-[680px] md:min-w-[920px]">
           <thead>
             <tr className="bg-blue-600">
-              <th className="w-12 px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">#</th>
+              <th className="hidden sm:table-cell w-12 px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">#</th>
               <th className="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">Name</th>
-              <th className="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">Type</th>
+              <th className="hidden md:table-cell px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">Type</th>
               <th className="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">Date</th>
               <th className="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">Time</th>
               <th className="hidden sm:table-cell px-3 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white">Seats</th>
@@ -51,9 +51,9 @@ export default function MockTestScheduleTable({ schedules, totalCount, showFoote
                   key={schedule._id}
                   className={`transition-colors hover:bg-blue-50/70 ${index % 2 === 1 ? 'bg-blue-50/[0.35]' : 'bg-white'}`}
                 >
-                  <td className="px-3 py-4 text-[12px] font-medium text-[#64748b]">{schedule.listNumber}</td>
+                  <td className="hidden sm:table-cell px-3 py-4 text-[12px] font-medium text-[#64748b]">{schedule.listNumber}</td>
                   <td className="px-3 py-4 text-[13px] font-semibold text-[#0f172a]">{schedule.name}</td>
-                  <td className="px-3 py-4 text-[12px] font-medium whitespace-nowrap text-[#475569]">{schedule.examType}</td>
+                  <td className="hidden md:table-cell px-3 py-4 text-[12px] font-medium whitespace-nowrap text-[#475569]">{schedule.examType}</td>
                   <td className="px-3 py-4 text-[12px] font-medium whitespace-nowrap text-[#475569]">{formatDate(schedule.examDate)}</td>
                   <td className="px-3 py-4 text-[12px] font-medium whitespace-nowrap text-[#475569]">{schedule.examTime}</td>
                   <td className="hidden sm:table-cell px-3 py-4 text-[12px] font-medium text-[#64748b]">{schedule.totalSeats}</td>

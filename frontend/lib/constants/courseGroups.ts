@@ -6,5 +6,5 @@ export const COURSE_GROUPS: { label: string; options: string[] }[] = [
   { label: 'PTE Courses', options: ['PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests'] },
   { label: 'TOEFL Courses', options: ['TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests'] },
   { label: 'GRE Courses', options: ['GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal'] },
-  { label: 'Other', options: ['Basic English', 'Spoken', 'Service Charge', 'SSC English'] },
+  { label: 'Other', options: ['Basic English', 'Spoken', 'Service Charge', 'SSC English', 'Study Abroad', 'Others'] },
 ]

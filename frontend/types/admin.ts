@@ -190,7 +190,9 @@ export type ServiceInterest =
   | 'Basic English'
   | 'Spoken'
   | 'Service Charge'
-  | 'SSC English';
+  | 'SSC English'
+  | 'Study Abroad'
+  | 'Others';
 
 // Full list, in canonical display order — use for dropdowns/selects
 export const SERVICE_INTEREST_OPTIONS: ServiceInterest[] = [
@@ -199,7 +201,7 @@ export const SERVICE_INTEREST_OPTIONS: ServiceInterest[] = [
   'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
   'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
   'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
-  'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+  'Basic English', 'Spoken', 'Service Charge', 'SSC English', 'Study Abroad', 'Others',
 ];
 
 export interface FollowUp {

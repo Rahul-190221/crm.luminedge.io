@@ -41,7 +41,7 @@ const BDMDropdown: React.FC<{
         if (disabled) return;
         if (!open && btnRef.current) {
             const r = btnRef.current.getBoundingClientRect();
-            setPos({ top: r.bottom + 6, left: r.left });
+            setPos({ top: r.bottom + 6, left: Math.max(8, Math.min(r.left, window.innerWidth - 248)) });
         }
         setOpen(v => !v);
     };
@@ -159,7 +159,7 @@ const BdmFilterDropdown: React.FC<{
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
                     <div
-                        className="absolute top-full left-0 mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 min-w-[220px] max-w-[260px] max-h-[360px] overflow-y-auto"
+                        className="absolute top-full left-0 mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 min-w-[220px] max-w-[min(260px,calc(100vw-2rem))] max-h-[360px] overflow-y-auto"
                     >
                         <button
                             onClick={() => select('')}
@@ -269,7 +269,7 @@ const FlatDropdown: React.FC<{
             {open && (
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                    <div className="absolute top-full left-0 mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 min-w-[200px] max-w-[260px] max-h-[360px] overflow-y-auto">
+                    <div className="absolute top-full left-0 mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 min-w-[200px] max-w-[min(260px,calc(100vw-2rem))] max-h-[360px] overflow-y-auto">
                         <button
                             onClick={() => { onChange(''); setOpen(false); }}
                             className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 text-[12px] font-semibold transition-colors ${
@@ -488,9 +488,9 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
         <div className="space-y-4 pb-6">
 
             {/* Sticky Header */}
-            <div className="-mx-6 -mt-6 mb-4 px-6 py-4 flex flex-wrap items-center gap-[8rem] border-b border-gray-200/70 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
+            <div className="-mx-6 -mt-6 mb-4 px-4 py-3 md:px-6 md:py-4 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200/70 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
                 {/* Left: icon + title + count + Add Lead */}
-                <div className="flex items-center gap-3.5">
+                <div className="flex flex-wrap items-center gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4c6ef5] to-[#3b5bdb] flex items-center justify-center shadow-md shadow-blue-500/25 flex-shrink-0">
                         <Users className="w-[18px] h-[18px] text-white" strokeWidth={2.25} />
                     </div>
@@ -506,9 +506,9 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                     </div>
                     <button
                         onClick={() => setView('form')}
-                        className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1"
+                        className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1 whitespace-nowrap flex-shrink-0"
                     >
-                        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
                         Add Lead
                     </button>
                 </div>
@@ -570,19 +570,19 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
 
 
             {/* --- */}
-            <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 pt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 pt-4">
                 {filterCards.map(card => {
                     const isActive = stageFilter === card.key;
                     return (
                         <button
                             key={card.key}
                             onClick={() => { setStageFilter(card.key); setCurrentPage(1); }}
-                            className={`flex flex-col justify-between text-left rounded-2xl border px-6 py-5 transition-all duration-300 hover:-translate-y-1 ${
+                            className={`flex flex-col justify-between text-left rounded-2xl border px-4 py-4 sm:px-6 sm:py-5 transition-all duration-300 hover:-translate-y-1 ${
                                 isActive ? card.active + ' scale-[1.02]' : card.idle
                             }`}
                         >
                             <p className={`text-[12px] uppercase tracking-[0.15em] font-bold mb-3 ${isActive ? card.activeLbl : 'text-gray-500'}`}>{card.label}</p>
-                            <p className={`text-[32px] font-semibold leading-none tabular-nums tracking-tight ${isActive ? card.activeNum : 'text-gray-800'}`}>{card.count}</p>
+                            <p className={`text-[20px] md:text-[28px] lg:text-[32px] font-semibold leading-none tabular-nums tracking-tight ${isActive ? card.activeNum : 'text-gray-800'}`}>{card.count}</p>
                         </button>
                     );
                 })}
@@ -591,7 +591,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
             {/* --- */}
             <div className="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-[0_4px_24px_rgba(15,23,42,0.06)]">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[1060px] table-fixed">
+                    <table className="w-full text-left border-collapse min-w-[420px] sm:min-w-[860px] md:min-w-[1060px] table-fixed">
                         <thead>
                             <tr className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b-2 border-slate-200/70">
                                 <th className="w-[18%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Lead Info</th>
@@ -599,7 +599,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                 <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden sm:table-cell">Service Interested</th>
                                 <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Stage</th>
                                 <th className="w-[13%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden md:table-cell">BDM</th>
-                                <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em]">Edit Request</th>
+                                <th className="w-[14%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] hidden sm:table-cell">Edit Request</th>
                                 <th className="w-[10%] px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.18em] text-right">Actions</th>
                             </tr>
                         </thead>
@@ -695,7 +695,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-5 py-3.5 align-middle">
+                                        <td className="px-5 py-3.5 align-middle hidden sm:table-cell">
                                             {(() => {
                                                 const req = editRequestMap[lead._id];
                                                 if (!req) return (
@@ -746,10 +746,10 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => onViewLead?.(lead._id)}
-                                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-w-[84px] bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white rounded-lg text-[11px] font-semibold transition-all shadow-sm shadow-blue-900/20 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] hover:-translate-y-px active:scale-95 whitespace-nowrap ml-auto"
+                                                    className="inline-flex items-center justify-center gap-1.5 h-8 px-2 sm:px-3 min-w-[36px] sm:min-w-[84px] bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white rounded-lg text-[11px] font-semibold transition-all shadow-sm shadow-blue-900/20 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] hover:-translate-y-px active:scale-95 whitespace-nowrap ml-auto"
                                                 >
                                                     <Eye className="w-3 h-3" />
-                                                    <span>View</span>
+                                                    <span className="hidden sm:inline">View</span>
                                                 </button>
                                                 {isAdmin && (
                                                     <button
@@ -809,7 +809,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                 type="button"
                 onClick={() => setView('form')}
                 title="Add new lead"
-                className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center z-40 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
+                className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full items-center justify-center z-30 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
             >
                 <Plus className="w-6 h-6" strokeWidth={2.5} />
             </button>

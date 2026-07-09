@@ -529,7 +529,7 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
       'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
       'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
       'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
-      'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+      'Basic English', 'Spoken', 'Service Charge', 'SSC English', 'Study Abroad', 'Others',
     ];
     const courseColors = [
       '#64748B', '#64748B', '#64748B', '#64748B', '#64748B',
@@ -537,7 +537,7 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
       '#A855F7', '#C084FC', '#9333EA', '#D8B4FE', '#7E22CE', '#6B21A8',
       '#3B82F6', '#60A5FA', '#2563EB', '#93C5FD', '#1D4ED8',
       '#22C55E', '#4ADE80', '#16A34A', '#86EFAC', '#15803D', '#166534',
-      '#F97316', '#FB923C', '#94A3B8', '#FDBA74',
+      '#F97316', '#FB923C', '#94A3B8', '#FDBA74', '#0D9488', '#78716C',
     ];
 
     const monthKeys = Array.from({ length: 6 }, (_, idx) => {
@@ -840,7 +840,7 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
           'PTE Premium', 'PTE Crash', 'PTE Intense', 'PTE 1 Module', 'PTE 1-on-1', 'PTE Mock Tests',
           'TOEFL Premium', 'TOEFL Crash', 'TOEFL 1 Module', 'TOEFL 1-on-1', 'TOEFL Mock Tests',
           'GRE Premium', 'GRE Quant', 'GRE Verbal', 'GRE 1-on-1', 'GRE Mock Tests', 'GRE Portal',
-          'Basic English', 'Spoken', 'Service Charge', 'SSC English',
+          'Basic English', 'Spoken', 'Service Charge', 'SSC English', 'Study Abroad', 'Others',
         ];
         const courseColors = [
           '#64748B', '#64748B', '#64748B', '#64748B', '#64748B',
@@ -848,7 +848,7 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
           '#A855F7', '#C084FC', '#9333EA', '#D8B4FE', '#7E22CE', '#6B21A8',
           '#3B82F6', '#60A5FA', '#2563EB', '#93C5FD', '#1D4ED8',
           '#22C55E', '#4ADE80', '#16A34A', '#86EFAC', '#15803D', '#166534',
-          '#F97316', '#FB923C', '#94A3B8', '#FDBA74',
+          '#F97316', '#FB923C', '#94A3B8', '#FDBA74', '#0D9488', '#78716C',
         ];
         const courseAgg = await Lead.aggregate([
           { $match: { createdAt: { $gte: startOfMonth }, serviceInterest: { $in: courseLabels } } },
