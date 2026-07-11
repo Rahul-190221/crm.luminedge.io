@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, Upload, Eye, EyeOff } from 'lucide-react'
 import { API_URL } from '@/lib/api/base'
+import { getBdmColor } from '@/lib/helpers/bdmColors'
 
 interface BDMUser {
   _id: string
@@ -42,22 +43,6 @@ const initialFormData: FormData = {
   joinDate: '',
   password: '',
   profileImage: null
-}
-
-// Avatar color generator based on name
-const getAvatarColor = (name: string): string => {
-  const colors = [
-    'bg-sky-400',
-    'bg-blue-500',
-    'bg-purple-500',
-    'bg-green-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-red-500',
-    'bg-orange-500'
-  ]
-  const index = name.charCodeAt(0) % colors.length
-  return colors[index]
 }
 
 const getInitials = (firstName: string, lastName: string): string => {
@@ -408,7 +393,10 @@ export default function BDMAdd() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {recentBDMs.map((bdm) => (
             <div key={bdm._id} className="bg-white rounded-2xl p-4 border border-[#00000F]/[0.07] shadow-[0_2px_16px_rgba(0,0,0,0.04)] flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${getAvatarColor(bdm.firstName || bdm.name)}`}>
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center font-semibold"
+                style={{ backgroundColor: getBdmColor(bdm.name || bdm.firstName).bg, color: getBdmColor(bdm.name || bdm.firstName).text }}
+              >
                 {getInitials(bdm.firstName || bdm.name.split(' ')[0], bdm.lastName || bdm.name.split(' ')[1] || '')}
               </div>
               <div>

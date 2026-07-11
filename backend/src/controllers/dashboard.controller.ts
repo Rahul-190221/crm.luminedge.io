@@ -187,7 +187,7 @@ export const getLeadSourceDistribution = async (req: Request, res: Response): Pr
   try {
     const filter = {};
 
-    const sources = ['Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
+    const sources = ['Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp', 'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website'];
     const total = await Lead.countDocuments(filter);
 
     const distribution = await Promise.all(
@@ -521,8 +521,8 @@ export const getBDMDashboardAll = async (req: Request, res: Response): Promise<v
 
     const stages = ['New Inquiry', 'Contacted', 'Trial Class', 'Enrolled', 'Lost'];
     // All supported source values in Lead model (including social channels)
-    const sources = ['Facebook', 'Instagram', 'WhatsApp', 'Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
-    const sourceColors = ['#3B82F6', '#F59E0B', '#22C55E', '#A855F7', '#EC4899', '#6366F1', '#94A3B8', '#10B981', '#F43F5E', '#8B5CF6'];
+    const sources = ['Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp', 'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website'];
+    const sourceColors = ['#7C3AED', '#F59E0B', '#60A5FA', '#3B82F6', '#22C55E', '#EF4444', '#15803D', '#6B7280', '#A855F7', '#94A3B8', '#EC4899'];
     const courseLabels = [
       'IELTS Reg', 'PTE Reg', 'TOEFL Reg', 'GRE Reg', 'Duolingo Reg',
       'IELTS Premium', 'IELTS Crash', 'IELTS Intense', 'IELTS 1 Module', 'IELTS 1-on-1', 'IELTS Mock Tests',
@@ -807,7 +807,7 @@ export const getAdminDashboardAll = async (req: Request, res: Response): Promise
 
       // --- Source Distribution (This Month) ---
       (async () => {
-        const sources = ['Facebook', 'Instagram', 'WhatsApp', 'Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'];
+        const sources = ['Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp', 'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website'];
         const [totalLeadsMonth, sourceCounts] = await Promise.all([
           Lead.countDocuments({ createdAt: { $gte: startOfMonth } }),
           Promise.all(sources.map(s => Lead.countDocuments({ source: s, createdAt: { $gte: startOfMonth } }))),

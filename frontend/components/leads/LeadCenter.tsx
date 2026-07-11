@@ -12,6 +12,7 @@ import StageDropdown from './StageDropdown';
 import { getUserIdFromToken } from '@/lib/helpers/jwt';
 import { LEAD_STAGES } from '@/lib/constants/leadStages';
 import { COURSE_GROUPS } from '@/lib/constants/courseGroups';
+import { getBdmColor } from '@/lib/helpers/bdmColors';
 
 // ---
 
@@ -46,20 +47,23 @@ const BDMDropdown: React.FC<{
         setOpen(v => !v);
     };
 
+    const color = currentBDM ? getBdmColor(displayName) : null;
+
     return (
         <div className="relative">
             <button
                 ref={btnRef}
                 onClick={handleOpen}
                 disabled={disabled}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border transition-all duration-200 max-w-[150px] ${
+                style={color ? { backgroundColor: color.bg, color: color.text, borderColor: color.bg } : undefined}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border transition-all duration-200 w-[100px] ${
                     disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-sm cursor-pointer'
-                } ${currentBDM
-                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                    : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300'
-                }`}
+                } ${!currentBDM ? 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300' : ''}`}
             >
-                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${currentBDM ? 'bg-blue-600' : 'bg-gray-300'}`} />
+                <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: currentBDM ? color!.text : '#d1d5db' }}
+                />
                 <span className="truncate">{displayName}</span>
                 {!disabled && <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />}
             </button>
@@ -84,6 +88,7 @@ const BDMDropdown: React.FC<{
                         </button>
                         {bdms.map(bdm => {
                             const isSelected = currentBDM && (typeof currentBDM === 'object' ? currentBDM._id === bdm._id : currentBDM === bdm._id);
+                            const optColor = getBdmColor(bdm.name);
                             return (
                                 <button
                                     key={bdm._id}
@@ -92,7 +97,7 @@ const BDMDropdown: React.FC<{
                                         isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
-                                    <span className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0" />
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: optColor.dot }} />
                                     <span className="flex flex-col text-left min-w-0">
                                         <span className="truncate">{bdm.name}</span>
                                         <span className="text-[10px] text-gray-400 font-medium truncate">{bdm.role}</span>
@@ -132,12 +137,20 @@ const BdmFilterDropdown: React.FC<{
 
     const select = (next: string) => { onChange(next); setOpen(false); };
 
+    const isBdmSelected = value.startsWith('user:');
+    const triggerColor = isBdmSelected ? getBdmColor(selectedLabel) : null;
+
     return (
         <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className={`flex items-center justify-between gap-2 h-8 px-3 min-w-[140px] border rounded-lg text-[12.5px] font-medium transition-all bg-white max-w-[160px] ${
-                    value ? 'border-blue-200 text-blue-700 bg-blue-50' : 'border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
+                style={triggerColor ? { backgroundColor: triggerColor.bg, color: triggerColor.text, borderColor: triggerColor.bg } : undefined}
+                className={`flex items-center justify-between gap-2 h-8 px-3 min-w-[140px] border rounded-lg text-[12.5px] font-medium transition-all max-w-[160px] ${
+                    triggerColor
+                        ? ''
+                        : value
+                            ? 'border-blue-200 text-blue-700 bg-blue-50'
+                            : 'border-gray-200 text-gray-600 bg-white hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
                 }`}
             >
                 <span className="truncate">{selectedLabel}</span>
@@ -146,7 +159,9 @@ const BdmFilterDropdown: React.FC<{
                         role="button"
                         tabIndex={-1}
                         onClick={(e) => { e.stopPropagation(); onChange(''); }}
-                        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-blue-400 hover:bg-blue-200/70 hover:text-blue-700 transition-colors"
+                        className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
+                            triggerColor ? 'hover:bg-black/10' : 'text-blue-400 hover:bg-blue-200/70 hover:text-blue-700'
+                        }`}
                     >
                         <X className="w-3 h-3" />
                     </span>
@@ -192,6 +207,7 @@ const BdmFilterDropdown: React.FC<{
                         {bdmUsers.map(({ _id, name, count }) => {
                             const optionValue = `user:${_id}`;
                             const isSelected = value === optionValue;
+                            const optColor = getBdmColor(name);
                             return (
                                 <button
                                     key={_id}
@@ -200,7 +216,10 @@ const BdmFilterDropdown: React.FC<{
                                         isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
-                                    <span className="truncate">{name}</span>
+                                    <span className="flex items-center gap-2 min-w-0">
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: optColor.dot }} />
+                                        <span className="truncate">{name}</span>
+                                    </span>
                                     <span className="flex items-center gap-1.5 flex-shrink-0">
                                         <span className="text-[10.5px] text-gray-400 font-medium">{count.toLocaleString()}</span>
                                         {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0 text-blue-600" />}
@@ -676,20 +695,32 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                                     onAssign={handleAssignBDM}
                                                     disabled={updatingBDMId === lead._id}
                                                 />
-                                            ) : lead.assignedTo ? (
-                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-blue-50 text-blue-700 border-blue-200 max-w-[150px]">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 flex-shrink-0" />
-                                                    <span className="truncate">
-                                                        {firstName(typeof lead.assignedTo === 'object' ? lead.assignedTo.name : String(lead.assignedTo))}
-                                                    </span>
-                                                </div>
-                                            ) : lead.bdmName ? (
-                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-gray-50 text-gray-500 border-gray-200 max-w-[150px]">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
-                                                    <span className="truncate">{firstName(lead.bdmName)}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-gray-50 text-gray-400 border-gray-200 max-w-[150px]">
+                                            ) : lead.assignedTo ? (() => {
+                                                const name = firstName(typeof lead.assignedTo === 'object' ? lead.assignedTo.name : String(lead.assignedTo));
+                                                const rowColor = getBdmColor(name);
+                                                return (
+                                                    <div
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border w-[100px]"
+                                                        style={{ backgroundColor: rowColor.bg, color: rowColor.text, borderColor: rowColor.bg }}
+                                                    >
+                                                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: rowColor.text }} />
+                                                        <span className="truncate">{name}</span>
+                                                    </div>
+                                                );
+                                            })() : lead.bdmName ? (() => {
+                                                const name = firstName(lead.bdmName);
+                                                const rowColor = getBdmColor(name);
+                                                return (
+                                                    <div
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border w-[100px]"
+                                                        style={{ backgroundColor: rowColor.bg, color: rowColor.text, borderColor: rowColor.bg }}
+                                                    >
+                                                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: rowColor.text }} />
+                                                        <span className="truncate">{name}</span>
+                                                    </div>
+                                                );
+                                            })() : (
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border bg-gray-50 text-gray-400 border-gray-200 w-[100px]">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
                                                     <span className="truncate">Not Assigned</span>
                                                 </div>
@@ -831,7 +862,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                     />
                     <div className={`relative w-full max-w-4xl h-full bg-[#f8fafc] shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${drawerVisible ? 'translate-x-0' : 'translate-x-full'}`}>
                         <div className="p-4 md:p-6">
-                            <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} requireApproval={!isAdmin} />
+                            <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} />
                         </div>
                     </div>
                 </div>

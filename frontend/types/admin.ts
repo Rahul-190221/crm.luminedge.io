@@ -156,7 +156,7 @@ export const statusBadgeColors: Record<string, string> = {
 };
 
 // Lead Types
-export type LeadSource = 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
+export type LeadSource = 'Education Team' | 'Phone Call' | 'Previous' | 'Facebook' | 'WhatsApp' | 'Google' | 'Walk-in' | 'Event' | 'Reference' | 'Others' | 'Website';
 export type LeadStage = 'New Inquiry' | 'Contacted' | 'Trial Class' | 'Enrolled' | 'Lost';
 export type ServiceInterest =
   | 'IELTS Reg'

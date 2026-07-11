@@ -56,7 +56,7 @@ function ProgressBar({ label, count, total, color }: { label: string; count: num
     <div>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[12px] font-semibold text-gray-600">{label}</span>
-        <span className="text-[12px] font-medium text-gray-500">{count} {label === 'Facebook' || label === 'Referral' || label === 'Website' || label === 'Walk-in' ? '' : 'leads '}({pct}%)</span>
+        <span className="text-[12px] font-medium text-gray-500">{count} {label === 'Facebook' || label === 'Reference' || label === 'Website' || label === 'Walk-in' ? '' : 'leads '}({pct}%)</span>
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
         <div

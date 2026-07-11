@@ -30,5 +30,5 @@ export default function LeadDetailPage() {
     );
   }
 
-  return <LeadDetail id={id} onBack={() => router.back()} requireApproval />;
+  return <LeadDetail id={id} onBack={() => router.back()} />;
 }

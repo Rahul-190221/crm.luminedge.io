@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Search, Send, Users, UserPlus, Clock, CheckCircle } from 'lucide-react'
 import { getLeads, getBDMsForAssignment, assignLeads } from '@/lib/api/leads'
+import { getSourceColor } from '@/lib/constants/leadSourceColors'
+import { getBdmColor } from '@/lib/helpers/bdmColors'
 
 import { Lead, BDM } from '@/types/admin'
 
@@ -322,7 +324,14 @@ export default function LeadAssignments() {
                         {lead.serviceInterest?.join(', ') || '-'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{lead.source}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="px-2.5 py-1 rounded-full text-xs font-medium"
+                        style={{ backgroundColor: getSourceColor(lead.source).bg, color: getSourceColor(lead.source).text }}
+                      >
+                        {lead.source}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{formatTime(lead.createdAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <button
@@ -390,7 +399,10 @@ export default function LeadAssignments() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold ${getAvatarColor(bdm.name || bdm.firstName || '')}`}>
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                          style={{ backgroundColor: getBdmColor(bdm.name || bdm.firstName || '').bg, color: getBdmColor(bdm.name || bdm.firstName || '').text }}
+                        >
                           {getInitials(bdm.name || `${bdm.firstName || ''} ${bdm.lastName || ''}`)}
                         </div>
                         <div>

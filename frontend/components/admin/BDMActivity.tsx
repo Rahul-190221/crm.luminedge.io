@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Activity, Clock, Phone, Mail, FileText, UserPlus, CheckCircle, XCircle, Calendar } from 'lucide-react'
 import { getActivities } from '@/lib/api/activities'
+import { getBdmColor } from '@/lib/helpers/bdmColors'
 
 interface ActivityLog {
   _id: string
@@ -14,23 +15,6 @@ interface ActivityLog {
   description: string
   leadName?: string
   timestamp: string
-}
-
-// Avatar color generator based on name
-const getAvatarColor = (name?: string): string => {
-  const colors = [
-    'bg-sky-400',
-    'bg-blue-500',
-    'bg-purple-500',
-    'bg-green-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-red-500',
-    'bg-orange-500'
-  ]
-  if (!name) return colors[0]
-  const index = name.charCodeAt(0) % colors.length
-  return colors[index]
 }
 
 const getInitials = (name?: string): string => {
@@ -324,7 +308,10 @@ export default function BDMActivity() {
                   <tr key={activity._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold ${getAvatarColor(activity.userName)}`}>
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+                          style={{ backgroundColor: getBdmColor(activity.userName).bg, color: getBdmColor(activity.userName).text }}
+                        >
                           {getInitials(activity.userName)}
                         </div>
                         <div>

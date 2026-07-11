@@ -8,6 +8,7 @@ import { ChevronDown, ChevronRight, MessageSquare } from 'lucide-react'
 import { Fragment } from 'react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { getBdmColor } from '@/lib/helpers/bdmColors'
 
 interface BDMPerformance {
   _id: string
@@ -53,23 +54,6 @@ interface BDMTask {
   dueDate?: string;
   completedAt?: string;
   completedBy?: { _id: string; name: string };
-}
-
-// Avatar color generator based on name
-const getAvatarColor = (name?: string): string => {
-  const colors = [
-    'bg-sky-400',
-    'bg-blue-500',
-    'bg-purple-500',
-    'bg-green-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-red-500',
-    'bg-orange-500'
-  ]
-  if (!name) return colors[0]
-  const index = name.charCodeAt(0) % colors.length
-  return colors[index]
 }
 
 const getInitials = (name?: string): string => {
@@ -610,7 +594,10 @@ export default function BDMReport() {
                           <div className="text-gray-400 group-hover:text-gray-600">
                             {expandedBDMId === perf._id ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                           </div>
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold ${getAvatarColor(displayName)}`}>
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+                            style={{ backgroundColor: getBdmColor(displayName).bg, color: getBdmColor(displayName).text }}
+                          >
                             {getInitials(displayName)}
                           </div>
                           <div>

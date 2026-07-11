@@ -15,7 +15,7 @@ export interface ILead extends Document {
   whom?: 'Personal' | 'Parents' | 'Cousin' | 'Uncle' | 'Sibling' | 'Spouse';
   /** Original BDM name from a bulk CSV import, for leads with no matching User account yet. */
   bdmName?: string;
-  source: 'Website' | 'Referral' | 'Social Media' | 'Facebook' | 'Instagram' | 'WhatsApp' | 'Email Campaign' | 'Walk-in' | 'Phone' | 'Other';
+  source: 'Education Team' | 'Phone Call' | 'Previous' | 'Facebook' | 'WhatsApp' | 'Google' | 'Walk-in' | 'Event' | 'Reference' | 'Others' | 'Website';
   serviceInterest: (
     'IELTS Reg' | 'PTE Reg' | 'TOEFL Reg' | 'GRE Reg' | 'Duolingo Reg' |
     'IELTS Premium' | 'IELTS Crash' | 'IELTS Intense' | 'IELTS 1 Module' | 'IELTS 1-on-1' | 'IELTS Mock Tests' |
@@ -66,7 +66,7 @@ const LeadSchema = new Schema<ILead>(
     },
     source: {
       type: String,
-      enum: ['Website', 'Referral', 'Social Media', 'Facebook', 'Instagram', 'WhatsApp', 'Email Campaign', 'Walk-in', 'Phone', 'Other'],
+      enum: ['Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp', 'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website'],
       default: 'Website'
     },
     serviceInterest: [{

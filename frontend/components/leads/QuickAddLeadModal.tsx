@@ -20,8 +20,8 @@ const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spous
 type WhomOption = (typeof whomOptions)[number]
 
 const leadSources: LeadSource[] = [
-  'Facebook', 'Instagram', 'WhatsApp', 'Website', 'Referral',
-  'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other'
+  'Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp',
+  'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website'
 ]
 
 const serviceInterests: ServiceInterest[] = SERVICE_INTEREST_OPTIONS

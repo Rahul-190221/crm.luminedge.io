@@ -600,7 +600,7 @@ export const importLeads = async (req: Request, res: Response): Promise<void> =>
             fullName: leadData.fullName,
             email,
             phone: leadData.phone,
-            source: leadData.source || 'Other',
+            source: leadData.source || 'Others',
             serviceInterest: leadData.serviceInterest,
             notes: leadData.notes,
             lifecycleStage: leadData.lifecycleStage || 'New Inquiry',

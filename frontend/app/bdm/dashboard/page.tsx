@@ -148,7 +148,7 @@ function BDMDashboardContent() {
         return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail') }} />
       case 'lead-detail':
         return selectedLeadId
-          ? <LeadDetail id={selectedLeadId} requireApproval onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage(leadDetailReturnTo); }} />
+          ? <LeadDetail id={selectedLeadId} onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage(leadDetailReturnTo); }} />
           : <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail'); }} />
       case 'lead-stage':
         return <LeadStage />

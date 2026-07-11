@@ -33,17 +33,21 @@ function parseCsvDate(value: string): Date | undefined {
 const SOURCE_MAP: Record<string, string> = {
   facebook: 'Facebook',
   'facebook ad': 'Facebook',
-  'direct call': 'Phone',
+  'direct call': 'Phone Call',
   whatsapp: 'WhatsApp',
   walkin: 'Walk-in',
-  reference: 'Referral',
+  reference: 'Reference',
   website: 'Website',
+  google: 'Google',
+  event: 'Event',
+  'education team': 'Education Team',
+  previous: 'Previous',
 };
 
 function mapSource(raw: string): { source: string; fellBackToOther: boolean } {
   const key = String(raw ?? '').trim().toLowerCase();
   const mapped = SOURCE_MAP[key];
-  return mapped ? { source: mapped, fellBackToOther: false } : { source: 'Other', fellBackToOther: true };
+  return mapped ? { source: mapped, fellBackToOther: false } : { source: 'Others', fellBackToOther: true };
 }
 
 const SERVICE_MAP: Record<string, string> = {

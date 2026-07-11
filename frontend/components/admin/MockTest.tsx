@@ -70,8 +70,7 @@ function transformSchedules(data: LuminedgeSchedule[]): MockTestSchedule[] {
   return data.map((item, index) => {
     const slot = item.timeSlots?.[0]
     const totalSeats = slot ? parseInt(slot.totalSlot, 10) || 0 : 0
-    const booked = slot ? slot.slot : 0
-    const availableSeats = Math.max(0, totalSeats - booked)
+    const availableSeats = slot ? Math.max(0, Math.min(slot.slot, totalSeats)) : 0
     const examTime = slot ? `${formatTimeTo12h(slot.startTime)} - ${formatTimeTo12h(slot.endTime)}` : ''
     return {
       _id: item._id,

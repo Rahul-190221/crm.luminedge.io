@@ -3,6 +3,7 @@
 import React from 'react';
 import { X, Mail, Phone, MapPin, Calendar, User, FileText, Clock, Tag, Activity } from 'lucide-react';
 import type { Lead } from '@/types/admin';
+import { getSourceColor } from '@/lib/constants/leadSourceColors';
 
 const stageColors: Record<string, string> = {
     Converted: 'bg-green-100 text-green-700 border-green-200',
@@ -85,7 +86,10 @@ const LeadProfileModal: React.FC<Props> = ({ lead, onClose }) => {
                     {/* Source & Service */}
                     <Section icon={<Tag className="w-4 h-4" />} title="Source & Service">
                         <div className="flex flex-wrap gap-2 mt-1">
-                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-700 uppercase tracking-wide">
+                            <span
+                                className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide"
+                                style={{ backgroundColor: getSourceColor(lead.source).bg, color: getSourceColor(lead.source).text }}
+                            >
                                 {lead.source}
                             </span>
                             <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-yellow-50 text-yellow-700 uppercase tracking-wide border border-yellow-100">

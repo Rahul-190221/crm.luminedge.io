@@ -26,7 +26,10 @@ interface PhoneLookupSuggestion { _id: string; fullName: string; phone: string; 
 
 const countryCodes = PHONE_COUNTRIES
 
-const leadSources: LeadSource[] = ['Website', 'Referral', 'Social Media', 'Email Campaign', 'Walk-in', 'Phone', 'Other']
+const leadSources: LeadSource[] = [
+  'Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp',
+  'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website'
+]
 const whomOptions = ['Personal', 'Parents', 'Cousin', 'Uncle', 'Sibling', 'Spouse'] as const
 type WhomOption = (typeof whomOptions)[number]
 const serviceInterests: ServiceInterest[] = SERVICE_INTEREST_OPTIONS

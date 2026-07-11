@@ -16,6 +16,7 @@ import { getReports, getTaskStatus } from '@/lib/api/reports'
 import { getUsers } from '@/lib/api/auth'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { getBdmColor } from '@/lib/helpers/bdmColors'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,8 +34,8 @@ interface TopPerformer {
   id?: string
   name: string
   conversionRate: number
-  leadsAssigned: number
-  leadsConverted: number
+  totalLeads: number
+  convertedLeads: number
 }
 
 interface StageData { name: string; count: number; color: string }
@@ -71,12 +72,6 @@ const months = ['January','February','March','April','May','June','July','August
 const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const getAvatarColor = (name?: string) => {
-  const colors = ['bg-sky-400','bg-blue-500','bg-purple-500','bg-green-500','bg-pink-500','bg-indigo-500','bg-red-500','bg-orange-500']
-  if (!name) return colors[0]
-  return colors[name.charCodeAt(0) % colors.length]
-}
 
 const getInitials = (name?: string) => {
   if (!name) return '?'
@@ -287,12 +282,15 @@ function OverviewTab() {
                     ${i === 0 ? 'bg-blue-600 text-white' : i === 1 ? 'bg-gray-200 text-gray-700' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-gray-400'}`}>
                     {i + 1}
                   </span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 ${getAvatarColor(p.name)}`}>
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                    style={{ backgroundColor: getBdmColor(p.name).bg, color: getBdmColor(p.name).text }}
+                  >
                     {getInitials(p.name)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
-                    <p className="text-xs text-gray-500">{p.leadsConverted}/{p.leadsAssigned} leads</p>
+                    <p className="text-xs text-gray-500">{p.convertedLeads}/{p.totalLeads} leads</p>
                   </div>
                   <span className={`text-sm font-bold ${convColor(p.conversionRate)}`}>{fmtPct(p.conversionRate)}</span>
                 </div>
@@ -646,7 +644,10 @@ function BDMPerformanceTab() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           <span className="text-gray-300">{expandedId === p._id ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}</span>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 ${getAvatarColor(p.name)}`}>
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                            style={{ backgroundColor: getBdmColor(p.name).bg, color: getBdmColor(p.name).text }}
+                          >
                             {getInitials(p.name)}
                           </div>
                           <span className="text-sm font-medium text-gray-900">{p.name || 'Unknown'}</span>

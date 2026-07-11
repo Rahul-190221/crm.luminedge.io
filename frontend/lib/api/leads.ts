@@ -264,7 +264,7 @@ const mapRowToLead = (headers: string[], values: string[]): any => {
       case 'phone': case 'phone number':
         leadData.phone = value; break;
       case 'source': case 'lead source':
-        leadData.source = value || 'Other'; break;
+        leadData.source = value || 'Others'; break;
       case 'service': case 'service interest': case 'serviceinterest':
         leadData.serviceInterest = value; break;
       case 'notes': case 'note':
@@ -355,7 +355,7 @@ export const parseCSV = (csvContent: string): Omit<Lead, '_id' | 'createdAt' | '
           break;
         case 'source':
         case 'lead source':
-          leadData.source = value || 'Other';
+          leadData.source = value || 'Others';
           break;
         case 'service':
         case 'service interest':
