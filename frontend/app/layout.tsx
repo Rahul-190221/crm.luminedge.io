@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   title: 'Luminedge CRM',
   description: 'Premium CRM for exam venue management',
   icons: {
-    icon: '/assets/logo.png',
-    shortcut: '/assets/logo.png',
-    apple: '/assets/logo.png',
+    icon: { url: '/assets/favicon-25.png', sizes: '25x25', type: 'image/png' },
+    shortcut: { url: '/assets/favicon-25.png', sizes: '25x25', type: 'image/png' },
+    apple: '/assets/mainlogo.png',
   },
 }
 

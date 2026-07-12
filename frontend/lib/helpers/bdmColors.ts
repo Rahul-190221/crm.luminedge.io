@@ -11,7 +11,7 @@ type BdmColor = { bg: string; text: string; dot: string }
 // is used for the dot since it's already chosen to contrast against `bg`.
 const NAME_COLOR_MAP: Record<string, BdmColor> = {
   'ann milli': { bg: '#3d3d3d', text: '#FFFFFF', dot: '#3d3d3d' }, // Charcoal Gray
-  'aroni':     { bg: '#c6dae1', text: '#5E7F8F', dot: '#5E7F8F' }, // Powder Blue
+  'aroni':     { bg: '#FF1493', text: '#FFFFFF', dot: '#FF1493' }, // Deep Pink
   'bristi':    { bg: '#0854a0', text: '#FFFFFF', dot: '#0854a0' }, // Royal Blue
   'najia':     { bg: '#d0efb6', text: '#4CAF50', dot: '#4CAF50' }, // Tea Green
   'rokan':     { bg: '#713600', text: '#FFE0B2', dot: '#713600' }, // Saddle Brown

@@ -120,18 +120,35 @@ const buildLeadFilter = (query: Request['query']): Record<string, any> => {
 
   if (search) {
     const rawSearch = String(search).slice(0, 200);
-    const isPhoneLike = /^[\d+\-\s()]+$/.test(rawSearch) && normalizePhoneDigits(rawSearch).length >= 3;
+    const isPhoneLike = /^[\d+\-\s()]+$/.test(rawSearch) && normalizePhoneDigits(rawSearch).length >= 1;
 
     if (isPhoneLike) {
-      // Digit-only queries are almost always a phone number — anchored so it can use the
-      // phone index as a prefix scan instead of an unindexed substring collection scan.
-      // Canonicalized so a bare national number (e.g. "01736461877") matches leads stored
-      // in international form (e.g. "+8801736461877").
-      const safeDigits = escapeRegex(phoneSearchDigits(rawSearch));
-      filter.phone = { $regex: `^\\+?${safeDigits}|,\\s*\\+?${safeDigits}`, $options: 'i' };
+      // Digit-only queries are almost always a phone number — matched as a substring so any
+      // typed digits narrow the list regardless of where they fall in the number: the start
+      // ("8" -> +880... leads), the middle, or the last few digits (how people often recall a
+      // number they don't have written down, e.g. "499434").
+      //
+      // Two candidate digit strings are matched, since neither alone covers every case: the
+      // raw typed digits (so a short/partial query like "8" matches stored "+880..." numbers
+      // literally, without being reinterpreted), and the canonicalized digits (so a bare
+      // national number like "01736461877" still matches leads stored in international form,
+      // "+8801736461877" — phoneSearchDigits assumes an in-progress national number and
+      // prepends the default country code, which corrupts genuinely short queries if used
+      // alone, e.g. "8" -> "8808").
+      const rawDigits = normalizePhoneDigits(rawSearch);
+      const canonicalDigits = phoneSearchDigits(rawSearch);
+      const digitVariants = Array.from(new Set([rawDigits, canonicalDigits].filter(Boolean)));
+      const alternation = digitVariants.map((d) => escapeRegex(d)).join('|');
+      filter.phone = { $regex: alternation };
     } else {
-      // Name/email search uses the text index instead of an unindexed regex scan.
-      filter.$text = { $search: rawSearch };
+      // Substring match on name/email so any typed letter progressively narrows results —
+      // $text (the previous approach) only matches whole, stemmed word tokens and can't do
+      // prefix/partial matching, so a single letter or partial name returned nothing.
+      const safeText = escapeRegex(rawSearch);
+      filter.$or = [
+        { fullName: { $regex: safeText, $options: 'i' } },
+        { email: { $regex: safeText, $options: 'i' } },
+      ];
     }
   }
 

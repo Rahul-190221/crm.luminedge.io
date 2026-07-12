@@ -5,8 +5,14 @@ import { usePathname } from 'next/navigation'
 import Cookies from 'js-cookie'
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/lib/api/notifications'
 import { useSocket, useSocketTick } from './SocketProvider'
+import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import toast from 'react-hot-toast'
 import { Bell } from 'lucide-react'
+
+// BDMs only use the Follow-up Reminders flow (its own cron-driven fetch/badge in
+// useFollowUpLeads); the generic Notification system (fetch, unread badge, toasts) is
+// intentionally admin/student-only and never shown on the BDM end.
+const isBdmSession = () => getUserIdFromToken()?.role === 'bdm'
 
 interface Notification {
   _id: string
@@ -38,7 +44,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const fetchNotifications = useCallback(async () => {
     const token = Cookies.get('accessToken') || localStorage.getItem('accessToken')
-    if (!token) {
+    if (!token || isBdmSession()) {
       setNotifications([])
       setUnreadCount(0)
       setIsLoading(false)
@@ -102,7 +108,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     const activeSocket = socketService?.socket
-    if (!activeSocket) return
+    if (!activeSocket || isBdmSession()) return
 
     const handleNewNotification = (newNotif: Notification) => {
       let isNewNotification = false

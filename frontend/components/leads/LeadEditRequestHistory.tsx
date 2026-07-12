@@ -119,6 +119,7 @@ export default function LeadEditRequestHistory({ leadId, leadName, enabled }: { 
   const sortedRequests = useMemo(() => requests, [requests]);
 
   if (!enabled) return null;
+  if (!loading && sortedRequests.length === 0) return null;
 
   return (
     <>
@@ -145,7 +146,7 @@ export default function LeadEditRequestHistory({ leadId, leadName, enabled }: { 
             <div className="h-16 rounded-xl bg-gray-50 animate-pulse" />
             <div className="h-16 rounded-xl bg-gray-50 animate-pulse" />
           </div>
-        ) : sortedRequests.length > 0 ? (
+        ) : (
           <div className="space-y-3">
             {sortedRequests.map((request) => {
               const statusClass =
@@ -186,14 +187,6 @@ export default function LeadEditRequestHistory({ leadId, leadName, enabled }: { 
                 </div>
               );
             })}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-[#f8fafc] px-4 py-8 text-center">
-            <div className="w-10 h-10 bg-white rounded-full border border-gray-100 shadow-sm flex items-center justify-center mx-auto mb-3">
-              <FileText className="w-5 h-5 text-gray-300" />
-            </div>
-            <p className="text-sm font-bold text-gray-800">No edit requests yet</p>
-            <p className="mt-1 text-sm text-gray-500">Any request you send for this lead will appear here.</p>
           </div>
         )}
       </div>

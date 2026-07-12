@@ -54,7 +54,10 @@ function BDMDashboardContent() {
     return decoded?.id || decoded?.userId || null
   }, [])
   const { rows: followUpRows } = useFollowUpLeads(currentUserId)
-  const followUpCount = followUpRows.filter(r => r.dueStatus !== 'upcoming').length
+  // Leads marked "Done" on the Follow-up Reminders page, tracked here so the sidebar badge
+  // drops immediately instead of waiting for this hook's own next refetch.
+  const [doneFollowUpIds, setDoneFollowUpIds] = useState<Set<string>>(new Set())
+  const followUpCount = followUpRows.filter(r => r.dueStatus !== 'upcoming' && !doneFollowUpIds.has(r.id)).length
 
   const clearAuthAndRedirect = async () => {
     const token = getToken()
@@ -175,7 +178,12 @@ function BDMDashboardContent() {
       case 'bdm-reports':
         return <BDMReports />
       case 'notification':
-        return <FollowUpPage />
+        return (
+          <FollowUpPage
+            onMarkDone={(id) => setDoneFollowUpIds(prev => new Set(prev).add(id))}
+            onUndoMarkDone={(id) => setDoneFollowUpIds(prev => { const s = new Set(prev); s.delete(id); return s })}
+          />
+        )
       case 'profile':
         return <ProfilePage />
       default:

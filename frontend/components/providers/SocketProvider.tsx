@@ -4,6 +4,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { socketService } from '@/lib/socket';
 import Cookies from 'js-cookie';
+import { getUserIdFromToken } from '@/lib/helpers/jwt';
+
+// BDMs only use the in-app Follow-up Reminders flow; OS-level popups are
+// intentionally never shown on the BDM end (see NotificationProvider.tsx).
+const isBdmSession = () => getUserIdFromToken()?.role === 'bdm';
 
 interface SocketContextValue {
     service: typeof socketService;
@@ -52,7 +57,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const activeSocket = socketService.socket;
-        if (!activeSocket || typeof window === 'undefined' || !('Notification' in window)) return;
+        if (!activeSocket || typeof window === 'undefined' || !('Notification' in window) || isBdmSession()) return;
 
         const handleBrowserNotification = (notif: { title: string; message: string }) => {
             const pageIsActive = document.visibilityState === 'visible' && document.hasFocus();

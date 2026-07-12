@@ -892,51 +892,59 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
           </div>
 
           {/* Notes */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-4 md:p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1 h-4 bg-amber-400 rounded-full" />
-              <FileText className="w-4 h-4 text-amber-500" />
-              <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-[0.05em]">Notes</h3>
-              {!editingNotes && (
-                <button
-                  type="button"
-                  onClick={() => { setEditNotes(lead.notes || ''); setEditingNotes(true); }}
-                  className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 hover:bg-amber-50 px-2 py-1 rounded-lg transition-all"
-                >
-                  <Pencil className="w-3 h-3" /> Edit
-                </button>
-              )}
-            </div>
-            {editingNotes ? (
-              <div className="space-y-3">
-                <textarea
-                  rows={4}
-                  value={editNotes}
-                  onChange={e => setEditNotes(e.target.value)}
-                  placeholder="Add notes about this lead..."
-                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-[13.5px] font-medium text-gray-800 placeholder:text-gray-300 resize-none outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
-                />
-                <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
-                  <button type="button" disabled={notesSaving} onClick={() => setEditingNotes(false)} className="h-8 px-4 text-[13px] font-bold text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all">Cancel</button>
+          {(lead.notes || editingNotes) ? (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-4 md:p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-1 h-4 bg-amber-400 rounded-full" />
+                <FileText className="w-4 h-4 text-amber-500" />
+                <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-[0.05em]">Notes</h3>
+                {!editingNotes && (
                   <button
                     type="button"
-                    disabled={notesSaving}
-                    onClick={handleSaveNotes}
-                    className="flex items-center gap-1.5 h-8 px-4 bg-amber-500 text-white text-[13px] font-bold rounded-xl shadow-[0_4px_14px_rgba(245,158,11,0.30)] hover:bg-amber-600 transition-all disabled:opacity-50"
+                    onClick={() => { setEditNotes(lead.notes || ''); setEditingNotes(true); }}
+                    className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 hover:bg-amber-50 px-2 py-1 rounded-lg transition-all"
                   >
-                    {notesSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                    Save
+                    <Pencil className="w-3 h-3" /> Edit
                   </button>
+                )}
+              </div>
+              {editingNotes ? (
+                <div className="space-y-3">
+                  <textarea
+                    rows={4}
+                    value={editNotes}
+                    onChange={e => setEditNotes(e.target.value)}
+                    placeholder="Add notes about this lead..."
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-[13.5px] font-medium text-gray-800 placeholder:text-gray-300 resize-none outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
+                  />
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                    <button type="button" disabled={notesSaving} onClick={() => setEditingNotes(false)} className="h-8 px-4 text-[13px] font-bold text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all">Cancel</button>
+                    <button
+                      type="button"
+                      disabled={notesSaving}
+                      onClick={handleSaveNotes}
+                      className="flex items-center gap-1.5 h-8 px-4 bg-amber-500 text-white text-[13px] font-bold rounded-xl shadow-[0_4px_14px_rgba(245,158,11,0.30)] hover:bg-amber-600 transition-all disabled:opacity-50"
+                    >
+                      {notesSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                      Save
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : lead.notes ? (
-              <div className="border-l-[3px] border-amber-300 bg-amber-50/60 rounded-r-xl pl-4 pr-3 py-3">
-                <p className="text-[14px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
-              </div>
-            ) : (
-              <p className="text-[13px] text-gray-400 italic">No notes added.</p>
-            )}
-          </div>
+              ) : (
+                <div className="border-l-[3px] border-amber-300 bg-amber-50/60 rounded-r-xl pl-4 pr-3 py-3">
+                  <p className="text-[14px] font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">{lead.notes}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setEditNotes(''); setEditingNotes(true); }}
+              className="w-full flex items-center gap-2 bg-white rounded-xl border border-dashed border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] px-4 py-3 text-[12px] font-bold text-amber-600 hover:bg-amber-50 hover:border-amber-200 transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Notes
+            </button>
+          )}
 
           {/* Timeline */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-4 md:p-5">

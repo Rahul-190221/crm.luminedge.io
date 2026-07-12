@@ -17,6 +17,7 @@ import { addFollowUp } from '@/lib/api/leads'
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import { useFollowUpLeads, type FollowUpRow } from '@/lib/hooks/useFollowUpLeads'
 import { formatTimeAgo, formatShortDate } from '@/lib/helpers/format'
+import LeadDetail from '@/components/leads/LeadDetail'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,12 +94,22 @@ const labelCls = 'block text-[10.5px] font-bold text-gray-400 uppercase tracking
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function FollowUpPage() {
-  const [filter,      setFilter]      = useState<Filter>('All')
-  const [doneIds,     setDoneIds]     = useState<Set<string>>(new Set())
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [formData,    setFormData]    = useState({ followUpDate: '', nextFollowUpDate: '', note: '' })
-  const [saving,      setSaving]      = useState(false)
+interface FollowUpPageProps {
+  // Lets the parent (which computes the sidebar's Follow-ups badge from its own
+  // useFollowUpLeads instance) drop a just-completed lead from that count immediately,
+  // without waiting for its own refetch.
+  onMarkDone?: (id: string) => void
+  onUndoMarkDone?: (id: string) => void
+}
+
+export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPageProps) {
+  const [filter,        setFilter]        = useState<Filter>('Today')
+  const [doneIds,       setDoneIds]       = useState<Set<string>>(new Set())
+  const [isModalOpen,   setIsModalOpen]   = useState(false)
+  const [formData,      setFormData]      = useState({ followUpDate: '', nextFollowUpDate: '', note: '' })
+  const [saving,        setSaving]        = useState(false)
+  const [drawerLeadId,  setDrawerLeadId]  = useState<string | null>(null)
+  const [drawerVisible, setDrawerVisible] = useState(false)
 
   // Get the logged-in BDM's userId from JWT, so only their own leads' follow-ups show
   const currentUserId = useMemo(() => {
@@ -109,8 +120,19 @@ export default function FollowUpPage() {
   const { rows: followUpRows, loading, error, refetch } = useFollowUpLeads(currentUserId)
   const rows = toDisplayRows(followUpRows)
 
+  const openLeadDrawer = (id: string) => {
+    setDrawerLeadId(id)
+    requestAnimationFrame(() => setDrawerVisible(true))
+  }
+  const closeLeadDrawer = () => {
+    setDrawerVisible(false)
+    window.setTimeout(() => setDrawerLeadId(null), 250)
+    refetch()
+  }
+
   const markDone = useCallback(async (row: DisplayRow) => {
     setDoneIds(prev => new Set(prev).add(row.id))
+    onMarkDone?.(row.id)
     try {
       await addFollowUp(row.id, {
         date: new Date().toISOString(),
@@ -119,8 +141,9 @@ export default function FollowUpPage() {
       })
     } catch {
       setDoneIds(prev => { const s = new Set(prev); s.delete(row.id); return s })
+      onUndoMarkDone?.(row.id)
     }
-  }, [])
+  }, [onMarkDone, onUndoMarkDone])
 
   const handleSave = async () => {
     if (!formData.note) return
@@ -137,7 +160,6 @@ export default function FollowUpPage() {
   }
 
   const displayed = rows.filter(r => {
-    if (doneIds.has(r.id)) return false
     if (filter === 'All')      return true
     if (filter === 'Overdue')  return r.dueStatus === 'overdue'
     if (filter === 'Today')    return r.dueStatus === 'today'
@@ -230,12 +252,16 @@ export default function FollowUpPage() {
                 const badge   = TYPE_META[item.type] ?? TYPE_META.Other
                 const courseCls = COURSE_BADGE[item.courseInterest] || 'bg-gray-100 text-gray-600'
                 return (
-                  <tr key={item.id} className="hover:bg-[#f9fafb] transition-colors">
+                  <tr
+                    key={item.id}
+                    onClick={() => openLeadDrawer(item.id)}
+                    className="hover:bg-[#f9fafb] cursor-pointer transition-colors"
+                  >
                     <td className="px-4 py-3">
-                      <p className="text-[13px] font-bold text-gray-800">{item.name}</p>
+                      <p className="text-[13px] font-bold text-gray-800 hover:text-[#1a56db] transition-colors">{item.name}</p>
                       <p className="text-[11px] text-gray-400 font-medium mt-0.5">{item.phone}</p>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       {item.type === 'Call' ? (
                         <a
                           href={`tel:${item.phone}`}
@@ -263,7 +289,7 @@ export default function FollowUpPage() {
                     <td className="px-4 py-3 max-w-[180px] hidden md:table-cell">
                       <span className="text-[12px] text-gray-500 leading-snug line-clamp-2">{item.note || '—'}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1.5">
                         <a
                           href={`tel:${item.phone}`}
@@ -283,11 +309,15 @@ export default function FollowUpPage() {
                         </a>
                         <button
                           onClick={() => markDone(item)}
-                          className="w-7 h-7 rounded-xl bg-[#def7ec] text-[#0e9f6e] flex items-center justify-center hover:bg-[#0e9f6e]/20 transition-colors"
+                          disabled={doneIds.has(item.id)}
+                          className="w-7 h-7 rounded-xl bg-[#def7ec] text-[#0e9f6e] flex items-center justify-center hover:bg-[#0e9f6e]/20 transition-colors disabled:cursor-default disabled:hover:bg-[#def7ec]"
                           title="Mark Done"
                         >
                           <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </button>
+                        {doneIds.has(item.id) && (
+                          <span className="text-[11px] font-bold text-[#0e9f6e]">Done</span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -376,6 +406,21 @@ export default function FollowUpPage() {
               >
                 {saving ? 'Saving…' : 'Save'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lead Detail Drawer */}
+      {drawerLeadId && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div
+            className={`absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 ${drawerVisible ? 'opacity-100' : 'opacity-0'}`}
+            onClick={closeLeadDrawer}
+          />
+          <div className={`relative w-full max-w-4xl h-full bg-[#f8fafc] shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${drawerVisible ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className="p-4 md:p-6">
+              <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} />
             </div>
           </div>
         </div>
