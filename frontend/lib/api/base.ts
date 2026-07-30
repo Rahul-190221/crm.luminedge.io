@@ -1,5 +1,5 @@
-const LOCAL_API_URL = 'https://crm-qy8u.onrender.com/api'
-const LOCAL_API_ORIGIN = 'https://crm-qy8u.onrender.com'
+const LOCAL_API_URL = 'https://crm-eta-blush.vercel.app/api'
+const LOCAL_API_ORIGIN = 'https://crm-eta-blush.vercel.app'
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
 
