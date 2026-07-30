@@ -106,6 +106,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   }, [fetchNotifications])
 
+  // Poll as a fallback for environments where the socket push can't connect
+  // (e.g. a serverless API host with no always-on Socket.IO server).
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifications()
+      }
+    }, 20000)
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
+
   useEffect(() => {
     const activeSocket = socketService?.socket
     if (!activeSocket || isBdmSession()) return

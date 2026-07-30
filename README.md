@@ -25,7 +25,6 @@ CRM/
 |   |   |-- services/             # Notifications, email, socket bridge
 |   |   `-- scripts/               # One-off maintenance scripts (CSV import, backfills)
 |   `-- Dockerfile
-`-- .github/workflows/           # Keep-alive ping for free-tier hosting
 ```
 
 ## Features
@@ -121,9 +120,8 @@ Socket.IO needs an always-on Node process. If the backend is deployed to a serve
 
 ## Deployment
 
-- **Backend** — deployed as an always-on Node web service (see `render.yaml` / `backend/Dockerfile`); requires `MONGODB_URI`, `JWT_SECRET`, `ALLOWED_ORIGINS`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `BLOB_READ_WRITE_TOKEN`, and SMTP vars if email is used.
-- **Frontend** — deployed on Netlify/Vercel with `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOCKET_URL` pointed at the backend host.
-- A scheduled GitHub Action (`.github/workflows/keep-alive.yml`) pings the backend's health check during business hours to reduce free-tier cold starts.
+- **Backend** — currently deployed as a Vercel serverless project (see `backend/vercel.json`); requires `MONGODB_URI`, `JWT_SECRET`, `ALLOWED_ORIGINS`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `BLOB_READ_WRITE_TOKEN`, and SMTP vars if email is used. Can alternatively run as an always-on Node service (see `render.yaml` / `backend/Dockerfile`), which is required for live Socket.IO push — the serverless deployment saves notifications to the DB but does not push them live (frontend polls as a fallback, see `NotificationProvider.tsx`).
+- **Frontend** — deployed on Netlify with `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOCKET_URL` pointed at the backend host.
 
 ## License
 

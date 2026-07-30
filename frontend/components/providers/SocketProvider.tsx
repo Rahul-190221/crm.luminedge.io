@@ -37,16 +37,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // intentionally empty — reconnect is handled inside socketService.connect()
 
-    // Ping the socket server every 4 minutes to keep Render's free tier awake
-    useEffect(() => {
-        const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
-        if (!SOCKET_URL) return;
-        const interval = setInterval(() => {
-            fetch(`${SOCKET_URL}/api/health`).catch(() => undefined);
-        }, 4 * 60 * 1000);
-        return () => clearInterval(interval);
-    }, []);
-
     useEffect(() => {
         if (typeof window === 'undefined' || !('Notification' in window)) return;
 
