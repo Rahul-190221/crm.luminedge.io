@@ -1,10 +1,29 @@
 import { io, Socket } from 'socket.io-client';
+import { API_ORIGIN } from './api/base';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const sameOriginAsApi = (url: string): boolean => {
+    try {
+        return !!API_ORIGIN && new URL(url).origin === new URL(API_ORIGIN).origin;
+    } catch {
+        return false;
+    }
+};
+
 const SOCKET_URL = (() => {
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.trim();
     if (socketUrl) {
-        return socketUrl.replace(/\/+$/, '');
+        const normalized = socketUrl.replace(/\/+$/, '');
+        // The socket host must always be a separate always-on process from the
+        // serverless API (see README "Realtime Notifications"). If they're the
+        // same origin, no socket host has actually been stood up — whatever the
+        // env var says (e.g. a stale build-time value) — so treat it as unset
+        // rather than hammering a host that can never serve /socket.io.
+        if (sameOriginAsApi(normalized)) {
+            return null;
+        }
+        return normalized;
     }
 
     if (API_URL && /localhost|127\.0\.0\.1|\[::1\]/.test(API_URL)) {
@@ -18,6 +37,7 @@ class ClientSocketService {
     public socket: Socket | null = null;
     private connectedToken: string | null = null;
     private authFailed = false;
+    private consecutiveErrors = 0;
 
     public connect(token: string) {
         if (!token) {
@@ -50,6 +70,7 @@ class ClientSocketService {
 
         this.connectedToken = token;
         this.authFailed = false;
+        this.consecutiveErrors = 0;
         this.socket = io(SOCKET_URL, {
             auth: { token },
             withCredentials: true,
@@ -63,6 +84,7 @@ class ClientSocketService {
 
         this.socket.on('connect', () => {
             this.authFailed = false;
+            this.consecutiveErrors = 0;
             console.log('Connected to socket server', this.socket?.id);
         });
 
@@ -77,6 +99,15 @@ class ClientSocketService {
                 if (this.socket?.io) {
                     this.socket.io.opts.reconnection = false;
                 }
+                return;
+            }
+
+            // Any other persistent failure (e.g. host doesn't serve /socket.io at
+            // all) — give it one retry for transient blips, then stop rather than
+            // burning through all reconnectionAttempts every page load.
+            this.consecutiveErrors += 1;
+            if (this.consecutiveErrors >= 2 && this.socket?.io) {
+                this.socket.io.opts.reconnection = false;
             }
         });
     }
@@ -88,6 +119,7 @@ class ClientSocketService {
         }
         this.connectedToken = null;
         this.authFailed = false;
+        this.consecutiveErrors = 0;
     }
 }
 

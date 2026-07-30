@@ -79,6 +79,15 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'CRM API is running' });
 });
 
+// This serverless deployment has no persistent HTTP server, so Socket.IO is
+// never mounted here (see socket.service.ts / README "Realtime Notifications").
+// Short-circuit before the rate limiter and DB-connection middleware so stray
+// /socket.io polling (misconfigured clients, bots) can't burn shared rate-limit
+// budget or trigger a cold-start DB reconnect for a request that can never succeed.
+app.use('/socket.io', (_req: Request, res: Response) => {
+  res.status(404).json({ success: false, message: 'Socket.IO is not available on this deployment' });
+});
+
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
