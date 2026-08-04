@@ -10,6 +10,27 @@ const PHONE_LOOKUP_MESSAGE = 'This number already exists. Already used, try with
 
 const normalizePhoneDigits = extractPhoneDigits;
 
+// Keep in sync with the `source` enum in models/Lead.ts.
+const VALID_SOURCES = new Set([
+  'Education Team', 'Phone Call', 'Previous', 'Facebook', 'WhatsApp',
+  'Google', 'Walk-in', 'Event', 'Reference', 'Others', 'Website',
+]);
+
+// Some leads created before the `source` enum was standardized still carry pre-standardization
+// values (e.g. "Phone", "Other"). The edit UI round-trips a lead's existing source even when the
+// user only changed something else, so an unnormalized legacy value blocks unrelated edits with
+// a Mongoose enum validation error. Normalize on write so those saves self-heal instead.
+const LEGACY_SOURCE_MAP: Record<string, string> = {
+  phone: 'Phone Call',
+  other: 'Others',
+};
+
+function normalizeSource(raw: string): string {
+  if (VALID_SOURCES.has(raw)) return raw;
+  const mapped = LEGACY_SOURCE_MAP[raw.trim().toLowerCase()];
+  return mapped || 'Others';
+}
+
 // Typeahead/suggestions only — matches on a digit prefix so it can still use the phone index
 // as a prefix scan. Not used for the strict duplicate check (see assertPhoneIsUnique below),
 // since a lead's `phone` field may contain multiple comma-separated numbers (LeadDetail.tsx's
@@ -271,7 +292,7 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
       ...(email && email.trim() ? { email: email.trim() } : {}),
       phone,
       whom,
-      source: source || 'Website',
+      source: source ? normalizeSource(source) : 'Website',
       serviceInterest,
       assignedTo: assignedTo || undefined,
       notes,
@@ -337,7 +358,7 @@ export const updateLead = async (req: Request, res: Response): Promise<void> => 
       updateData.phone = phone;
     }
     if (whom !== undefined) updateData.whom = whom;
-    if (source !== undefined) updateData.source = source;
+    if (source !== undefined) updateData.source = normalizeSource(source);
     if (serviceInterest !== undefined) updateData.serviceInterest = serviceInterest;
     if (assignedTo !== undefined) updateData.assignedTo = assignedTo;
     if (notes !== undefined) updateData.notes = notes;
@@ -576,7 +597,7 @@ export const importLeads = async (req: Request, res: Response): Promise<void> =>
           const setFields: any = {
             fullName:        leadData.fullName        || existing.fullName,
             phone:           leadData.phone           || existing.phone,
-            source:          leadData.source          || existing.source,
+            source:          leadData.source ? normalizeSource(leadData.source) : existing.source,
             serviceInterest: leadData.serviceInterest || existing.serviceInterest,
             lifecycleStage:  leadData.lifecycleStage  || existing.lifecycleStage,
           };
@@ -617,7 +638,7 @@ export const importLeads = async (req: Request, res: Response): Promise<void> =>
             fullName: leadData.fullName,
             email,
             phone: leadData.phone,
-            source: leadData.source || 'Others',
+            source: leadData.source ? normalizeSource(leadData.source) : 'Others',
             serviceInterest: leadData.serviceInterest,
             notes: leadData.notes,
             lifecycleStage: leadData.lifecycleStage || 'New Inquiry',
