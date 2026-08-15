@@ -4,7 +4,9 @@ const LUMINEDGE_API_URL = 'https://luminedge-server.vercel.app/api/v1/admin/get-
 
 export const getAvailableSchedules = async (req: Request, res: Response) => {
   try {
-    const response = await fetch(LUMINEDGE_API_URL);
+    const response = await fetch(LUMINEDGE_API_URL, {
+      headers: { Authorization: `Bearer ${process.env.LUMINEDGE_SERVICE_TOKEN}` },
+    });
 
     if (!response.ok) {
       // Relay as a gateway error, not response.status verbatim — a failed upstream
