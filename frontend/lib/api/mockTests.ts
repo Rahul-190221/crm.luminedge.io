@@ -1,4 +1,5 @@
 import type { MockTestPackage, MockTestSchedule, FilterState, LuminedgeSchedule } from '@/types/admin';
+import Cookies from 'js-cookie';
 
 import { API_ORIGIN } from './base'
 const API_BASE_URL = `${API_ORIGIN}/api`;
@@ -8,7 +9,9 @@ const LUMINEDGE_PUBLIC_SCHEDULES_URL =
   'https://luminedge-server.vercel.app/api/v1/admin/get-schedules';
 
 const getAuthHeader = (): HeadersInit => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const token = typeof window !== 'undefined'
+    ? (Cookies.get('accessToken') || localStorage.getItem('accessToken'))
+    : null;
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` })

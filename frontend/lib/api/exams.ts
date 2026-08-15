@@ -1,9 +1,12 @@
 import type { Exam, FilterState } from '@/types/admin';
+import Cookies from 'js-cookie';
 
 import { API_URL as API_BASE_URL } from './base';
 
 const getAuthHeader = (): HeadersInit => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const token = typeof window !== 'undefined'
+    ? (Cookies.get('accessToken') || localStorage.getItem('accessToken'))
+    : null;
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` })
