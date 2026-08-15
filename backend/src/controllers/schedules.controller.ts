@@ -7,7 +7,11 @@ export const getAvailableSchedules = async (req: Request, res: Response) => {
     const response = await fetch(LUMINEDGE_API_URL);
 
     if (!response.ok) {
-      return res.status(response.status).json({
+      // Relay as a gateway error, not response.status verbatim — a failed upstream
+      // (Luminedge) call can return 401/403 for reasons that have nothing to do with
+      // *this* request's own (already-verified) auth, and forwarding it as-is misleads
+      // the frontend into treating an integration failure as a CRM session problem.
+      return res.status(502).json({
         success: false,
         message: 'Failed to fetch schedules from Luminedge API'
       });
