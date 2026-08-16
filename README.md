@@ -79,6 +79,9 @@ SMTP_FROM=
 # Only needed if Socket.IO is split onto its own always-on host (see below)
 SOCKET_SERVER_URL=
 SOCKET_SERVER_SECRET=
+
+# Server-to-server auth for luminedge-server's /get-schedules (schedules.controller.ts)
+LUMINEDGE_SERVICE_TOKEN=your-luminedge-service-token
 ```
 
 Create `frontend/.env.local`:
@@ -87,6 +90,13 @@ Create `frontend/.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
 NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+
+# Must match backend JWT_SECRET — middleware.ts verifies tokens locally to gate dashboard routes
+JWT_SECRET=your-secret-key-change-this-in-production
+
+# Optional override for luminedge-server's public schedules endpoint (falls back to the
+# production URL if unset — see mockTests.ts)
+NEXT_PUBLIC_LUMINEDGE_SCHEDULES_URL=
 ```
 
 ## Running the Application
