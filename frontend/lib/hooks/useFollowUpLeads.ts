@@ -14,6 +14,7 @@ export type FollowUpRow = {
   dueDate: string
   dueStatus: FollowUpDueStatus
   note: string
+  bdmName?: string
 }
 
 export function mapLeadToFollowUpRow(lead: FollowUpLead): FollowUpRow {
@@ -26,6 +27,7 @@ export function mapLeadToFollowUpRow(lead: FollowUpLead): FollowUpRow {
     dueDate: lead.lastFollowUp?.nextFollowUpDate || '',
     dueStatus: lead.dueStatus,
     note: lead.lastFollowUp?.note || '',
+    bdmName: lead.assignedUser?.name || lead.bdmName || undefined,
   }
 }
 

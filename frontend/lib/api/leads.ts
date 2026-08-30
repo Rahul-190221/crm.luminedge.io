@@ -218,6 +218,8 @@ export interface FollowUpLead {
   phone: string;
   serviceInterest?: string[];
   assignedTo?: string;
+  bdmName?: string;
+  assignedUser?: { name?: string; email?: string };
   lastFollowUp?: { date?: string; note?: string; nextFollowUpDate?: string; createdAt?: string };
   dueStatus: 'overdue' | 'today' | 'upcoming';
 }

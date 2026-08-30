@@ -30,7 +30,8 @@ export type Page =
   | 'reports'
   | 'bdm-pipeline'
   | 'bdm-exam-slots'
-  | 'bdm-reports';
+  | 'bdm-reports'
+  | 'bdm-followups-all';
 
 
 

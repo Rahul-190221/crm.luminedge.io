@@ -16,6 +16,7 @@ import BDMRemove from '@/components/admin/BDMRemove'
 import BDMRole from '@/components/admin/BDMRole'
 import BDMActivity from '@/components/admin/BDMActivity'
 import BDMReport from '@/components/admin/BDMReport'
+import AllFollowUps from '@/components/admin/AllFollowUps'
 import LeadAssignments from '@/components/admin/LeadAssignments'
 import LeadDetail from '@/components/leads/LeadDetail'
 import LeadEditRequests from '@/components/admin/LeadEditRequests'
@@ -145,6 +146,8 @@ export default function AdminDashboardClient() {
         return <BDMActivity />
       case 'bdm-report':
         return <BDMReport />
+      case 'bdm-followups-all':
+        return <AllFollowUps />
       case 'lead-assignments':
         return <LeadAssignments />
       case 'student-list':

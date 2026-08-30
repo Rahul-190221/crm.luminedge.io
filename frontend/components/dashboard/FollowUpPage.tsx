@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   Phone,
   MessageSquare,
@@ -14,7 +14,8 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { addFollowUp } from '@/lib/api/leads'
-import { getUserIdFromToken } from '@/lib/helpers/jwt'
+import { getUserIdFromToken, getToken } from '@/lib/helpers/jwt'
+import { getUsers } from '@/lib/api/auth'
 import { useFollowUpLeads, type FollowUpRow } from '@/lib/hooks/useFollowUpLeads'
 import { formatTimeAgo, formatShortDate } from '@/lib/helpers/format'
 import LeadDetail from '@/components/leads/LeadDetail'
@@ -100,9 +101,20 @@ interface FollowUpPageProps {
   // without waiting for its own refetch.
   onMarkDone?: (id: string) => void
   onUndoMarkDone?: (id: string) => void
+  // 'own' (default) scopes to the logged-in BDM's leads; 'all' (admin view) fetches
+  // follow-ups across every BDM and shows a BDM column.
+  scope?: 'own' | 'all'
+  title?: string
+  subtitle?: string
 }
 
-export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPageProps) {
+export default function FollowUpPage({
+  onMarkDone,
+  onUndoMarkDone,
+  scope = 'own',
+  title = 'Follow-up Reminders',
+  subtitle = 'Track and manage all your scheduled follow-ups',
+}: FollowUpPageProps) {
   const [filter,        setFilter]        = useState<Filter>('Today')
   const [doneIds,       setDoneIds]       = useState<Set<string>>(new Set())
   const [isModalOpen,   setIsModalOpen]   = useState(false)
@@ -111,13 +123,34 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
   const [drawerLeadId,  setDrawerLeadId]  = useState<string | null>(null)
   const [drawerVisible, setDrawerVisible] = useState(false)
 
-  // Get the logged-in BDM's userId from JWT, so only their own leads' follow-ups show
+  // Get the logged-in BDM's userId from JWT, so only their own leads' follow-ups show.
+  // Skipped entirely in 'all' scope, where a BDM picker (below) drives the filter instead.
   const currentUserId = useMemo(() => {
+    if (scope === 'all') return null
     const decoded = getUserIdFromToken()
     return decoded?.id || decoded?.userId || null
-  }, [])
+  }, [scope])
 
-  const { rows: followUpRows, loading, error, refetch } = useFollowUpLeads(currentUserId)
+  // 'all' scope only: lets the admin narrow the table down to one BDM, or leave it as
+  // every BDM's follow-ups ('all', the default).
+  const [bdmList, setBdmList] = useState<{ _id: string; name: string }[]>([])
+  const [selectedBdm, setSelectedBdm] = useState('all')
+
+  useEffect(() => {
+    if (scope !== 'all') return
+    const token = getToken()
+    if (!token) return
+    getUsers(token, 'bdm')
+      .then((data: any[]) => setBdmList((Array.isArray(data) ? data : []).map(u => ({
+        _id: u._id,
+        name: u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Unnamed BDM',
+      }))))
+      .catch(() => {})
+  }, [scope])
+
+  const assignedToFilter = scope === 'all' ? (selectedBdm === 'all' ? null : selectedBdm) : currentUserId
+
+  const { rows: followUpRows, loading, error, refetch } = useFollowUpLeads(assignedToFilter)
   const rows = toDisplayRows(followUpRows)
 
   const openLeadDrawer = (id: string) => {
@@ -174,16 +207,18 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
       <div className="-mx-6 -mt-6 mb-8 p-4 md:p-6 sticky top-0 z-20 bg-white border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div>
-            <h1 className="text-[17px] font-bold text-gray-800 tracking-tight">Follow-up Reminders</h1>
-            <p className="text-[12px] text-gray-400 font-medium mt-0.5">Track and manage all your scheduled follow-ups</p>
+            <h1 className="text-[17px] font-bold text-gray-800 tracking-tight">{title}</h1>
+            <p className="text-[12px] text-gray-400 font-medium mt-0.5">{subtitle}</p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 h-9 px-3.5 bg-[#1a56db] text-white font-bold text-[13px] rounded-xl hover:bg-[#1341a8] transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
-            Add Follow-up
-          </button>
+          {scope !== 'all' && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1.5 h-9 px-3.5 bg-[#1a56db] text-white font-bold text-[13px] rounded-xl hover:bg-[#1341a8] transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+              Add Follow-up
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -193,6 +228,21 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+          {scope === 'all' && (
+            <div className="relative">
+              <select
+                value={selectedBdm}
+                onChange={e => setSelectedBdm(e.target.value)}
+                className="h-9 pl-3 pr-8 border border-gray-200 rounded-xl text-[12.5px] font-medium text-gray-600 bg-white outline-none focus:ring-2 focus:ring-[#1a56db]/30 focus:border-[#1a56db] transition-all appearance-none cursor-pointer"
+              >
+                <option value="all">All BDMs</option>
+                {bdmList.map(bdm => (
+                  <option key={bdm._id} value={bdm._id}>{bdm.name}</option>
+                ))}
+              </select>
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">▾</span>
+            </div>
+          )}
           <div className="relative">
             <select
               value={filter}
@@ -232,6 +282,9 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Student / Lead</th>
+                {scope === 'all' && (
+                  <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left hidden sm:table-cell">BDM</th>
+                )}
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Type</th>
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left hidden sm:table-cell">Course Interest</th>
                 <th className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.5px] text-gray-500 text-left">Due</th>
@@ -243,7 +296,7 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    {[...Array(6)].map((_, j) => (
+                    {[...Array(scope === 'all' ? 7 : 6)].map((_, j) => (
                       <td key={j} className="px-4 py-3"><div className="h-4 bg-gray-100 rounded" /></td>
                     ))}
                   </tr>
@@ -261,6 +314,11 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
                       <p className="text-[13px] font-bold text-gray-800 hover:text-[#1a56db] transition-colors">{item.name}</p>
                       <p className="text-[11px] text-gray-400 font-medium mt-0.5">{item.phone}</p>
                     </td>
+                    {scope === 'all' && (
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <span className="text-[12.5px] text-gray-600 font-medium">{item.bdmName || '—'}</span>
+                      </td>
+                    )}
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       {item.type === 'Call' ? (
                         <a
@@ -337,12 +395,14 @@ export default function FollowUpPage({ onMarkDone, onUndoMarkDone }: FollowUpPag
       </div>
 
       {/* FAB */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 rounded-full bg-[#1a56db] text-white shadow-[0_6px_24px_rgba(26,86,219,0.45)] items-center justify-center hover:shadow-[0_10px_32px_rgba(26,86,219,0.55)] hover:scale-105 active:scale-95 transition-all z-30"
-      >
-        <Plus className="w-5 h-5" strokeWidth={2.5} />
-      </button>
+      {scope !== 'all' && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 rounded-full bg-[#1a56db] text-white shadow-[0_6px_24px_rgba(26,86,219,0.45)] items-center justify-center hover:shadow-[0_10px_32px_rgba(26,86,219,0.55)] hover:scale-105 active:scale-95 transition-all z-30"
+        >
+          <Plus className="w-5 h-5" strokeWidth={2.5} />
+        </button>
+      )}
 
       {/* Modal */}
       {isModalOpen && (

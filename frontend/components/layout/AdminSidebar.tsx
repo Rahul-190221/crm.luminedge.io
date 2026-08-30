@@ -23,6 +23,7 @@ import {
     BarChart3,
     Calendar,
     Newspaper,
+    Clock,
 } from 'lucide-react'
 import type { Page } from '@/types/navigation'
 import { useSocket } from '@/components/providers/SocketProvider'
@@ -258,6 +259,10 @@ export default function AdminSidebar({ activePage, setActivePage, onLogout, isOp
 
                     <div className="mt-1.5">
                         <NavItem id="edit-request" label="Edit Request" icon={ClipboardCheck} badge={pendingEditCount} />
+                    </div>
+
+                    <div className="mt-0.5">
+                        <NavItem id="bdm-followups-all" label="Follow-ups" icon={Clock} />
                     </div>
                 </nav>
 
