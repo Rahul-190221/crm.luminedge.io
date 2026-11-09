@@ -57,4 +57,7 @@ leads/
 # AI assistant scratch/session artifacts, not project source
 brain/
 *.patch
-
+.agents
+skills-lock.json
+context
+AGENTS.md

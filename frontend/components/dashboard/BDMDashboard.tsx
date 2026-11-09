@@ -217,6 +217,9 @@ interface BDMDashboardProps {
   onViewMockTests?: () => void
   userName?:        string
   setActivePage?:   (page: Page) => void
+  // BDM screens are read-only. Defaults to true so a forgotten prop cannot
+  // re-enable lead creation.
+  readOnly?:        boolean
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────────
@@ -228,6 +231,7 @@ export default function BDMDashboard({
   onNewLeadsToday,
   userName,
   setActivePage,
+  readOnly = true,
 }: BDMDashboardProps) {
 
   const [stats,           setStats]           = useState<DashboardStats>(DEFAULT_STATS)
@@ -311,6 +315,7 @@ export default function BDMDashboard({
   const firstName = userName || 'there'
 
   const toggleCheck = (id: string) => {
+    if (readOnly) return
     setCheckedIds(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -373,14 +378,16 @@ export default function BDMDashboard({
               <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">
                 {getGreeting()}, {firstName} <span className="inline-block hover:animate-wave origin-bottom-right">👋</span>
               </h1>
-              <button
-                type="button"
-                onClick={() => setShowQuickAdd(true)}
-                className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-semibold text-[13px] rounded-xl transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 whitespace-nowrap flex-shrink-0"
-              >
-                <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
-                Add Lead
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAdd(true)}
+                  className="flex items-center gap-1.5 h-8 px-4 bg-blue-600 text-white font-semibold text-[13px] rounded-xl transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 whitespace-nowrap flex-shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+                  Add Lead
+                </button>
+              )}
             </div>
             <p className="text-xs text-gray-500 font-medium mt-0.5">{formatHeaderDate()}</p>
           </div>
@@ -518,9 +525,15 @@ export default function BDMDashboard({
                 return (
                   <div key={row.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors group">
                     <div
-                      onClick={() => toggleCheck(row.id)}
-                      className={`w-4.5 h-4.5 border-2 rounded-[5px] flex-shrink-0 cursor-pointer transition-all ${
-                        done ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 hover:border-blue-500'
+                      onClick={readOnly ? undefined : () => toggleCheck(row.id)}
+                      className={`w-4.5 h-4.5 border-2 rounded-[5px] flex-shrink-0 transition-all ${
+                        readOnly ? 'cursor-default' : 'cursor-pointer'
+                      } ${
+                        done
+                          ? 'bg-emerald-500 border-emerald-500'
+                          : readOnly
+                            ? 'border-gray-300'
+                            : 'border-gray-300 hover:border-blue-500'
                       }`}
                     />
                     <div
@@ -663,17 +676,19 @@ export default function BDMDashboard({
       </div>
 
       {/* ── FAB ──────────────────────────────────────────────────────────────── */}
-      <button
-        type="button"
-        onClick={() => setShowQuickAdd(true)}
-        title="Add new lead"
-        className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full items-center justify-center z-30 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
-      >
-        <Plus className="w-6 h-6" strokeWidth={2.5} />
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={() => setShowQuickAdd(true)}
+          title="Add new lead"
+          className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full items-center justify-center z-30 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
+        >
+          <Plus className="w-6 h-6" strokeWidth={2.5} />
+        </button>
+      )}
 
       {/* Quick Add Lead Modal */}
-      {showQuickAdd && (
+      {!readOnly && showQuickAdd && (
         <QuickAddLeadModal
           onClose={() => setShowQuickAdd(false)}
           onSuccess={() => {

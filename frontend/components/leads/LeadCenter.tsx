@@ -13,6 +13,7 @@ import { getUserIdFromToken } from '@/lib/helpers/jwt';
 import { LEAD_STAGES } from '@/lib/constants/leadStages';
 import { COURSE_GROUPS } from '@/lib/constants/courseGroups';
 import { getBdmColor } from '@/lib/helpers/bdmColors';
+import ViewOnlyBadge from '@/components/shared/ViewOnlyBadge';
 
 // ---
 
@@ -331,7 +332,7 @@ const FlatDropdown: React.FC<{
 
 // ---
 
-const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: number }> = ({ onViewLead, refreshKey = 0 }) => {
+const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: number; readOnly?: boolean }> = ({ onViewLead, refreshKey = 0, readOnly = false }) => {
     const tokenData = getUserIdFromToken();
     const isAdmin = tokenData?.role === 'admin';
     const [view, setView] = useState<'list' | 'form'>('list');
@@ -485,6 +486,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
     };
 
     const handleStageChange = async (id: string, newStage: LeadStageType) => {
+        if (readOnly) return;
         setUpdatingStageId(id);
         try {
             await updateLeadStage(id, newStage);
@@ -522,14 +524,17 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                             </span>
                             {stats.total.toLocaleString()} <span className="font-medium text-blue-400">leads</span>
                         </span>
+                        <ViewOnlyBadge show={readOnly} />
                     </div>
-                    <button
-                        onClick={() => setView('form')}
-                        className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1 whitespace-nowrap flex-shrink-0"
-                    >
-                        <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
-                        Add Lead
-                    </button>
+                    {!readOnly && (
+                        <button
+                            onClick={() => setView('form')}
+                            className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1 whitespace-nowrap flex-shrink-0"
+                        >
+                            <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+                            Add Lead
+                        </button>
+                    )}
                 </div>
 
                 {/* Right: filter toolbar */}
@@ -684,7 +689,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                                             <StageDropdown
                                                 value={lead.lifecycleStage}
                                                 onChange={(stage) => handleStageChange(lead._id, stage)}
-                                                disabled={updatingStageId === lead._id}
+                                                disabled={readOnly || updatingStageId === lead._id}
                                             />
                                         </td>
                                         <td className="px-5 py-3.5 hidden md:table-cell align-middle" onClick={e => e.stopPropagation()}>
@@ -836,16 +841,18 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
             </div>
 
             {/* --- */}
-            <button
-                type="button"
-                onClick={() => setView('form')}
-                title="Add new lead"
-                className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full items-center justify-center z-30 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
-            >
-                <Plus className="w-6 h-6" strokeWidth={2.5} />
-            </button>
+            {!readOnly && (
+                <button
+                    type="button"
+                    onClick={() => setView('form')}
+                    title="Add new lead"
+                    className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full items-center justify-center z-30 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
+                >
+                    <Plus className="w-6 h-6" strokeWidth={2.5} />
+                </button>
+            )}
 
-            {view === 'form' && (
+            {!readOnly && view === 'form' && (
                 <QuickAddLeadModal
                     title="Add New Lead"
                     subtitle="Add a prospective student to the pipeline"
@@ -862,7 +869,7 @@ const LeadCenter: React.FC<{ onViewLead?: (id: string) => void; refreshKey?: num
                     />
                     <div className={`relative w-full max-w-4xl h-full bg-[#f8fafc] shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${drawerVisible ? 'translate-x-0' : 'translate-x-full'}`}>
                         <div className="p-4 md:p-6">
-                            <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} />
+                            <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} readOnly={readOnly} />
                         </div>
                     </div>
                 </div>

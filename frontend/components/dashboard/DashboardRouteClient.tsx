@@ -21,6 +21,7 @@ import NotificationsPage from '@/components/shared/NotificationsPage'
 import FollowUpPage from '@/components/dashboard/FollowUpPage'
 import ProfilePage from '@/components/shared/ProfilePage'
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
+import { getStaffCapabilities } from '@/lib/permissions'
 import { useNotifications } from '@/components/providers/NotificationProvider'
 import type { Page } from '@/types/navigation'
 
@@ -76,6 +77,7 @@ export default function DashboardRouteClient() {
     }
 
     // BDM routes
+    const readOnly = getStaffCapabilities(user?.role).readOnly
     switch (activePage) {
       case 'dashboard':
         return (
@@ -87,24 +89,23 @@ export default function DashboardRouteClient() {
             onBookExam={() => setActivePage('bdm-exam-slots')}
             onNewLeadsToday={() => setActivePage('bdm-pipeline')}
             onViewMockTests={() => setActivePage('bdm-exam-slots')}
+            readOnly={readOnly}
           />
         )
       case 'bdm-pipeline':
-        return <BDMPipeline setActivePage={setActivePage} />
+        return <BDMPipeline setActivePage={setActivePage} readOnly={readOnly} />
       case 'lead-center':
-        return <LeadCenter />
+        return <LeadCenter readOnly={readOnly} />
       case 'course-details':
-        return <CourseDetails />
+        return <CourseDetails readOnly={readOnly} />
       case 'bdm-exam-slots':
         return <BDMExamSlots />
       case 'bdm-reports':
         return <BDMReports />
-      case 'input-lead':
-        return <InputLead onSuccess={() => setActivePage('lead-center')} onCancel={() => setActivePage('lead-center')} />
       case 'lead-stage':
-        return <LeadStage />
+        return <LeadStage readOnly={readOnly} />
       case 'notification':
-        return <FollowUpPage />
+        return <FollowUpPage readOnly={readOnly} />
       case 'profile':
         return <ProfilePage />
       default:
@@ -117,6 +118,7 @@ export default function DashboardRouteClient() {
             onBookExam={() => setActivePage('bdm-exam-slots')}
             onNewLeadsToday={() => setActivePage('bdm-pipeline')}
             onViewMockTests={() => setActivePage('bdm-exam-slots')}
+            readOnly={readOnly}
           />
         )
     }

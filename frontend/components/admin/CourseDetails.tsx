@@ -89,8 +89,8 @@ const courseTypes: CourseType[] = [
 
 const selectCls = "h-10 px-3 border border-[#00000F]/[0.10] rounded-xl text-[13px] font-medium text-[#00000F]/70 bg-white focus:ring-2 focus:ring-[#1a56db]/30 focus:border-[#1a56db] outline-none transition-all cursor-pointer appearance-none pr-8"
 
-const CourseDetails: React.FC = () => {
-  const isAdmin = true
+const CourseDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
+  const isAdmin = !readOnly
   const [courses, setCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)

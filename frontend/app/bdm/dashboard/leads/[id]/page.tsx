@@ -30,5 +30,5 @@ export default function LeadDetailPage() {
     );
   }
 
-  return <LeadDetail id={id} onBack={() => router.back()} />;
+  return <LeadDetail id={id} onBack={() => router.back()} readOnly />;
 }

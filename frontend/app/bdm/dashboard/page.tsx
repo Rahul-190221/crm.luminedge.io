@@ -27,6 +27,7 @@ import { getUserIdFromToken, getToken } from '@/lib/helpers/jwt'
 import { getProfile } from '@/lib/api/auth'
 import { API_URL } from '@/lib/api/base'
 import { useFollowUpLeads } from '@/lib/hooks/useFollowUpLeads'
+import { getStaffCapabilities } from '@/lib/permissions'
 import type { Page } from '@/types/navigation'
 
 function formatRoleLabel(role: string): string {
@@ -46,6 +47,10 @@ function BDMDashboardContent() {
   const [user, setUser] = useState<any>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [staffRole, setStaffRole] = useState<string | null>(null)
+
+  // Fail-closed: before the role resolves this is read-only.
+  const { readOnly } = getStaffCapabilities(staffRole)
 
   // Same shared query/hook as the Follow-up Reminders page and the dashboard widget, so the
   // sidebar badge always agrees with what those two surfaces show (Today + Overdue count).
@@ -104,6 +109,7 @@ function BDMDashboardContent() {
       role: formatRoleLabel(decoded.role || ''),
     }
 
+    setStaffRole(decoded.role ?? null)
     setUser(baseUser)
     setIsInitialized(true)
 
@@ -143,22 +149,23 @@ function BDMDashboardContent() {
             onViewMockTests={() => setActivePage('mock-test')}
             userName={user?.name}
             setActivePage={setActivePage}
+            readOnly={readOnly}
           />
         )
       case 'bdm-pipeline':
-        return <BDMPipeline setActivePage={setActivePage} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('bdm-pipeline'); setActivePage('lead-detail') }} />
+        return <BDMPipeline readOnly={readOnly} setActivePage={setActivePage} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('bdm-pipeline'); setActivePage('lead-detail') }} />
       case 'lead-center':
-        return <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail') }} />
+        return <LeadCenter readOnly={readOnly} refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail') }} />
       case 'lead-detail':
         return selectedLeadId
-          ? <LeadDetail id={selectedLeadId} onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage(leadDetailReturnTo); }} />
-          : <LeadCenter refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail'); }} />
+          ? <LeadDetail readOnly={readOnly} id={selectedLeadId} onBack={() => { setLeadCenterRefreshKey(k => k + 1); setActivePage(leadDetailReturnTo); }} />
+          : <LeadCenter readOnly={readOnly} refreshKey={leadCenterRefreshKey} onViewLead={(id) => { setSelectedLeadId(id); setLeadDetailReturnTo('lead-center'); setActivePage('lead-detail'); }} />
       case 'lead-stage':
-        return <LeadStage />
+        return <LeadStage readOnly={readOnly} />
       case 'course-details':
-        return <CourseDetails />
+        return <CourseDetails readOnly={readOnly} />
       case 'mock-test':
-        return <MockTest />
+        return <MockTest readOnly={readOnly} />
       case 'exam-reg':
         return <ExamRegistration />
       case 'student-list':
@@ -180,6 +187,7 @@ function BDMDashboardContent() {
       case 'notification':
         return (
           <FollowUpPage
+            readOnly={readOnly}
             onMarkDone={(id) => setDoneFollowUpIds(prev => new Set(prev).add(id))}
             onUndoMarkDone={(id) => setDoneFollowUpIds(prev => { const s = new Set(prev); s.delete(id); return s })}
           />
@@ -197,6 +205,7 @@ function BDMDashboardContent() {
             onViewMockTests={() => setActivePage('mock-test')}
             userName={user?.name}
             setActivePage={setActivePage}
+            readOnly={readOnly}
           />
         )
     }
