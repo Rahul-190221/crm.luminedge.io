@@ -33,6 +33,7 @@ import type { Lead, LeadStage } from '@/types/admin'
 import { LEAD_STAGES, LEAD_STAGE_META } from '@/lib/constants/leadStages'
 import StageDropdown from '@/components/leads/StageDropdown'
 import QuickAddLeadModal from '@/components/leads/QuickAddLeadModal'
+import ViewOnlyBadge from '@/components/shared/ViewOnlyBadge'
 import { formatTimeAgo, extractTargetScore } from '@/lib/helpers/format'
 import { getUserIdFromToken } from '@/lib/helpers/jwt'
 import type { Page } from '@/types/navigation'
@@ -172,13 +173,15 @@ function LeadCard({
   onStageChange,
   onView,
   savingStageId,
+  readOnly,
 }: {
   lead: Lead
   onStageChange: (id: string, nextStage: LeadStage) => void
   onView: (id: string) => void
   savingStageId: string | null
+  readOnly: boolean
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: lead._id })
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: lead._id, disabled: readOnly })
   const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined
 
   const svc        = Array.isArray(lead.serviceInterest) ? lead.serviceInterest[0] : lead.serviceInterest || ''
@@ -266,6 +269,7 @@ function LeadCard({
               value={lead.lifecycleStage}
               onChange={(stage) => onStageChange(lead._id, stage)}
               saving={savingStageId === lead._id}
+              disabled={readOnly}
               size="compact"
             />
           </div>
@@ -318,9 +322,12 @@ function Column({
 interface BDMPipelineProps {
   setActivePage?: (page: Page) => void
   onViewLead?: (id: string) => void
+  // BDM screens are read-only. Defaults to true so a forgotten prop cannot
+  // re-enable lead creation, drag-and-drop or stage changes.
+  readOnly?: boolean
 }
 
-export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelineProps) {
+export default function BDMPipeline({ setActivePage, onViewLead, readOnly = true }: BDMPipelineProps) {
   const [leads,         setLeads]         = useState<Lead[]>([])
   const [loading,       setLoading]       = useState(true)
   const [error,         setError]         = useState<string | null>(null)
@@ -400,6 +407,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
   }, [refreshTick, currentUserId])
 
   const handleStageChange = useCallback(async (id: string, nextStage: LeadStage) => {
+    if (readOnly) return
     const prevStage = leads.find(l => l._id === id)?.lifecycleStage
     if (!prevStage || prevStage === nextStage) return
 
@@ -421,13 +429,14 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
     } finally {
       setSavingStageId(null)
     }
-  }, [leads])
+  }, [leads, readOnly])
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
+    if (readOnly) return
     const { active, over } = event
     if (!over) return
     handleStageChange(String(active.id), over.id as LeadStage)
-  }, [handleStageChange])
+  }, [handleStageChange, readOnly])
 
   const q = search.toLowerCase().trim()
 
@@ -495,15 +504,18 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
               </span>
               {(hasActiveFilter ? filtered.length : trueTotal).toLocaleString()} <span className="font-medium text-blue-400">of</span> {trueTotal.toLocaleString()}
             </span>
+            <ViewOnlyBadge show={readOnly} />
           </div>
-          <button
-            type="button"
-            onClick={() => setShowQuickAdd(true)}
-            className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1 whitespace-nowrap flex-shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
-            Add Lead
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={() => setShowQuickAdd(true)}
+              className="flex items-center gap-1.5 h-8 px-4 bg-gradient-to-b from-[#4c6ef5] to-[#3b5bdb] hover:from-[#3b5bdb] hover:to-[#364fc7] text-white font-semibold text-[13px] rounded-lg transition-all duration-150 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] ml-1 whitespace-nowrap flex-shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+              Add Lead
+            </button>
+          )}
         </div>
 
         {/* Right: filter toolbar */}
@@ -627,6 +639,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
                         onStageChange={handleStageChange}
                         onView={(id) => onViewLead?.(id)}
                         savingStageId={savingStageId}
+                        readOnly={readOnly}
                       />
                     ))
                   )}
@@ -638,7 +651,7 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
                   )}
 
                   {/* Add Lead inline button at bottom of first column */}
-                  {stage === LEAD_STAGES[0] && !loading && (
+                  {stage === LEAD_STAGES[0] && !loading && !readOnly && (
                     <button
                       type="button"
                       onClick={() => setShowQuickAdd(true)}
@@ -657,16 +670,18 @@ export default function BDMPipeline({ setActivePage, onViewLead }: BDMPipelinePr
       </div>
 
       {/* FAB - bottom right */}
-      <button
-        type="button"
-        onClick={() => setShowQuickAdd(true)}
-        className="hidden lg:flex fixed bottom-8 right-8 w-12 h-12 bg-[#3b5bdb] text-white rounded-full items-center justify-center z-30 hover:bg-[#364fc7] transition-all hover:scale-105 active:scale-95 shadow-[0_4px_14px_rgba(59,91,219,0.4)]"
-      >
-        <Plus className="w-5 h-5" strokeWidth={2.5} />
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={() => setShowQuickAdd(true)}
+          className="hidden lg:flex fixed bottom-8 right-8 w-12 h-12 bg-[#3b5bdb] text-white rounded-full items-center justify-center z-30 hover:bg-[#364fc7] transition-all hover:scale-105 active:scale-95 shadow-[0_4px_14px_rgba(59,91,219,0.4)]"
+        >
+          <Plus className="w-5 h-5" strokeWidth={2.5} />
+        </button>
+      )}
 
       {/* Quick Add Modal */}
-      {showQuickAdd && (
+      {!readOnly && showQuickAdd && (
         <QuickAddLeadModal
           onClose={() => setShowQuickAdd(false)}
           onSuccess={() => {

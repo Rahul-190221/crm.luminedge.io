@@ -15,6 +15,7 @@ import type { Lead, LeadStage as LeadStageType } from '@/types/admin';
 import { SERVICE_INTEREST_OPTIONS } from '@/types/admin';
 import { getSourceColor } from '@/lib/constants/leadSourceColors';
 import StageDropdown from '@/components/leads/StageDropdown';
+import ViewOnlyBadge from '@/components/shared/ViewOnlyBadge';
 import {
   PHONE_COUNTRIES,
   DEFAULT_PHONE_COUNTRY_CODE,
@@ -56,9 +57,9 @@ const inputCls = "w-full h-10 px-3 border border-gray-200 rounded-xl text-[13.5p
 
 //ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Main Component ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
 
-interface LeadDetailProps { id: string; onBack: () => void; }
+interface LeadDetailProps { id: string; onBack: () => void; readOnly?: boolean; }
 
-export default function LeadDetail({ id, onBack }: LeadDetailProps) {
+export default function LeadDetail({ id, onBack, readOnly = false }: LeadDetailProps) {
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +151,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
   }, [editPhone, editCountryCode, editingContact, lead?._id]);
 
   const handleStageChange = async (newStage: LeadStageType) => {
-    if (!lead) return;
+    if (!lead || readOnly) return;
     setStageSaving(true); setStageError(null);
     try {
       setLead(await updateLeadStage(lead._id, newStage));
@@ -160,7 +161,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
     finally { setStageSaving(false); }
   };
   const handleSaveName = async () => {
-    if (!lead || !editNameValue.trim()) return;
+    if (!lead || readOnly || !editNameValue.trim()) return;
     setNameSaving(true);
     try {
       const updated = await updateLead(lead._id, { fullName: editNameValue.trim() });
@@ -208,7 +209,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
   };
 
   const handleSaveContact = async () => {
-    if (!lead || (!editEmail.trim() && !editPhone.trim())) return;
+    if (!lead || readOnly || (!editEmail.trim() && !editPhone.trim())) return;
     setContactSaving(true);
     try {
       if (editPhone.trim()) {
@@ -240,7 +241,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
   };
   const cancelEditEmail = () => { setEmailEditIdx(null); setEmailEditValue(''); };
   const submitEditEmail = async () => {
-    if (!lead || emailEditIdx === null || !emailEditValue.trim()) return;
+    if (!lead || readOnly || emailEditIdx === null || !emailEditValue.trim()) return;
     setContactEditRequestSaving(true);
     try {
       const emails = splitPhoneEntries(lead.email);
@@ -300,7 +301,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
   };
 
   const submitEditPhone = async () => {
-    if (!lead || phoneEditIdx === null || !phoneEditDigits.trim()) return;
+    if (!lead || readOnly || phoneEditIdx === null || !phoneEditDigits.trim()) return;
     const duplicate = await checkEditPhoneDuplicate();
     if (duplicate) return;
 
@@ -317,7 +318,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
   };
 
   const handleSaveSourceService = async () => {
-    if (!lead) return;
+    if (!lead || readOnly) return;
     setSourceServiceSaving(true);
     try {
       // Source & Service updates are always saved directly — no approval needed.
@@ -329,7 +330,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
   };
 
   const handleSaveNotes = async () => {
-    if (!lead) return;
+    if (!lead || readOnly) return;
     setNotesSaving(true);
     try {
       // Notes updates are always saved directly — no approval needed.
@@ -342,7 +343,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
 
   const handleAddFollowUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!lead || !fuNote.trim()) return;
+    if (!lead || readOnly || !fuNote.trim()) return;
     setFuSaving(true); setFuError(null);
     try {
       // Follow-ups are always saved directly — no approval needed.
@@ -443,16 +444,19 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
               ) : (
                 <div className="flex items-center gap-2 group/name">
                   <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">{lead.fullName || 'Unnamed lead'}</h1>
-                  <button
-                    onClick={e => { e.stopPropagation(); setEditNameValue(lead.fullName || ''); setEditingName(true); }}
-                    title="Edit name"
-                    className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#1a56db]"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
+                  {!readOnly && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setEditNameValue(lead.fullName || ''); setEditingName(true); }}
+                      title="Edit name"
+                      className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#1a56db]"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               )}
-              <StageDropdown value={lead.lifecycleStage as LeadStageType} onChange={handleStageChange} saving={stageSaving} />
+              <StageDropdown value={lead.lifecycleStage as LeadStageType} onChange={handleStageChange} saving={stageSaving} disabled={readOnly} />
+              <ViewOnlyBadge show={readOnly} />
             </div>
             {stageError && <p className="text-[12px] text-red-500 font-medium mt-1 mb-1.5">{stageError}</p>}
             <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 font-medium">
@@ -539,7 +543,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                 <User className="w-4 h-4 text-[#1a56db]" />
                 <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-[0.05em]">Contact Information</h3>
               </div>
-              {!editingContact && (
+              {!editingContact && !readOnly && (
                 <button
                   onClick={() => { setEditEmail(''); setEditPhone(''); setEditCountryCode(DEFAULT_PHONE_COUNTRY_CODE); setPhoneSuggestions([]); setPhoneError(null); setEditingContact(true); }}
                   className="flex items-center gap-1.5 text-[12px] font-bold text-[#1a56db] hover:text-[#1341a8] transition-colors"
@@ -580,14 +584,16 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                         >
                           {copiedField === `email-${i}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
-                        <button
-                          type="button"
-                          title="Edit (requires admin approval)"
-                          onClick={() => startEditEmail(i, e.trim())}
-                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-[#1a56db] transition-all"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        {!readOnly && (
+                          <button
+                            type="button"
+                            title="Edit (requires admin approval)"
+                            onClick={() => startEditEmail(i, e.trim())}
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-[#1a56db] transition-all"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     )
                   )) || <p className="text-[13px] text-gray-400 italic px-1">No email</p>}
@@ -667,14 +673,16 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                         >
                           {copiedField === `phone-${i}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
-                        <button
-                          type="button"
-                          title="Edit (requires admin approval)"
-                          onClick={() => startEditPhone(i, p.trim())}
-                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-[#1a56db] transition-all"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        {!readOnly && (
+                          <button
+                            type="button"
+                            title="Edit (requires admin approval)"
+                            onClick={() => startEditPhone(i, p.trim())}
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-gray-100 text-gray-400 hover:text-[#1a56db] transition-all"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     )
                   ))}
@@ -811,7 +819,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
               <span className="w-1 h-4 bg-[#1a56db] rounded-full" />
               <Tag className="w-4 h-4 text-[#1a56db]" />
               <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-[0.05em]">Source & Service</h3>
-              {!editingSourceService && (
+              {!editingSourceService && !readOnly && (
                 <button
                   type="button"
                   onClick={() => { setEditSource(lead.source); setEditServiceInterest(Array.isArray(lead.serviceInterest) ? [...lead.serviceInterest] : []); setEditingSourceService(true); }}
@@ -898,7 +906,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                 <span className="w-1 h-4 bg-amber-400 rounded-full" />
                 <FileText className="w-4 h-4 text-amber-500" />
                 <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-[0.05em]">Notes</h3>
-                {!editingNotes && (
+                {!editingNotes && !readOnly && (
                   <button
                     type="button"
                     onClick={() => { setEditNotes(lead.notes || ''); setEditingNotes(true); }}
@@ -936,7 +944,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                 </div>
               )}
             </div>
-          ) : (
+          ) : !readOnly ? (
             <button
               type="button"
               onClick={() => { setEditNotes(''); setEditingNotes(true); }}
@@ -944,7 +952,7 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
             >
               <Plus className="w-3.5 h-3.5" /> Add Notes
             </button>
-          )}
+          ) : null}
 
           {/* Timeline */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-4 md:p-5">
@@ -979,13 +987,15 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
           <span className="text-[11px] font-extrabold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full ml-1">
             {lead.followUps?.length ?? 0}
           </span>
-          <button
-            onClick={() => { setShowFollowUpForm(v => !v); setFuError(null); }}
-            className="ml-auto flex items-center gap-1.5 h-8 px-4 bg-[#1a56db] text-white text-[12.5px] font-bold rounded-xl shadow-[0_2px_10px_rgba(26,86,219,0.30)] hover:bg-[#1341a8] hover:shadow-[0_4px_14px_rgba(26,86,219,0.40)] active:scale-95 transition-all duration-200"
-          >
-            <Plus className="w-4 h-4" strokeWidth={3} />
-            Add Follow-Up
-          </button>
+          {!readOnly && (
+            <button
+              onClick={() => { setShowFollowUpForm(v => !v); setFuError(null); }}
+              className="ml-auto flex items-center gap-1.5 h-8 px-4 bg-[#1a56db] text-white text-[12.5px] font-bold rounded-xl shadow-[0_2px_10px_rgba(26,86,219,0.30)] hover:bg-[#1341a8] hover:shadow-[0_4px_14px_rgba(26,86,219,0.40)] active:scale-95 transition-all duration-200"
+            >
+              <Plus className="w-4 h-4" strokeWidth={3} />
+              Add Follow-Up
+            </button>
+          )}
         </div>
 
         {showFollowUpForm && (
@@ -1076,14 +1086,21 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                         </span>
                       )}
                       {fu.nextFollowUpDate && (
-                        <button
-                          type="button"
-                          onClick={() => { setShowFollowUpForm(true); setFuError(null); }}
-                          className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#1a56db] bg-[#ebf0ff] px-2.5 py-1 rounded-lg border border-[#1a56db]/25 hover:bg-[#1a56db] hover:text-white hover:shadow-sm transition-all group/next"
-                        >
-                          <Calendar className="w-3.5 h-3.5 text-[#1a56db] group-hover/next:text-white transition-colors" />
-                          Next: {fmt(fu.nextFollowUpDate)}
-                        </button>
+                        readOnly ? (
+                          <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#1a56db] bg-[#ebf0ff] px-2.5 py-1 rounded-lg border border-[#1a56db]/25">
+                            <Calendar className="w-3.5 h-3.5 text-[#1a56db]" />
+                            Next: {fmt(fu.nextFollowUpDate)}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setShowFollowUpForm(true); setFuError(null); }}
+                            className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#1a56db] bg-[#ebf0ff] px-2.5 py-1 rounded-lg border border-[#1a56db]/25 hover:bg-[#1a56db] hover:text-white hover:shadow-sm transition-all group/next"
+                          >
+                            <Calendar className="w-3.5 h-3.5 text-[#1a56db] group-hover/next:text-white transition-colors" />
+                            Next: {fmt(fu.nextFollowUpDate)}
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
@@ -1098,7 +1115,9 @@ export default function LeadDetail({ id, onBack }: LeadDetailProps) {
                 <MessageSquare className="w-6 h-6 text-[#1a56db]/40" />
               </div>
               <p className="text-[15px] font-extrabold text-gray-800">No follow-up history yet</p>
-              <p className="text-[13px] text-gray-500 font-medium mt-1">Click &quot;Add Follow-Up&quot; to record the first interaction.</p>
+              <p className="text-[13px] text-gray-500 font-medium mt-1">
+                {readOnly ? 'No follow-ups recorded yet.' : 'Click "Add Follow-Up" to record the first interaction.'}
+              </p>
             </div>
           )
         )}

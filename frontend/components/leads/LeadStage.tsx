@@ -15,7 +15,7 @@ interface LeadStats {
     lost: number;
 }
 
-const LeadStage: React.FC = () => {
+const LeadStage: React.FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +55,7 @@ const LeadStage: React.FC = () => {
     }, []);
 
     const handleStageChange = async (leadId: string, newStage: LeadStageType) => {
+        if (readOnly) return;
         try {
             await updateLeadStage(leadId, newStage);
             setLeads(leads.map(lead =>
@@ -152,13 +153,15 @@ const LeadStage: React.FC = () => {
                     <p className="text-sm text-gray-500 mt-1">Track and manage leads through different stages</p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                    <button
-                        onClick={handleImport}
-                        className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors bg-white"
-                    >
-                        <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span>Import</span>
-                    </button>
+                    {!readOnly && (
+                        <button
+                            onClick={handleImport}
+                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors bg-white"
+                        >
+                            <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span>Import</span>
+                        </button>
+                    )}
                     <button
                         onClick={handleExport}
                         className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors bg-white"
@@ -249,6 +252,7 @@ const LeadStage: React.FC = () => {
                                             <StageDropdown
                                                 value={lead.lifecycleStage}
                                                 onChange={(stage) => handleStageChange(lead._id, stage)}
+                                                disabled={readOnly}
                                             />
                                         </td>
                                         <td className="px-3 py-3 text-sm text-gray-600 max-w-[150px] truncate" title={lead.notes || ''}>

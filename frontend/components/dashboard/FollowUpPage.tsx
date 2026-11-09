@@ -106,6 +106,8 @@ interface FollowUpPageProps {
   scope?: 'own' | 'all'
   title?: string
   subtitle?: string
+  // BDM screens are strictly view-only: no add follow-up, no mark-done write.
+  readOnly?: boolean
 }
 
 export default function FollowUpPage({
@@ -114,6 +116,7 @@ export default function FollowUpPage({
   scope = 'own',
   title = 'Follow-up Reminders',
   subtitle = 'Track and manage all your scheduled follow-ups',
+  readOnly = false,
 }: FollowUpPageProps) {
   const [filter,        setFilter]        = useState<Filter>('Today')
   const [doneIds,       setDoneIds]       = useState<Set<string>>(new Set())
@@ -164,6 +167,7 @@ export default function FollowUpPage({
   }
 
   const markDone = useCallback(async (row: DisplayRow) => {
+    if (readOnly) return
     setDoneIds(prev => new Set(prev).add(row.id))
     onMarkDone?.(row.id)
     try {
@@ -176,10 +180,10 @@ export default function FollowUpPage({
       setDoneIds(prev => { const s = new Set(prev); s.delete(row.id); return s })
       onUndoMarkDone?.(row.id)
     }
-  }, [onMarkDone, onUndoMarkDone])
+  }, [onMarkDone, onUndoMarkDone, readOnly])
 
   const handleSave = async () => {
-    if (!formData.note) return
+    if (readOnly || !formData.note) return
     setSaving(true)
     try {
       await addFollowUp('', formData)
@@ -210,7 +214,7 @@ export default function FollowUpPage({
             <h1 className="text-[17px] font-bold text-gray-800 tracking-tight">{title}</h1>
             <p className="text-[12px] text-gray-400 font-medium mt-0.5">{subtitle}</p>
           </div>
-          {scope !== 'all' && (
+          {!readOnly && scope !== 'all' && (
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-1.5 h-9 px-3.5 bg-[#1a56db] text-white font-bold text-[13px] rounded-xl hover:bg-[#1341a8] transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
@@ -365,14 +369,16 @@ export default function FollowUpPage({
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                         </a>
-                        <button
-                          onClick={() => markDone(item)}
-                          disabled={doneIds.has(item.id)}
-                          className="w-7 h-7 rounded-xl bg-[#def7ec] text-[#0e9f6e] flex items-center justify-center hover:bg-[#0e9f6e]/20 transition-colors disabled:cursor-default disabled:hover:bg-[#def7ec]"
-                          title="Mark Done"
-                        >
-                          <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-                        </button>
+                        {!readOnly && (
+                          <button
+                            onClick={() => markDone(item)}
+                            disabled={doneIds.has(item.id)}
+                            className="w-7 h-7 rounded-xl bg-[#def7ec] text-[#0e9f6e] flex items-center justify-center hover:bg-[#0e9f6e]/20 transition-colors disabled:cursor-default disabled:hover:bg-[#def7ec]"
+                            title="Mark Done"
+                          >
+                            <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+                          </button>
+                        )}
                         {doneIds.has(item.id) && (
                           <span className="text-[11px] font-bold text-[#0e9f6e]">Done</span>
                         )}
@@ -480,7 +486,7 @@ export default function FollowUpPage({
           />
           <div className={`relative w-full max-w-4xl h-full bg-[#f8fafc] shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${drawerVisible ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="p-4 md:p-6">
-              <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} />
+              <LeadDetail id={drawerLeadId} onBack={closeLeadDrawer} readOnly={readOnly} />
             </div>
           </div>
         </div>

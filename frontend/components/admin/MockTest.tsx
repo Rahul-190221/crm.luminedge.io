@@ -92,7 +92,7 @@ function transformSchedules(data: LuminedgeSchedule[]): MockTestSchedule[] {
 const filterSelectCls = "h-9 px-3 border border-[#00000F]/[0.10] rounded-xl text-[12.5px] font-medium text-[#00000F]/70 bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 outline-none transition-all cursor-pointer"
 const editInputCls = "flex-1 h-9 px-3 border border-[#00000F]/10 rounded-xl text-[13px] font-medium text-[#00000F] bg-white focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 outline-none transition-all"
 
-export default function MockTest({ user }: { user?: any }) {
+export default function MockTest({ user, readOnly = false }: { user?: any; readOnly?: boolean }) {
   const isAdmin = user?.role === 'admin'
   const [schedules, setSchedules] = useState<MockTestSchedule[]>([])
   const [packages, setPackages] = useState<MockTestPackage[]>(initialMockTestPackages)
@@ -119,7 +119,7 @@ export default function MockTest({ user }: { user?: any }) {
           ...pkg,
           ...(styleMap[pkg.testType] || { borderColor: 'border-l-blue-500', bgColor: 'bg-blue-600', textColor: 'text-white' })
         })))
-      } else {
+      } else if (!readOnly) {
         await seedMockTestPackages()
         fetchPackages()
       }
